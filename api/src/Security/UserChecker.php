@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Security;
+
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
+
+class UserChecker implements UserCheckerInterface
+{
+    public function checkPreAuth(UserInterface $user): void
+    {
+        if (!$user instanceof \App\Entity\User) {
+            return;
+        }
+
+        if (!$user->isActive()) {
+            throw new CustomUserMessageAccountStatusException('Twoje konto zostało dezaktywowane.');
+        }
+    }
+
+    public function checkPostAuth(UserInterface $user): void
+    {
+        // opcjonalne dodatkowe sprawdzenia
+    }
+}
