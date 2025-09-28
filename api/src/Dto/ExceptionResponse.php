@@ -20,9 +20,11 @@ class ExceptionResponse
         return $this->message;
     }
 
-    public function setMessage(?string $message): void
+    public function setMessage(?string $message): static
     {
         $this->message = $message;
+
+        return $this;
     }
 
     /**
@@ -36,9 +38,11 @@ class ExceptionResponse
     /**
      * @param array<mixed>|null $errors
      */
-    public function setErrors(?array $errors): void
+    public function setErrors(?array $errors): static
     {
         $this->errors = $errors;
+
+        return $this;
     }
 
     /**

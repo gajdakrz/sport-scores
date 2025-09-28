@@ -10,36 +10,35 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250926190901 extends AbstractMigration
+final class Version20250928203844 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Add User Table';
+        return 'Add sport table';
     }
 
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('
-            CREATE TABLE "user" (
+            CREATE TABLE sport (
                 id SERIAL NOT NULL,
+                name VARCHAR(255) NOT NULL,
                 is_active BOOLEAN DEFAULT true NOT NULL,
-                email VARCHAR(180) NOT NULL,
-                roles JSON NOT NULL,
-                password VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                created_user_id INT DEFAULT 1 NOT NULL,
                 modified_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                PRIMARY KEY(id)
+                modified_user_id INT DEFAULT 1 NOT NULL, PRIMARY KEY(id)
             )'
         );
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL ON "user" (email)');
-        $this->addSql('COMMENT ON COLUMN "user".created_at IS \'(DC2Type:datetime_immutable)\'');
-        $this->addSql('COMMENT ON COLUMN "user".modified_at IS \'(DC2Type:datetime_immutable)\'');
+        $this->addSql('COMMENT ON COLUMN sport.created_at IS \'(DC2Type:datetime_immutable)\'');
+        $this->addSql('COMMENT ON COLUMN sport.modified_at IS \'(DC2Type:datetime_immutable)\'');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('DROP TABLE "user"');
+
+        $this->addSql('DROP TABLE sport');
     }
 }

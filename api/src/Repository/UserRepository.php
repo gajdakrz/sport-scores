@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -45,5 +46,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getOneOrNullResult();
 
         return $user;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function isFirstAdmin(): bool
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = 'SELECT 1 FROM "user" u WHERE u.id = :id AND u.roles::jsonb @> :role LIMIT 1';
+        $stmt = $conn->prepare($sql);
+
+        $result = $stmt->executeQuery([
+            'id' => 1,
+            'role' => json_encode(['ROLE_ADMIN']),
+        ]);
+
+        return (bool)$result->fetchOne();
     }
 }
