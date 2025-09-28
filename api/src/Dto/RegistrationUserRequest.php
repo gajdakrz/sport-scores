@@ -8,16 +8,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class RegistrationUserRequest
 {
-    #[Assert\NotBlank(message: "Podaj email.")]
+    #[Assert\NotBlank(message: "Insert email.")]
     #[Assert\Email]
     public string $email;
 
-    #[Assert\NotBlank(message: "Podaj hasło")]
+    #[Assert\NotBlank(message: "Insert password.")]
     #[Assert\Length(
         min: 6,
-        minMessage: "Hasło musi mieć co najmniej 6 znaków.",
         max: 4096,
-        maxMessage: "Hasło musi mieć co najwyżej 4096 znaków."
+        minMessage: "Password must have min 6 characters.",
+        maxMessage: "Password must have max 4096 characters."
     )]
     public string $plainPassword;
 }

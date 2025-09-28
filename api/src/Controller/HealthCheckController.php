@@ -7,33 +7,30 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
-/**
- *  Health check
- *
- *  @OA\Tag(name="HealthCheck")
-*/
-#[Route('/api/actuator/', name: 'actuator_')]
+#[OA\Tag('actuator')]
 class HealthCheckController extends AbstractController
 {
-    /**
-     * @return JsonResponse
-     *
-     * @OA\Get(
-     *     summary="Get health status",
-     *     operationId="getHealthStatus",
-     * )
-     *
-     * @OA\Response(
-     *     response=200,
-     *     description="Successful operation",
-     *     @OA\JsonContent(
-     *          @OA\Property(type="string", property="status", example="OK")
-     *     )
-     * )
-    */
-    #[Route('health', name: 'health', methods: 'GET')]
+    #[OA\Get(
+        operationId: "getHealthStatus",
+        summary: "Get health status",
+    )]
+    #[OA\Response(
+        response: 200,
+        description: "Successful operation",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(
+                    property: "status",
+                    type: "string",
+                    example: "OK"
+                )
+            ],
+            type: "object"
+        )
+    )]
+    #[Route('/api/v1/actuator/healthcheck', name: 'healthcheck', methods: 'GET')]
     public function health(): JsonResponse
     {
         return $this->json(['status' => JsonResponse::$statusTexts[JsonResponse::HTTP_OK]]);
