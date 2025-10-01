@@ -1,17 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Entity;
 
-use App\Repository\SportRepository;
+use App\Enum\Gender;
+use App\Repository\CompetitionRepository;
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SportRepository::class)]
-class Sport
+#[ORM\Entity(repositoryClass: CompetitionRepository::class)]
+class Competition
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -19,10 +16,21 @@ class Sport
     private int $id;
 
     #[ORM\Column(length: 255)]
-    private string $name;
+    private ?string $name = null;
 
     #[ORM\Column(type: 'boolean', options: ['default' => 1])]
     private bool $isActive = true;
+
+    #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'competitions')]
+    #[ORM\JoinColumn(
+        name: 'sport_id',
+        referencedColumnName: 'id',
+        nullable: false
+    )]
+    private Sport $sport;
+
+    #[ORM\Column(enumType: Gender::class)]
+    private Gender $gender;
 
     #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private DateTimeImmutable $createdAt;
@@ -36,17 +44,16 @@ class Sport
     #[ORM\Column(type: 'integer', options: ['default' => 1])]
     private int $modifiedUserId = 1;
 
-    /**
-     * @var Collection<int, Competition>
-     */
-    #[ORM\OneToMany(targetEntity: Competition::class, mappedBy: 'sport', orphanRemoval: true)]
-    private Collection $competitions;
-
-    public function __construct()
+    public function getSport(): Sport
     {
-        $this->setCreatedAt(new DateTimeImmutable());
-        $this->setModifiedAt(new DateTimeImmutable());
-        $this->competitions = new ArrayCollection();
+        return $this->sport;
+    }
+
+    public function setSport(Sport $sport): static
+    {
+        $this->sport = $sport;
+
+        return $this;
     }
 
     public function getId(): int
@@ -61,7 +68,7 @@ class Sport
         return $this;
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }
@@ -81,6 +88,18 @@ class Sport
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getGender(): Gender
+    {
+        return $this->gender;
+    }
+
+    public function setGender(Gender $gender): static
+    {
+        $this->gender = $gender;
 
         return $this;
     }
@@ -129,32 +148,6 @@ class Sport
     public function setModifiedUserId(int $modifiedUserId): static
     {
         $this->modifiedUserId = $modifiedUserId;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Competition>
-     */
-    public function getCompetitions(): Collection
-    {
-        return $this->competitions;
-    }
-
-    public function addCompetition(Competition $competition): static
-    {
-        if (!$this->competitions->contains($competition)) {
-            $this->competitions->add($competition);
-            $competition->setSport($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCompetition(Competition $competition): static
-    {
-        $this->competitions->removeElement($competition);
-        // orphanRemoval = true -> Competition zostanie usunięty przy flush
 
         return $this;
     }
