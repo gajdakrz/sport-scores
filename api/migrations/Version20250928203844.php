@@ -23,22 +23,28 @@ final class Version20250928203844 extends AbstractMigration
         $this->addSql('
             CREATE TABLE sport (
                 id SERIAL NOT NULL,
+                created_user_id INT NOT NULL,
+                modified_user_id INT NOT NULL,
                 name VARCHAR(255) NOT NULL,
                 is_active BOOLEAN DEFAULT true NOT NULL,
                 created_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                created_user_id INT DEFAULT 1 NOT NULL,
                 modified_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                modified_user_id INT DEFAULT 1 NOT NULL, PRIMARY KEY(id)
+                PRIMARY KEY(id)
             )'
         );
+        $this->addSql('CREATE INDEX IDX_1A85EFD2E104C1D3 ON sport (created_user_id)');
+        $this->addSql('CREATE INDEX IDX_1A85EFD2BAA24139 ON sport (modified_user_id)');
         $this->addSql('COMMENT ON COLUMN sport.created_at IS \'(DC2Type:datetime_immutable)\'');
         $this->addSql('COMMENT ON COLUMN sport.modified_at IS \'(DC2Type:datetime_immutable)\'');
+        $this->addSql('ALTER TABLE sport ADD CONSTRAINT FK_1A85EFD2E104C1D3 FOREIGN KEY (created_user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE sport ADD CONSTRAINT FK_1A85EFD2BAA24139 FOREIGN KEY (modified_user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-
+        $this->addSql('ALTER TABLE sport DROP CONSTRAINT FK_1A85EFD2E104C1D3');
+        $this->addSql('ALTER TABLE sport DROP CONSTRAINT FK_1A85EFD2BAA24139');
         $this->addSql('DROP TABLE sport');
     }
 }

@@ -1,18 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Entity;
 
-use App\Repository\SportRepository;
+use App\Repository\EventRepository;
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SportRepository::class)]
-class Sport
+#[ORM\Entity(repositoryClass: EventRepository::class)]
+class Event
 {
+    private const string DATE_FORMAT = 'Y-m-d';
     private DateTimeImmutable $dateTimeNow;
 
     #[ORM\Id]
@@ -25,6 +22,17 @@ class Sport
 
     #[ORM\Column(type: 'boolean', options: ['default' => 1])]
     private bool $isActive = true;
+
+    #[ORM\ManyToOne(targetEntity: Competition::class, inversedBy: 'events')]
+    #[ORM\JoinColumn(
+        name: 'competition_id',
+        referencedColumnName: 'id',
+        nullable: false
+    )]
+    private Competition $competition;
+
+    #[ORM\Column(length: 10)]
+    private string $startDate;
 
     #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private DateTimeImmutable $createdAt;
@@ -48,18 +56,12 @@ class Sport
     )]
     private User $modifiedBy;
 
-    /**
-     * @var Collection<int, Competition>
-     */
-    #[ORM\OneToMany(targetEntity: Competition::class, mappedBy: 'sport', orphanRemoval: true)]
-    private Collection $competitions;
-
     public function __construct()
     {
         $this->dateTimeNow = new DateTimeImmutable();
         $this->setCreatedAt($this->dateTimeNow);
         $this->setModifiedAt($this->dateTimeNow);
-        $this->competitions = new ArrayCollection();
+        $this->startDate = $this->dateTimeNow->format(self::DATE_FORMAT);
     }
 
     public function getId(): int
@@ -94,6 +96,30 @@ class Sport
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getCompetition(): Competition
+    {
+        return $this->competition;
+    }
+
+    public function setCompetition(Competition $competition): static
+    {
+        $this->competition = $competition;
+
+        return $this;
+    }
+
+    public function getStartDate(): string
+    {
+        return $this->startDate;
+    }
+
+    public function setStartDate(string $startDate): static
+    {
+        $this->startDate = $startDate;
 
         return $this;
     }
@@ -141,32 +167,6 @@ class Sport
     public function setModifiedBy(User $user): static
     {
         $this->modifiedBy = $user;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Competition>
-     */
-    public function getCompetitions(): Collection
-    {
-        return $this->competitions;
-    }
-
-    public function addCompetition(Competition $competition): static
-    {
-        if (!$this->competitions->contains($competition)) {
-            $this->competitions->add($competition);
-            $competition->setSport($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCompetition(Competition $competition): static
-    {
-        $this->competitions->removeElement($competition);
-        // orphanRemoval = true -> Competition zostanie usunięty przy flush
-
         return $this;
     }
 }

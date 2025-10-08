@@ -5,18 +5,22 @@ namespace App\Entity;
 use App\Enum\Gender;
 use App\Repository\CompetitionRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CompetitionRepository::class)]
 class Competition
 {
+    private DateTimeImmutable $dateTimeNow;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private int $id;
 
     #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    private string $name;
 
     #[ORM\Column(type: 'boolean', options: ['default' => 1])]
     private bool $isActive = true;
@@ -35,14 +39,38 @@ class Competition
     #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private DateTimeImmutable $createdAt;
 
-    #[ORM\Column(type: 'integer', options: ['default' => 1])]
-    private int $createdUserId = 1;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(
+        name: 'created_user_id',
+        referencedColumnName: 'id',
+        nullable: false
+    )]
+    private User $createdBy;
 
     #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private DateTimeImmutable $modifiedAt;
 
-    #[ORM\Column(type: 'integer', options: ['default' => 1])]
-    private int $modifiedUserId = 1;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(
+        name: 'modified_user_id',
+        referencedColumnName: 'id',
+        nullable: false
+    )]
+    private User $modifiedBy;
+
+    /**
+     * @var Collection<int, Event>
+     */
+    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'competition', orphanRemoval: true)]
+    private Collection $events;
+
+    public function __construct()
+    {
+        $this->dateTimeNow = new DateTimeImmutable();
+        $this->setCreatedAt($this->dateTimeNow);
+        $this->setModifiedAt($this->dateTimeNow);
+        $this->events = new ArrayCollection();
+    }
 
     public function getSport(): Sport
     {
@@ -68,7 +96,7 @@ class Competition
         return $this;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -116,15 +144,14 @@ class Competition
         return $this;
     }
 
-    public function getCreatedUserId(): int
+    public function getCreatedBy(): User
     {
-        return $this->createdUserId;
+        return $this->createdBy;
     }
 
-    public function setCreatedUserId(int $createdUserId): static
+    public function setCreatedBy(User $user): static
     {
-        $this->createdUserId = $createdUserId;
-
+        $this->createdBy = $user;
         return $this;
     }
 
@@ -140,14 +167,38 @@ class Competition
         return $this;
     }
 
-    public function getModifiedUserId(): int
+    public function getModifiedBy(): User
     {
-        return $this->modifiedUserId;
+        return $this->modifiedBy;
     }
 
-    public function setModifiedUserId(int $modifiedUserId): static
+    public function setModifiedBy(User $user): static
     {
-        $this->modifiedUserId = $modifiedUserId;
+        $this->modifiedBy = $user;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    public function getEvents(): Collection
+    {
+        return $this->events;
+    }
+
+    public function addEvent(Event $event): static
+    {
+        if (!$this->events->contains($event)) {
+            $this->events->add($event);
+            $event->setCompetition($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEvent(Event $event): static
+    {
+        $this->events->removeElement($event);
 
         return $this;
     }
