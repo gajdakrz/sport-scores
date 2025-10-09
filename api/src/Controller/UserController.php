@@ -37,7 +37,7 @@ class UserController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $registrationService->register($dto);
             $this->addFlash('success', 'Konto zostało utworzone!');
-            return $this->redirectToRoute('app_login');
+//            return $this->redirectToRoute('app_login');
         }
 
         return $this->render('registration/register.html.twig', [

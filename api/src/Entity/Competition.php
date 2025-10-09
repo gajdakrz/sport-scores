@@ -4,16 +4,13 @@ namespace App\Entity;
 
 use App\Enum\Gender;
 use App\Repository\CompetitionRepository;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CompetitionRepository::class)]
-class Competition
+class Competition extends AbstractAuditableEntity
 {
-    private DateTimeImmutable $dateTimeNow;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -21,9 +18,6 @@ class Competition
 
     #[ORM\Column(length: 255)]
     private string $name;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => 1])]
-    private bool $isActive = true;
 
     #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'competitions')]
     #[ORM\JoinColumn(
@@ -36,28 +30,6 @@ class Competition
     #[ORM\Column(enumType: Gender::class)]
     private Gender $gender;
 
-    #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private DateTimeImmutable $createdAt;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(
-        name: 'created_user_id',
-        referencedColumnName: 'id',
-        nullable: false
-    )]
-    private User $createdBy;
-
-    #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private DateTimeImmutable $modifiedAt;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(
-        name: 'modified_user_id',
-        referencedColumnName: 'id',
-        nullable: false
-    )]
-    private User $modifiedBy;
-
     /**
      * @var Collection<int, Event>
      */
@@ -66,9 +38,7 @@ class Competition
 
     public function __construct()
     {
-        $this->dateTimeNow = new DateTimeImmutable();
-        $this->setCreatedAt($this->dateTimeNow);
-        $this->setModifiedAt($this->dateTimeNow);
+        parent::__construct();
         $this->events = new ArrayCollection();
     }
 
@@ -129,52 +99,6 @@ class Competition
     {
         $this->gender = $gender;
 
-        return $this;
-    }
-
-    public function getCreatedAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): User
-    {
-        return $this->createdBy;
-    }
-
-    public function setCreatedBy(User $user): static
-    {
-        $this->createdBy = $user;
-        return $this;
-    }
-
-    public function getModifiedAt(): DateTimeImmutable
-    {
-        return $this->modifiedAt;
-    }
-
-    public function setModifiedAt(DateTimeImmutable $modifiedAt): static
-    {
-        $this->modifiedAt = $modifiedAt;
-
-        return $this;
-    }
-
-    public function getModifiedBy(): User
-    {
-        return $this->modifiedBy;
-    }
-
-    public function setModifiedBy(User $user): static
-    {
-        $this->modifiedBy = $user;
         return $this;
     }
 

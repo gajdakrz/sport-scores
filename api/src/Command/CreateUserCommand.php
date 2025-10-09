@@ -26,7 +26,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class CreateUserCommand extends Command
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
         private readonly ValidatorInterface $validator,
         private readonly RegistrationUserService $registrationService
     ) {
@@ -55,8 +54,6 @@ class CreateUserCommand extends Command
          * @var string $role
          */
         $role = $input->getArgument('role') ?? '';
-        $errors = [];
-        $roles = [];
         $io = new SymfonyStyle($input, $output);
         $dto = new RegistrationUserRequest();
         $dto
@@ -70,12 +67,6 @@ class CreateUserCommand extends Command
             foreach ($violations as $violation) {
                 $io->error($violation->getPropertyPath() . ': ' . $violation->getMessage());
             }
-
-            return Command::FAILURE;
-        }
-
-        if ($role === 'ROLE_USER' && $this->userRepository->isFirstAdmin() === false) {
-            $io->error('Admin should be registered first');
 
             return Command::FAILURE;
         }

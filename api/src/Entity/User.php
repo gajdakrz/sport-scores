@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use LogicException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -16,17 +14,12 @@ use DateTimeImmutable;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User extends AbstractEntity implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    private DateTimeImmutable $dateTimeNow;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private int $id;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => 1])]
-    private bool $isActive = true;
 
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     private string $email = '';
@@ -52,19 +45,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 //        }
 //    }
 
-    #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private DateTimeImmutable $createdAt;
-
-    #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private DateTimeImmutable $modifiedAt;
-
-    public function __construct()
-    {
-        $this->dateTimeNow = new DateTimeImmutable();
-        $this->setCreatedAt($this->dateTimeNow);
-        $this->setModifiedAt($this->dateTimeNow);
-    }
-
     public function getId(): int
     {
         return $this->id;
@@ -73,18 +53,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setId(int $id): static
     {
         $this->id = $id;
-
-        return $this;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
 
         return $this;
     }
@@ -147,30 +115,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getModifiedAt(): DateTimeImmutable
-    {
-        return $this->modifiedAt;
-    }
-
-    public function setModifiedAt(DateTimeImmutable $modifiedAt): static
-    {
-        $this->modifiedAt = $modifiedAt;
 
         return $this;
     }

@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\SportRepository;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SportRepository::class)]
-class Sport
+class Sport extends AbstractAuditableEntity
 {
-    private DateTimeImmutable $dateTimeNow;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -22,31 +19,6 @@ class Sport
 
     #[ORM\Column(length: 255)]
     private string $name;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => 1])]
-    private bool $isActive = true;
-
-    #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private DateTimeImmutable $createdAt;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(
-        name: 'created_user_id',
-        referencedColumnName: 'id',
-        nullable: false
-    )]
-    private User $createdBy;
-
-    #[ORM\Column(type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private DateTimeImmutable $modifiedAt;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(
-        name: 'modified_user_id',
-        referencedColumnName: 'id',
-        nullable: false
-    )]
-    private User $modifiedBy;
 
     /**
      * @var Collection<int, Competition>
@@ -56,9 +28,7 @@ class Sport
 
     public function __construct()
     {
-        $this->dateTimeNow = new DateTimeImmutable();
-        $this->setCreatedAt($this->dateTimeNow);
-        $this->setModifiedAt($this->dateTimeNow);
+        parent::__construct();
         $this->competitions = new ArrayCollection();
     }
 
@@ -84,72 +54,6 @@ class Sport
         $this->name = $name;
 
         return $this;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): User
-    {
-        return $this->createdBy;
-    }
-
-    public function setCreatedBy(User $user): static
-    {
-        $this->createdBy = $user;
-        return $this;
-    }
-
-    public function getModifiedAt(): DateTimeImmutable
-    {
-        return $this->modifiedAt;
-    }
-
-    public function setModifiedAt(DateTimeImmutable $modifiedAt): static
-    {
-        $this->modifiedAt = $modifiedAt;
-
-        return $this;
-    }
-
-    public function getModifiedBy(): User
-    {
-        return $this->modifiedBy;
-    }
-
-    public function setModifiedBy(User $user): static
-    {
-        $this->modifiedBy = $user;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Competition>
-     */
-    public function getCompetitions(): Collection
-    {
-        return $this->competitions;
     }
 
     public function addCompetition(Competition $competition): static

@@ -26,17 +26,20 @@ class RegistrationUserService
             throw new HttpConflictException('Email already exists.');
         }
 
-        if ($this->userRepository->isFirstAdmin() === false) {
+        $this->userRepository->isFirstAdmin();
+
+        if ($dto->getRole() === 'ROLE_USER' && $this->userRepository->isFirstAdmin() === false) {
             throw new HttpConflictException('Admin should be registered first');
         }
 
+        $roles = [];
+        $roles[] = $dto->getRole();
         $user = new User();
         $user->setEmail($dto->email);
 
-        $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->plainPassword);
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->getPlainPassword());
         $user->setPassword($hashedPassword);
-
-        $user->setRoles(['ROLE_USER']);
+        $user->setRoles($roles);
 
         $this->em->persist($user);
         $this->em->flush();
