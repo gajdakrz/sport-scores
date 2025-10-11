@@ -14,11 +14,11 @@ class Event extends AbstractAuditableEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private int $id;
+    #[ORM\Column]
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private string $name;
+    private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Competition::class, inversedBy: 'events')]
     #[ORM\JoinColumn(
@@ -26,7 +26,7 @@ class Event extends AbstractAuditableEntity
         referencedColumnName: 'id',
         nullable: false
     )]
-    private Competition $competition;
+    private ?Competition $competition = null;
 
     #[ORM\Column(length: 10)]
     private string $startDate;
@@ -40,10 +40,11 @@ class Event extends AbstractAuditableEntity
     public function __construct()
     {
         parent::__construct();
+        $this->startDate = $this->now->format(self::DATE_FORMAT);
         $this->games = new ArrayCollection();
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -55,7 +56,7 @@ class Event extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }
@@ -67,7 +68,7 @@ class Event extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getCompetition(): Competition
+    public function getCompetition(): ?Competition
     {
         return $this->competition;
     }

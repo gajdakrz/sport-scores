@@ -14,7 +14,7 @@ final class Version20251009220933 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Add game table';
     }
 
     public function up(Schema $schema): void

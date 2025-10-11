@@ -15,10 +15,10 @@ class Sport extends AbstractAuditableEntity
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private string $name;
+    private ?string $name = null;
 
     /**
      * @var Collection<int, Competition>
@@ -32,7 +32,7 @@ class Sport extends AbstractAuditableEntity
         $this->competitions = new ArrayCollection();
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -44,7 +44,7 @@ class Sport extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }

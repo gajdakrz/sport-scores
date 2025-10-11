@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\GameRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
@@ -12,8 +14,8 @@ class Game Extends AbstractAuditableEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private int $id;
+    #[ORM\Column]
+    private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $name = null;
@@ -24,9 +26,21 @@ class Game Extends AbstractAuditableEntity
         referencedColumnName: 'id',
         nullable: false
     )]
-    private Event $event;
+    private ?Event $event = null;
 
-    public function getId(): int
+    /**
+     * @var Collection<int, GameResult>
+     */
+    #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'game', orphanRemoval: true)]
+    private Collection $gameResults;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->gameResults = new ArrayCollection();
+    }
+
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -50,7 +64,7 @@ class Game Extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getEvent(): Event
+    public function getEvent(): ?Event
     {
         return $this->event;
     }
@@ -58,6 +72,36 @@ class Game Extends AbstractAuditableEntity
     public function setEvent(Event $event): static
     {
         $this->event = $event;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, GameResult>
+     */
+    public function getGameResults(): Collection
+    {
+        return $this->gameResults;
+    }
+
+    public function addGameResult(GameResult $gameResult): static
+    {
+        if (!$this->gameResults->contains($gameResult)) {
+            $this->gameResults->add($gameResult);
+            $gameResult->setGame($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGameResult(GameResult $gameResult): static
+    {
+        if ($this->gameResults->removeElement($gameResult)) {
+            // set the owning side to null (unless already changed)
+            if ($gameResult->getGame() === $this) {
+                $gameResult->setGame(null);
+            }
+        }
 
         return $this;
     }

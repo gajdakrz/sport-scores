@@ -18,8 +18,8 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private int $id;
+    #[ORM\Column]
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     private string $email = '';
@@ -45,7 +45,7 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
 //        }
 //    }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

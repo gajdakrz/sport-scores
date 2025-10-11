@@ -16,7 +16,7 @@ abstract class AbstractAuditableEntity extends AbstractEntity
         referencedColumnName: 'id',
         nullable: false
     )]
-    protected User $createdBy;
+    protected ?User $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(
@@ -24,9 +24,9 @@ abstract class AbstractAuditableEntity extends AbstractEntity
         referencedColumnName: 'id',
         nullable: false
     )]
-    protected User $modifiedBy;
+    protected ?User $modifiedBy = null;
 
-    public function getCreatedBy(): User
+    public function getCreatedBy(): ?User
     {
         return $this->createdBy;
     }
@@ -38,7 +38,7 @@ abstract class AbstractAuditableEntity extends AbstractEntity
         return $this;
     }
 
-    public function getModifiedBy(): User
+    public function getModifiedBy(): ?User
     {
         return $this->modifiedBy;
     }

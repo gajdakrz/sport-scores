@@ -11,6 +11,7 @@ use DateTimeImmutable;
 abstract class AbstractEntity
 {
     protected const string DATE_FORMAT = 'Y-m-d';
+    protected DateTimeImmutable $now;
 
     #[ORM\Column(type: 'boolean', options: ['default' => 1])]
     protected bool $isActive = true;
@@ -23,8 +24,8 @@ abstract class AbstractEntity
 
     public function __construct()
     {
-        $now = new DateTimeImmutable();
-        $this->createdAt = $this->modifiedAt = $now;
+        $this->now = new DateTimeImmutable();
+        $this->createdAt = $this->modifiedAt = $this->now;
     }
 
     public function isActive(): bool
