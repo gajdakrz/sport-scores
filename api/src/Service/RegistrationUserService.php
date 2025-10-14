@@ -18,7 +18,8 @@ class RegistrationUserService
         private readonly EntityManagerInterface $em,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly UserRepository $userRepository,
-    ) {}
+    ) {
+    }
 
     public function register(RegistrationUserRequest $dto): User
     {

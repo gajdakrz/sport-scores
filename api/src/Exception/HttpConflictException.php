@@ -14,4 +14,3 @@ class HttpConflictException extends HttpException
         parent::__construct(Response::HTTP_CONFLICT, $message);
     }
 }
-

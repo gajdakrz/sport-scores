@@ -25,9 +25,10 @@ class UserController extends AbstractController
     public function __construct(
         private readonly SerializerInterface $serializer,
         private readonly ValidatorInterface $validator
-    ) {}
+    ) {
+    }
 
-    #[Route('/register', name: 'register', methods: ['GET','POST'])]
+    #[Route('/register', name: 'app_register', methods: ['GET','POST'])]
     public function register(Request $request, RegistrationUserService $registrationService): Response
     {
         $dto = new RegistrationUserRequest();
@@ -37,7 +38,7 @@ class UserController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $registrationService->register($dto);
             $this->addFlash('success', 'Konto zostało utworzone!');
-//            return $this->redirectToRoute('app_login');
+            return $this->redirectToRoute('app_login');
         }
 
         return $this->render('registration/register.html.twig', [

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enum;
 
-enum TeamType: string {
+enum TeamType: string
+{
     case NATIONAL = 'national';
     case CLUB = 'club';
     case ACADEMIC = 'academic';

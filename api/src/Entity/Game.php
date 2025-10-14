@@ -10,7 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
-class Game Extends AbstractAuditableEntity
+class Game extends AbstractAuditableEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
