@@ -97,7 +97,7 @@ class UserController extends AbstractController
             ]
         )
     )]
-    #[Route('/api/v1/register', name: 'app_register_submit', methods: 'POST')]
+    #[Route('/api/v1/user', name: 'app_register_submit', methods: 'POST')]
     public function submit(
         Request $request,
         RegistrationUserService $registrationService

@@ -16,28 +16,22 @@ class SportRepository extends ServiceEntityRepository
         parent::__construct($registry, Sport::class);
     }
 
-    //    /**
-    //     * @return Sport[] Returns an array of Sport objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * @param bool $isActive
+     * @return Sport[]
+     */
+    public function findIsActive(bool $isActive): array
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->andWhere('s.isActive = :isActive')
+            ->setParameter('isActive', $isActive)
+            ->orderBy('s.createdAt', 'DESC')
+            ->setMaxResults(10)
+        ;
 
-    //    public function findOneBySomeField($value): ?Sport
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        /** @var Sport[] $result */
+        $result = $qb->getQuery()->getResult() ?? [];
+
+        return $result;
+    }
 }

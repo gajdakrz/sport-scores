@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Countries{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Countries</h1>
+            <button type="button" class="btn btn-primary" id="newCountryBtn" data-url="{{ path('country_new') }}">
+                Create New
+            </button>
+        </div>
+
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Created At</th>
+                <th>Modified At</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for country in countries %}
+                <tr>
+                    <td>{{ country.id }}</td>
+                    <td>{{ country.name }}</td>
+                    <td>{{ country.createdAt|date(DATETIME_FORMAT) }}</td>
+                    <td>{{ country.modifiedAt|date(DATETIME_FORMAT) }}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('country_edit', {'id': country.id}) }}">
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-delete-url="{{ path('country_delete', {'id': country.id}) }}"
+                            data-item-name="{{ country.name }}"
+                            data-token="{{ csrf_token('delete' ~ country.id) }}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted">No countries found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# modal partial #}
+    <div id="countryModalContainer"></div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('country/index.js') }}"></script>
+{% endblock %}

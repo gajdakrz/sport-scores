@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sports{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Sports</h1>
+            <button type="button" class="btn btn-primary" id="newSportBtn" data-url="{{ path('sport_new') }}">
+                Create New
+            </button>
+        </div>
+
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Created At</th>
+                <th>Modified At</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for sport in sports %}
+                <tr>
+                    <td>{{ sport.id }}</td>
+                    <td>{{ sport.name }}</td>
+                    <td>{{ sport.createdAt|date(DATETIME_FORMAT) }}</td>
+                    <td>{{ sport.modifiedAt|date(DATETIME_FORMAT) }}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('sport_edit', {'id': sport.id}) }}">
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-delete-url="{{ path('sport_delete', {'id': sport.id}) }}"
+                            data-item-name="{{ sport.name }}"
+                            data-token="{{ csrf_token('delete' ~ sport.id) }}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted">No sports found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# modal partial #}
+    <div id="sportModalContainer"></div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('sport/index.js') }}"></script>
+{% endblock %}

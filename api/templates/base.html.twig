@@ -10,10 +10,15 @@
 
     {% block stylesheets %}{% endblock %}
 </head>
-<body class="bg-light">
-<div class="container py-5">
-    {% block body %}{% endblock %}
-</div>
+<body class="bg-light" data-page="{{ app.request.attributes.get('_route') }}">
+    {% set DATETIME_FORMAT = 'Y-m-d H:i:s' %}
+    <div class="container py-5">
+        {% block body %}{% endblock %}
+    </div>
+    {% include '_modal_confirm.html.twig' %}
+    {% block javascripts %}
+        <script src="{{ asset('base.js') }}"></script>
+    {% endblock %}
 </body>
 </html>
 
