@@ -14,4 +14,9 @@ enum TeamType: string
     case AMATEUR = 'amateur';
     case DOUBLES = 'doubles';
     case MIXED_DOUBLES = 'mixed_doubles';
+
+    public static function label(TeamType $enum): string
+    {
+        return ucfirst(str_replace('_', ' ', strtolower($enum->name)));
+    }
 }

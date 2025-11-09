@@ -14,6 +14,22 @@ window.AppBase = {
             container.innerHTML = html;
             const modalEl = document.getElementById(modalId);
             currentModal = new bootstrap.Modal(modalEl);
+
+            // Remove focus BEFORE Bootstrap tries to hide the modal
+            modalEl.addEventListener('hide.bs.modal', function (e) {
+                // Blur any focused element within the modal
+                const focusedElement = modalEl.querySelector(':focus');
+                if (focusedElement) {
+                    focusedElement.blur();
+                }
+            });
+
+            // Clean up after modal is fully hidden
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                container.innerHTML = '';
+                currentModal = null;
+            }, { once: true });
+
             currentModal.show();
         }
 
@@ -51,6 +67,15 @@ window.AppBase = {
             const form = deleteModal.querySelector('#delete-form');
             form.action = deleteUrl;
             form.querySelector('#delete-token').value = token;
+        });
+
+        // Remove focus BEFORE Bootstrap tries to hide the modal
+        deleteModal.addEventListener('hide.bs.modal', function () {
+            // Blur any focused element within the modal
+            const focusedElement = deleteModal.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
         });
     }
 };
