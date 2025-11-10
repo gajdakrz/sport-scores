@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,22 +17,32 @@ class SportRepository extends ServiceEntityRepository
         parent::__construct($registry, Sport::class);
     }
 
+    public function createIsActiveQueryBuilder(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): QueryBuilder {
+        return $this->createQueryBuilder('s')
+            ->where('s.isActive = :isActive')
+            ->setParameter('isActive', $isActive)
+            ->orderBy('s.' . $orderBy, $direction);
+    }
+
     /**
      * @param bool $isActive
+     * @param string $orderBy
+     * @param string $direction
      * @return Sport[]
      */
-    public function findIsActive(bool $isActive): array
-    {
-        $qb = $this->createQueryBuilder('s')
-            ->andWhere('s.isActive = :isActive')
-            ->setParameter('isActive', $isActive)
-            ->orderBy('s.createdAt', 'DESC')
-            ->setMaxResults(10)
-        ;
+    public function findIsActiveSortedBy(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
 
-        /** @var Sport[] $result */
-        $result = $qb->getQuery()->getResult() ?? [];
-
-        return $result;
+        /** @var Sport[] */
+        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+            ->getQuery()
+            ->getResult();
     }
 }

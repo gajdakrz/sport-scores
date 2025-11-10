@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Game;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,28 +17,32 @@ class GameRepository extends ServiceEntityRepository
         parent::__construct($registry, Game::class);
     }
 
-    //    /**
-    //     * @return Game[] Returns an array of Game objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('g')
-    //            ->andWhere('g.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('g.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function createIsActiveQueryBuilder(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): QueryBuilder {
+        return $this->createQueryBuilder('g')
+            ->andWhere('g.isActive = :isActive')
+            ->setParameter('isActive', $isActive)
+            ->orderBy('g.' . $orderBy, $direction);
+    }
 
-    //    public function findOneBySomeField($value): ?Game
-    //    {
-    //        return $this->createQueryBuilder('g')
-    //            ->andWhere('g.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * @param bool $isActive
+     * @param string $orderBy
+     * @param string $direction
+     * @return Game[]
+     */
+    public function findIsActiveSortedBy(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
+
+        /** @var Game[] */
+        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Country;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,22 +17,32 @@ class CountryRepository extends ServiceEntityRepository
         parent::__construct($registry, Country::class);
     }
 
-    /**
-     * @param bool $isActive
-     * @return Country[]
-     */
-    public function findIsActive(bool $isActive): array
-    {
-        $qb = $this->createQueryBuilder('c')
+    public function createIsActiveQueryBuilder(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): QueryBuilder {
+        return $this->createQueryBuilder('c')
             ->andWhere('c.isActive = :isActive')
             ->setParameter('isActive', $isActive)
-            ->orderBy('c.createdAt', 'DESC')
-            ->setMaxResults(10)
-        ;
+            ->orderBy('c.' . $orderBy, $direction);
+    }
 
-        /** @var Country[] $result */
-        $result = $qb->getQuery()->getResult() ?? [];
+    /**
+     * @param bool $isActive
+     * @param string $orderBy
+     * @param string $direction
+     * @return Country[]
+     */
+    public function findIsActiveSortedBy(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
 
-        return $result;
+        /** @var Country[] */
+        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Event;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,28 +17,32 @@ class EventRepository extends ServiceEntityRepository
         parent::__construct($registry, Event::class);
     }
 
-//    /**
-//     * @return Event[] Returns an array of Event objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('e')
-//            ->andWhere('e.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('e.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function createIsActiveQueryBuilder(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): QueryBuilder {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.isActive = :isActive')
+            ->setParameter('isActive', $isActive)
+            ->orderBy('e.' . $orderBy, $direction);
+    }
 
-//    public function findOneBySomeField($value): ?Event
-//    {
-//        return $this->createQueryBuilder('e')
-//            ->andWhere('e.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * @param bool $isActive
+     * @param string $orderBy
+     * @param string $direction
+     * @return Event[]
+     */
+    public function findIsActiveSortedBy(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
+
+        /** @var Event[] */
+        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+            ->getQuery()
+            ->getResult();
+    }
 }

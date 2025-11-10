@@ -24,7 +24,7 @@ final class TeamController extends AbstractController
     public function index(TeamRepository $teamRepository): Response
     {
         return $this->render('team/index.html.twig', [
-            'teams' => $teamRepository->findIsActive(true),
+            'teams' => $teamRepository->findIsActiveSortedBy(),
         ]);
     }
 

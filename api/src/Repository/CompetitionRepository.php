@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Competition;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,28 +17,32 @@ class CompetitionRepository extends ServiceEntityRepository
         parent::__construct($registry, Competition::class);
     }
 
-    //    /**
-    //     * @return Competition[] Returns an array of Competition objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function createIsActiveQueryBuilder(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): QueryBuilder {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.isActive = :isActive')
+            ->setParameter('isActive', $isActive)
+            ->orderBy('c.' . $orderBy, $direction);
+    }
 
-    //    public function findOneBySomeField($value): ?Competition
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * @param bool $isActive
+     * @param string $orderBy
+     * @param string $direction
+     * @return Competition[]
+     */
+    public function findIsActiveSortedBy(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
+
+        /** @var Competition[] */
+        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -28,7 +28,7 @@ final class Version20251008134149 extends AbstractMigration
                 modified_user_id INT NOT NULL,
                 name VARCHAR(255) NOT NULL,
                 is_active BOOLEAN DEFAULT true NOT NULL,
-                start_date VARCHAR(10) NOT NULL,
+                start_date DATE NOT NULL,
                 created_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
                 modified_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
                 PRIMARY KEY(id)

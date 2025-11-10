@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Events{% endblock %}
+
+{% block body %}
+    {% set columnCount = 7 %}
+
+    <div class="container mt-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Events</h1>
+            <button type="button" class="btn btn-primary" id="newEventBtn" data-url="{{ path('event_new') }}">
+                Create New
+            </button>
+        </div>
+
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Competition</th>
+                <th>Start</th>
+                <th>Created At</th>
+                <th>Modified At</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for event in events %}
+                <tr>
+                    <td>{{ event.id }}</td>
+                    <td>{{ event.name }}</td>
+                    <td>{{ event.competition ? event.competition.name : '' }}</td>
+                    <td>{{ event.startDate|date(DATE_FORMAT) }}</td>
+                    <td>{{ event.createdAt|date(DATETIME_FORMAT) }}</td>
+                    <td>{{ event.modifiedAt|date(DATETIME_FORMAT) }}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('event_edit', {'id': event.id}) }}">
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-delete-url="{{ path('event_delete', {'id': event.id}) }}"
+                            data-item-name="{{ event.name }}"
+                            data-token="{{ csrf_token('delete' ~ event.id) }}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="{{ columnCount }}" class="text-center text-muted">No events found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# modal partial #}
+    <div id="eventModalContainer"></div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('event/index.js') }}"></script>
+{% endblock %}

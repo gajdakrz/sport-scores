@@ -24,7 +24,7 @@ final class CountryController extends AbstractController
     public function index(CountryRepository $countryRepository): Response
     {
         return $this->render('country/index.html.twig', [
-            'countries' => $countryRepository->findIsActive(true),
+            'countries' => $countryRepository->findIsActiveSortedBy(),
         ]);
     }
 

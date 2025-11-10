@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\EventRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,8 +29,8 @@ class Event extends AbstractAuditableEntity
     )]
     private ?Competition $competition = null;
 
-    #[ORM\Column(length: 10)]
-    private string $startDate;
+    #[ORM\Column(type: 'date_immutable')]
+    private DateTimeImmutable $startDate;
 
     /**
      * @var Collection<int, Game>
@@ -40,7 +41,7 @@ class Event extends AbstractAuditableEntity
     public function __construct()
     {
         parent::__construct();
-        $this->startDate = $this->now->format(self::DATE_FORMAT);
+        $this->startDate = $this->now;
         $this->games = new ArrayCollection();
     }
 
@@ -80,12 +81,12 @@ class Event extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getStartDate(): string
+    public function getStartDate(): DateTimeImmutable
     {
         return $this->startDate;
     }
 
-    public function setStartDate(string $startDate): static
+    public function setStartDate(DateTimeImmutable $startDate): static
     {
         $this->startDate = $startDate;
 

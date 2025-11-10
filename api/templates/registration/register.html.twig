@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Rejestracja{% endblock %}
+{% block title %}Registration Form{% endblock %}
 
 {% block body %}
     <h1 class="mb-4">Formularz rejestracji</h1>
@@ -19,7 +19,7 @@
         {{ form_errors(registrationForm.plainPassword) }}
     </div>
 
-    <button type="submit" class="btn btn-primary">Zarejestruj</button>
+    <button type="submit" class="btn btn-primary">Register</button>
 
     {{ form_end(registrationForm) }}
 {% endblock %}

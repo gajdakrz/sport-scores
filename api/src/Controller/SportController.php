@@ -24,7 +24,7 @@ final class SportController extends AbstractController
     public function index(SportRepository $sportRepository): Response
     {
         return $this->render('sport/index.html.twig', [
-            'sports' => $sportRepository->findIsActive(true),
+            'sports' => $sportRepository->findIsActiveSortedBy(),
         ]);
     }
 

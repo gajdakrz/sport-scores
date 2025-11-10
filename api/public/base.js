@@ -1,3 +1,4 @@
+/* global flatpickr */
 window.AppBase = {
     initModalFeature({ containerId, modalId, newBtnId, newUrl }) {
         const container = document.getElementById(containerId);
@@ -12,6 +13,16 @@ window.AppBase = {
             }
 
             container.innerHTML = html;
+
+            const flatpickrInputs = container.querySelectorAll('.flatpickr');
+            flatpickrInputs.forEach(input => {
+                flatpickr(input, {
+                    dateFormat: "Y-m-d",
+                    locale: "pl",
+                    defaultDate: "today"
+                });
+            });
+
             const modalEl = document.getElementById(modalId);
             currentModal = new bootstrap.Modal(modalEl);
 

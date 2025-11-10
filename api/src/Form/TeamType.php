@@ -7,6 +7,7 @@ namespace App\Form;
 use App\Entity\Country;
 use App\Entity\Team;
 use App\Enum\TeamType as TeamTypeEnum;
+use App\Repository\CountryRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -25,7 +26,7 @@ final class TeamType extends AbstractType
             ->add('teamType', EnumType::class, [
                 'label' => 'Team type',
                 'class' => TeamTypeEnum::class,
-                'choice_label' => fn(TeamTypeEnum $enum) => TeamTypeEnum::label($enum),
+                'choice_label' => fn(TeamTypeEnum $enum) => $enum->label(),
                 'placeholder' => 'Select type',
             ])
             ->add('country', EntityType::class, [
@@ -33,6 +34,12 @@ final class TeamType extends AbstractType
                 'class' => Country::class,
                 'choice_label' => 'name',
                 'placeholder' => 'Select country',
+                'query_builder' =>
+                    fn(CountryRepository $countryRepository) =>$countryRepository->createIsActiveQueryBuilder(
+                        true,
+                        'name',
+                        'ASC'
+                    ),
             ]);
     }
 

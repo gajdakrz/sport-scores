@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Team;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,22 +17,32 @@ class TeamRepository extends ServiceEntityRepository
         parent::__construct($registry, Team::class);
     }
 
-    /**
-     * @param bool $isActive
-     * @return Team[]
-     */
-    public function findIsActive(bool $isActive): array
-    {
-        $qb = $this->createQueryBuilder('t')
+    public function createIsActiveQueryBuilder(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): QueryBuilder {
+        return $this->createQueryBuilder('t')
             ->andWhere('t.isActive = :isActive')
             ->setParameter('isActive', $isActive)
-            ->orderBy('t.createdAt', 'DESC')
-            ->setMaxResults(10)
-        ;
+            ->orderBy('t.' . $orderBy, $direction);
+    }
 
-        /** @var Team[] $result */
-        $result = $qb->getQuery()->getResult() ?? [];
+    /**
+     * @param bool $isActive
+     * @param string $orderBy
+     * @param string $direction
+     * @return Team[]
+     */
+    public function findIsActiveSortedBy(
+        bool $isActive = true,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
 
-        return $result;
+        /** @var Team[] */
+        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+            ->getQuery()
+            ->getResult();
     }
 }
