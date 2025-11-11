@@ -30,8 +30,7 @@ final class EventType extends AbstractType
                 'placeholder' => 'Select competition',
                 'query_builder' =>
                     fn(CompetitionRepository $competitionRepository) => $competitionRepository
-                        ->createIsActiveQueryBuilder(
-                            true,
+                        ->createActiveQueryBuilder(
                             'name',
                             'ASC'
                         ),

@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Game results{% endblock %}
+
+{% block body %}
+    {% set columnCount = 8 %}
+
+    <div class="container mt-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Game results</h1>
+            <button type="button" class="btn btn-primary" id="newGameResultBtn" data-url="{{ path('game_result_new') }}">
+                Create New
+            </button>
+        </div>
+
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Game</th>
+                <th>Team</th>
+                <th>Match score</th>
+                <th>Ranking score</th>
+                <th>Created At</th>
+                <th>Modified At</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for gameResult in gameResults %}
+                <tr>
+                    <td>{{ gameResult.id }}</td>
+                    <td>{{ gameResult.game.name ?? '' }}</td>
+                    <td>{{ gameResult.team.name ?? '' }}</td>
+                    <td>{{ gameResult.matchScore }}</td>
+                    <td>{{ gameResult.rankingScore }}</td>
+                    <td>{{ gameResult.createdAt|date(DATETIME_FORMAT) }}</td>
+                    <td>{{ gameResult.modifiedAt|date(DATETIME_FORMAT) }}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('game_result_edit', {'id': gameResult.id}) }}">
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-delete-url="{{ path('game_result_delete', {'id': gameResult.id}) }}"
+                            data-item-name="{{ gameResult.id }}"
+                            data-token="{{ csrf_token('delete' ~ gameResult.id) }}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="{{ columnCount }}" class="text-center text-muted">No game results found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# modal partial #}
+    <div id="gameResultModalContainer"></div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('game_result/index.js') }}"></script>
+{% endblock %}

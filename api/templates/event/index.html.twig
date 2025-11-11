@@ -31,7 +31,7 @@
                 <tr>
                     <td>{{ event.id }}</td>
                     <td>{{ event.name }}</td>
-                    <td>{{ event.competition ? event.competition.name : '' }}</td>
+                    <td>{{ event.competition.name ?? '' }}</td>
                     <td>{{ event.startDate|date(DATE_FORMAT) }}</td>
                     <td>{{ event.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ event.modifiedAt|date(DATETIME_FORMAT) }}</td>

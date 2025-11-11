@@ -29,8 +29,7 @@ final class GameType extends AbstractType
                 'choice_label' => 'name',
                 'placeholder' => 'Select event',
                 'query_builder' =>
-                    fn(EventRepository $eventRepository) =>$eventRepository->createIsActiveQueryBuilder(
-                        true,
+                    fn(EventRepository $eventRepository) =>$eventRepository->createActiveQueryBuilder(
                         'name',
                         'ASC'
                     ),

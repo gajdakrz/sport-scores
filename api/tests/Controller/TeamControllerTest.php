@@ -19,7 +19,7 @@ final class TeamControllerTest extends WebTestCase
         $user = $userRepository->findOneBy(['email' => self::USER_EMAIL_TEST]);
         $this->assertNotNull($user);
         $client->loginUser($user);
-        $client->request('GET', '/team/');
+        $client->request('GET', '/teams');
         $this->assertResponseIsSuccessful();
     }
 }

@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
         containerId: 'countryModalContainer',
         modalId: 'countryModal',
         newBtnId: 'newCountryBtn',
-        newUrl: '/country/new'
+        newUrl: '/countries/new'
     });
 
     AppBase.initDeleteModal();

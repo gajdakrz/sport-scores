@@ -19,7 +19,7 @@ final class EventControllerTest extends WebTestCase
         $user = $userRepository->findOneBy(['email' => self::USER_EMAIL_TEST]);
         $this->assertNotNull($user);
         $client->loginUser($user);
-        $client->request('GET', '/event/');
+        $client->request('GET', '/events');
         $this->assertResponseIsSuccessful();
     }
 }

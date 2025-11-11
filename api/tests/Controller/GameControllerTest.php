@@ -19,7 +19,7 @@ final class GameControllerTest extends WebTestCase
         $user = $userRepository->findOneBy(['email' => self::USER_EMAIL_TEST]);
         $this->assertNotNull($user);
         $client->loginUser($user);
-        $client->request('GET', '/game/');
+        $client->request('GET', '/games');
         $this->assertResponseIsSuccessful();
     }
 }

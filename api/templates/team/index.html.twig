@@ -32,7 +32,7 @@
                     <td>{{ team.id }}</td>
                     <td>{{ team.name }}</td>
                     <td>{{ team.teamType.name|replace({'_': ' '})|capitalize }}</td>
-                    <td>{{ team.country ? team.country.name : '' }}</td>
+                    <td>{{ team.country.name ?? '' }}</td>
                     <td>{{ team.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ team.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">

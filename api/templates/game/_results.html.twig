@@ -1,0 +1,33 @@
+{% set childColumnCount = 8 %}
+<table class="table mb-0">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Game</th>
+        <th>Team</th>
+        <th>Match score</th>
+        <th>Ranking score</th>
+        <th>Created At</th>
+        <th>Modified At</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for gameResult in gameResults %}
+        <tr>
+            <td>{{ gameResult.id }}</td>
+            <td>{{ gameResult.game.name ?? '' }}</td>
+            <td>{{ gameResult.team.name ?? '' }}</td>
+            <td>{{ gameResult.matchScore }}</td>
+            <td>{{ gameResult.rankingScore }}</td>
+            <td>{{ gameResult.createdAt|date(DATETIME_FORMAT) }}</td>
+            <td>{{ gameResult.modifiedAt|date(DATETIME_FORMAT) }}</td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="{{ childColumnCount }}" class="text-center text-muted">
+                No game results found.
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

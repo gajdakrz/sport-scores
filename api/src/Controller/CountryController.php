@@ -17,14 +17,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[Route('/country')]
+#[Route('/countries')]
 final class CountryController extends AbstractController
 {
-    #[Route('/', name: 'country_index', methods: ['GET'])]
+    #[Route('', name: 'country_index', methods: ['GET'])]
     public function index(CountryRepository $countryRepository): Response
     {
         return $this->render('country/index.html.twig', [
-            'countries' => $countryRepository->findIsActiveSortedBy(),
+            'countries' => $countryRepository->findActiveSortedBy(),
         ]);
     }
 

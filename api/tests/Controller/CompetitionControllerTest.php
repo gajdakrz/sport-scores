@@ -19,7 +19,7 @@ final class CompetitionControllerTest extends WebTestCase
         $user = $userRepository->findOneBy(['email' => self::USER_EMAIL_TEST]);
         $this->assertNotNull($user);
         $client->loginUser($user);
-        $client->request('GET', '/competition/');
+        $client->request('GET', '/competitions');
         $this->assertResponseIsSuccessful();
     }
 }

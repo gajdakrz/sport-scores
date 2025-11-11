@@ -4,27 +4,42 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\GameFilterRequest;
+use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\User;
 use App\Form\GameType;
+use App\Repository\CompetitionRepository;
+use App\Repository\EventRepository;
 use App\Repository\GameRepository;
+use App\Repository\GameResultRepository;
+use App\Repository\SportRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[Route('/game')]
+#[Route('/games')]
 final class GameController extends AbstractController
 {
-    #[Route('/', name: 'game_index', methods: ['GET'])]
-    public function index(GameRepository $gameRepository): Response
-    {
+    #[Route('', name: 'game_index', methods: ['GET'])]
+    public function index(
+        #[MapQueryString] GameFilterRequest $gameFilterRequest,
+        GameRepository $gameRepository,
+        SportRepository $sportRepository,
+        CompetitionRepository $competitionRepository,
+        EventRepository $eventRepository,
+    ): Response {
         return $this->render('game/index.html.twig', [
-            'games' => $gameRepository->findIsActiveSortedBy(),
+            'games' => $gameRepository->findActiveFilteredSortedBy($gameFilterRequest),
+            'sports' => $sportRepository->findActiveSortedBy('name', 'ASC'),
+            'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC'),
+            'events' => $eventRepository->findActiveSortedBy('name', 'ASC'),
         ]);
     }
 
@@ -88,5 +103,13 @@ final class GameController extends AbstractController
             $em->flush();
         }
         return $this->redirectToRoute('game_index');
+    }
+
+    #[Route('/{id}/results', name: 'game_results', methods: ['GET'])]
+    public function results(Game $game, GameResultRepository $gameResultRepository): Response
+    {
+        return $this->render('game/_results.html.twig', [
+            'gameResults' => $gameResultRepository->findBy(['game' => $game]),
+        ]);
     }
 }

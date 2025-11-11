@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
         containerId: 'teamModalContainer',
         modalId: 'teamModal',
         newBtnId: 'newTeamBtn',
-        newUrl: '/team/new'
+        newUrl: '/teams/new'
     });
 
     AppBase.initDeleteModal();

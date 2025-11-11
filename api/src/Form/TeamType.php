@@ -35,8 +35,7 @@ final class TeamType extends AbstractType
                 'choice_label' => 'name',
                 'placeholder' => 'Select country',
                 'query_builder' =>
-                    fn(CountryRepository $countryRepository) =>$countryRepository->createIsActiveQueryBuilder(
-                        true,
+                    fn(CountryRepository $countryRepository) =>$countryRepository->createActiveQueryBuilder(
                         'name',
                         'ASC'
                     ),

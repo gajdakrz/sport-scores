@@ -17,31 +17,28 @@ class CountryRepository extends ServiceEntityRepository
         parent::__construct($registry, Country::class);
     }
 
-    public function createIsActiveQueryBuilder(
-        bool $isActive = true,
+    public function createActiveQueryBuilder(
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): QueryBuilder {
         return $this->createQueryBuilder('c')
             ->andWhere('c.isActive = :isActive')
-            ->setParameter('isActive', $isActive)
+            ->setParameter('isActive', true)
             ->orderBy('c.' . $orderBy, $direction);
     }
 
     /**
-     * @param bool $isActive
      * @param string $orderBy
      * @param string $direction
      * @return Country[]
      */
-    public function findIsActiveSortedBy(
-        bool $isActive = true,
+    public function findActiveSortedBy(
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): array {
 
         /** @var Country[] */
-        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+        return $this->createActiveQueryBuilder($orderBy, $direction)
             ->getQuery()
             ->getResult();
     }

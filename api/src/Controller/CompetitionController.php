@@ -17,14 +17,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[Route('/competition')]
+#[Route('/competitions')]
 final class CompetitionController extends AbstractController
 {
-    #[Route('/', name: 'competition_index', methods: ['GET'])]
+    #[Route('', name: 'competition_index', methods: ['GET'])]
     public function index(CompetitionRepository $competitionRepository): Response
     {
         return $this->render('competition/index.html.twig', [
-            'competitions' => $competitionRepository->findIsActiveSortedBy(),
+            'competitions' => $competitionRepository->findActiveSortedBy(),
         ]);
     }
 

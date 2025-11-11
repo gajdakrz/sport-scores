@@ -32,8 +32,7 @@ class CompetitionType extends AbstractType
                 'choice_label' => 'name',
                 'placeholder' => 'Select sport',
                 'query_builder' =>
-                    fn(SportRepository $sportRepository) =>$sportRepository->createIsActiveQueryBuilder(
-                        true,
+                    fn(SportRepository $sportRepository) =>$sportRepository->createActiveQueryBuilder(
                         'name',
                         'ASC'
                     ),

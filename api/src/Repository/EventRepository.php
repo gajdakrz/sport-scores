@@ -17,31 +17,28 @@ class EventRepository extends ServiceEntityRepository
         parent::__construct($registry, Event::class);
     }
 
-    public function createIsActiveQueryBuilder(
-        bool $isActive = true,
+    public function createActiveQueryBuilder(
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): QueryBuilder {
         return $this->createQueryBuilder('e')
             ->andWhere('e.isActive = :isActive')
-            ->setParameter('isActive', $isActive)
+            ->setParameter('isActive', true)
             ->orderBy('e.' . $orderBy, $direction);
     }
 
     /**
-     * @param bool $isActive
      * @param string $orderBy
      * @param string $direction
      * @return Event[]
      */
-    public function findIsActiveSortedBy(
-        bool $isActive = true,
+    public function findActiveSortedBy(
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): array {
 
         /** @var Event[] */
-        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+        return $this->createActiveQueryBuilder($orderBy, $direction)
             ->getQuery()
             ->getResult();
     }

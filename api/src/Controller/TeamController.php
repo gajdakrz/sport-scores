@@ -17,14 +17,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[Route('/team')]
+#[Route('/teams')]
 final class TeamController extends AbstractController
 {
-    #[Route('/', name: 'team_index', methods: ['GET'])]
+    #[Route('', name: 'team_index', methods: ['GET'])]
     public function index(TeamRepository $teamRepository): Response
     {
         return $this->render('team/index.html.twig', [
-            'teams' => $teamRepository->findIsActiveSortedBy(),
+            'teams' => $teamRepository->findActiveSortedBy(),
         ]);
     }
 

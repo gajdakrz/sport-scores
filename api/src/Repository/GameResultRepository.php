@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\GameResult;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,28 +17,29 @@ class GameResultRepository extends ServiceEntityRepository
         parent::__construct($registry, GameResult::class);
     }
 
-    //    /**
-    //     * @return GameResult[] Returns an array of GameResult objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('g')
-    //            ->andWhere('g.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('g.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function createActiveQueryBuilder(
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): QueryBuilder {
+        return $this->createQueryBuilder('g')
+            ->andWhere('g.isActive = :isActive')
+            ->setParameter('isActive', true)
+            ->orderBy('g.' . $orderBy, $direction);
+    }
 
-    //    public function findOneBySomeField($value): ?GameResult
-    //    {
-    //        return $this->createQueryBuilder('g')
-    //            ->andWhere('g.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * @param string $orderBy
+     * @param string $direction
+     * @return GameResult[]
+     */
+    public function findActiveSortedBy(
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
+
+        /** @var GameResult[] */
+        return $this->createActiveQueryBuilder($orderBy, $direction)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Dto\GameFilterRequest;
 use App\Entity\Game;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -17,32 +18,67 @@ class GameRepository extends ServiceEntityRepository
         parent::__construct($registry, Game::class);
     }
 
-    public function createIsActiveQueryBuilder(
-        bool $isActive = true,
+    public function createActiveQueryBuilder(
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): QueryBuilder {
         return $this->createQueryBuilder('g')
             ->andWhere('g.isActive = :isActive')
-            ->setParameter('isActive', $isActive)
+            ->setParameter('isActive', true)
             ->orderBy('g.' . $orderBy, $direction);
     }
 
     /**
-     * @param bool $isActive
      * @param string $orderBy
      * @param string $direction
      * @return Game[]
      */
-    public function findIsActiveSortedBy(
-        bool $isActive = true,
+    public function findActiveSortedBy(
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): array {
 
         /** @var Game[] */
-        return $this->createIsActiveQueryBuilder($isActive, $orderBy, $direction)
+        return $this->createActiveQueryBuilder($orderBy, $direction)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param string $orderBy
+     * @param string $direction
+     * @param GameFilterRequest $gameFilterRequest
+     * @return Game[]
+     */
+    public function findActiveFilteredSortedBy(
+        GameFilterRequest $gameFilterRequest,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
+        $qb = $this->createQueryBuilder('g')
+            ->join('g.event', 'event')
+            ->join('event.competition', 'competition')
+            ->join('competition.sport', 'sport')
+            ->addSelect('event', 'competition', 'sport')
+            ->where('g.isActive = true')
+            ->orderBy('g.' . $orderBy, $direction);
+
+        if ($gameFilterRequest->getSportId()) {
+            $qb->andWhere('sport.id = :sportId')
+                ->setParameter('sportId', $gameFilterRequest->getSportId());
+        }
+
+        if ($gameFilterRequest->getCompetitionId()) {
+            $qb->andWhere('competition.id = :competitionId')
+                ->setParameter('competitionId', $gameFilterRequest->getCompetitionId());
+        }
+
+        if ($gameFilterRequest->getEventId()) {
+            $qb->andWhere('event.id = :eventId')
+                ->setParameter('eventId', $gameFilterRequest->getEventId());
+        }
+
+        /** @var Game[] */
+        return $qb->getQuery()->getResult();
     }
 }

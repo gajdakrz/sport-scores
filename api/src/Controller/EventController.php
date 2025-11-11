@@ -17,14 +17,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
-#[Route('/event')]
+#[Route('/events')]
 final class EventController extends AbstractController
 {
-    #[Route('/', name: 'event_index', methods: ['GET'])]
+    #[Route('', name: 'event_index', methods: ['GET'])]
     public function index(EventRepository $eventRepository): Response
     {
         return $this->render('event/index.html.twig', [
-            'events' => $eventRepository->findIsActiveSortedBy(),
+            'events' => $eventRepository->findActiveSortedBy(),
         ]);
     }
 
