@@ -1,4 +1,7 @@
-<div class="modal fade" id="gameModal" tabindex="-1" aria-labelledby="gameModalLabel" aria-hidden="true">
+<div class="modal fade" id="gameModal" tabindex="-1" aria-labelledby="gameModalLabel" aria-hidden="true"
+     data-initial-sport="{{ initialSport ? initialSport.id : '' }}"
+     data-initial-competition="{{ initialCompetition ? initialCompetition.id : '' }}"
+     data-initial-event="{{ initialEvent ? initialEvent.id : '' }}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -7,16 +10,37 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             {{ form_start(form, {
                 'action': game.id ? path('game_edit', {'id': game.id}) : path('game_new')
             }) }}
+
             <div class="modal-body">
-                {{ form_widget(form) }}
+                <div class="mb-3">
+                    {{ form_label(form.sport) }}
+                    {{ form_widget(form.sport, { 'attr': {'data-url': path('competition_by_sport', {'sportId': 'SPORT_ID'})} }) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.competition) }}
+                    {{ form_widget(form.competition, { 'attr': {'data-url': path('event_by_competition', {'competitionId': 'COMP_ID'})} }) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.event) }}
+                    {{ form_widget(form.event) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_row(form.name) }}
+                </div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="submit" class="btn btn-primary">Save</button>
             </div>
+
             {{ form_end(form) }}
         </div>
     </div>

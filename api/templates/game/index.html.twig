@@ -17,8 +17,8 @@
         {# --- FILTER FORM --- #}
         <form method="get" class="row g-3 mb-4">
             <div class="col-md-4">
-                <label for="sportId" class="form-label">Sport</label>
-                <select name="sportId" id="sportId" class="form-select">
+                <label for="sportSelectFilter" class="form-label">Sport</label>
+                <select name="sportSelectFilter" id="sportSelectFilter" class="form-select">
                     <option value="">All</option>
                     {% for sport in sports %}
                         <option value="{{ sport.id }}" {% if sport.id == app.request.get('sportId') %}selected{% endif %}>

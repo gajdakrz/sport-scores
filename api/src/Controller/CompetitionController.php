@@ -11,6 +11,7 @@ use App\Repository\CompetitionRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -88,5 +89,20 @@ final class CompetitionController extends AbstractController
             $em->flush();
         }
         return $this->redirectToRoute('competition_index');
+    }
+
+    #[Route('/by-sport/{sportId}', name: 'competition_by_sport', methods: ['GET'])]
+    public function bySport(CompetitionRepository $competitionRepository, int $sportId): JsonResponse
+    {
+        $competitions = $competitionRepository->findBy(['sport' => $sportId]);
+        $result = [];
+        foreach ($competitions as $competition) {
+            $result[] = [
+                'id' => $competition->getId(),
+                'name' => $competition->getName(),
+            ];
+        }
+
+        return $this->json($result);
     }
 }

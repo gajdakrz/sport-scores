@@ -64,6 +64,9 @@ final class GameController extends AbstractController
         return $this->render('game/_modal.html.twig', [
             'form' => $form->createView(),
             'game' => $game,
+            'initialSport' => null,
+            'initialCompetition' => null,
+            'initialEvent' => null,
         ]);
     }
 
@@ -83,9 +86,16 @@ final class GameController extends AbstractController
             return $this->redirectToRoute('game_index');
         }
 
+        $event = $game->getEvent();
+        $competition = $event?->getCompetition();
+        $sport = $competition?->getSport();
+
         return $this->render('game/_modal.html.twig', [
             'form' => $form->createView(),
             'game' => $game,
+            'initialSport' => $sport,
+            'initialCompetition' => $competition,
+            'initialEvent' => $event,
         ]);
     }
 

@@ -11,6 +11,7 @@ use App\Repository\EventRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -88,5 +89,20 @@ final class EventController extends AbstractController
             $em->flush();
         }
         return $this->redirectToRoute('event_index');
+    }
+
+    #[Route('/by-competition/{competitionId}', name: 'event_by_competition', methods: ['GET'])]
+    public function byCompetition(EventRepository $eventRepository, int $competitionId): JsonResponse
+    {
+        $events = $eventRepository->findBy(['competition' => $competitionId]);
+        $result = [];
+        foreach ($events as $event) {
+            $result[] = [
+                'id' => $event->getId(),
+                'name' => $event->getName(),
+            ];
+        }
+
+        return $this->json($result);
     }
 }

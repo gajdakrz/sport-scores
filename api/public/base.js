@@ -1,6 +1,6 @@
 /* global flatpickr */
 window.AppBase = {
-    initModalFeature({ containerId, modalId, newBtnId, newUrl }) {
+    initModalFeature({ containerId, modalId, newBtnId, newUrl, onLoaded }) {
         const container = document.getElementById(containerId);
         if (!container) return;
         let currentModal = null;
@@ -28,7 +28,6 @@ window.AppBase = {
 
             // Remove focus BEFORE Bootstrap tries to hide the modal
             modalEl.addEventListener('hide.bs.modal', function (e) {
-                // Blur any focused element within the modal
                 const focusedElement = modalEl.querySelector(':focus');
                 if (focusedElement) {
                     focusedElement.blur();
@@ -40,6 +39,10 @@ window.AppBase = {
                 container.innerHTML = '';
                 currentModal = null;
             }, { once: true });
+
+            if (typeof onLoaded === 'function') {
+                onLoaded();
+            }
 
             currentModal.show();
         }
@@ -80,9 +83,7 @@ window.AppBase = {
             form.querySelector('#delete-token').value = token;
         });
 
-        // Remove focus BEFORE Bootstrap tries to hide the modal
         deleteModal.addEventListener('hide.bs.modal', function () {
-            // Blur any focused element within the modal
             const focusedElement = deleteModal.querySelector(':focus');
             if (focusedElement) {
                 focusedElement.blur();
