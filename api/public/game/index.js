@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modalId: 'gameModal',
         newBtnId: 'newGameBtn',
         newUrl: '/games/new',
-        onLoaded: initGameFormListeners // <-- attach listeners after modal is injected
+        onLoaded: initGameFormListeners
     });
 
     AppBase.initDeleteModal();
@@ -22,9 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const res = await fetch(`/games/${gameId}/results`);
-                if (!res.ok) throw new Error('Failed to fetch results');
+                if (!res.ok) {
+                    throw new Error('Failed to fetch results');
+                }
                 const html = await res.text();
-
                 const row = document.createElement('tr');
                 row.classList.add('game-results-row');
                 row.innerHTML = `<td colspan="8">${html}</td>`;
@@ -51,17 +52,15 @@ function initGameFormListeners() {
 
     sportSelect.value = sportSelectFilter.value;
 
-    // Get initial values for edit mode
     const initialSportId = modal.dataset.initialSport;
     const initialCompetitionId = modal.dataset.initialCompetition;
     const initialEventId = modal.dataset.initialEvent;
 
-    // Load initial data if editing
     if (initialSportId && initialCompetitionId && initialEventId) {
         loadInitialData(initialSportId, initialCompetitionId, initialEventId);
     }
 
-    // --- load competitions when sport changes ---
+    // Sport change handler
     sportSelect.addEventListener('change', async function () {
         if (!this.value) {
             competitionSelect.innerHTML = '<option value="">Select competition</option>';
@@ -87,7 +86,7 @@ function initGameFormListeners() {
         }
     });
 
-    // --- load events when competition changes ---
+    // Competition change handler
     competitionSelect.addEventListener('change', async function () {
         if (!this.value) {
             eventSelect.innerHTML = '<option value="">Select event</option>';
@@ -110,13 +109,13 @@ function initGameFormListeners() {
         }
     });
 
-    // Load initial data for edit mode
+
+    initGameResultsCollection();
+
     async function loadInitialData(sportId, competitionId, eventId) {
         try {
-            // Set sport
             sportSelect.value = sportId;
 
-            // Load competitions for this sport
             const compUrl = sportSelect.dataset.url.replace('SPORT_ID', sportId);
             const compRes = await fetch(compUrl);
             const competitions = await compRes.json();
@@ -127,7 +126,6 @@ function initGameFormListeners() {
                 competitionSelect.innerHTML += `<option value="${c.id}" ${selected}>${c.name}</option>`;
             });
 
-            // Load events for this competition
             const eventUrl = competitionSelect.dataset.url.replace('COMP_ID', competitionId);
             const eventRes = await fetch(eventUrl);
             const events = await eventRes.json();
@@ -141,4 +139,125 @@ function initGameFormListeners() {
             console.error('Error loading initial data:', err);
         }
     }
+}
+
+function initGameResultsCollection() {
+    const container = document.querySelector('.game-results-list');
+    const addButton = document.getElementById('addGameResult');
+
+    if (!container || !addButton) return;
+
+    let index = parseInt(container.dataset.index) || 0;
+
+    // Add new game result
+    addButton.addEventListener('click', () => {
+        const prototype = container.dataset.prototype;
+        const newForm = prototype.replace(/__name__/g, index);
+
+        const div = document.createElement('div');
+        div.classList.add('game-result-item', 'card', 'mb-2');
+        div.innerHTML = `
+            <div class="card-body">
+                <div class="row g-2">
+                    ${newForm}
+                </div>
+            </div>
+        `;
+
+        const fields = div.querySelectorAll('.mb-3');
+        if (fields.length >= 3) {
+            const row = document.createElement('div');
+            row.classList.add('row', 'g-2');
+
+            const teamCol = document.createElement('div');
+            teamCol.classList.add('col-md-5');
+            teamCol.appendChild(fields[0]);
+
+            const matchCol = document.createElement('div');
+            matchCol.classList.add('col-md-3');
+            matchCol.appendChild(fields[1]);
+
+            const rankingCol = document.createElement('div');
+            rankingCol.classList.add('col-md-3');
+            rankingCol.appendChild(fields[2]);
+
+            const buttonCol = document.createElement('div');
+            buttonCol.classList.add('col-md-1', 'd-flex', 'align-items-center', 'pb-3');
+            buttonCol.innerHTML = `
+                <button type="button" class="btn btn-danger btn-sm remove-result w-100" title="Remove">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+
+            row.appendChild(teamCol);
+            row.appendChild(matchCol);
+            row.appendChild(rankingCol);
+            row.appendChild(buttonCol);
+
+            div.querySelector('.card-body').innerHTML = '';
+            div.querySelector('.card-body').appendChild(row);
+        }
+
+        container.appendChild(div);
+        index++;
+        container.dataset.index = index;
+    });
+
+    // Remove game result - soft delete
+    container.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-result');
+        if (removeBtn) {
+            const item = removeBtn.closest('.game-result-item');
+            const hasId = item.querySelector('input[id$="_id"]')?.value;
+
+            if (!hasId) {
+                item.remove();
+            } else {
+                item.style.opacity = '0.5';
+                item.style.textDecoration = 'line-through';
+                const form = item.querySelector('.card-body');
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = item.querySelector('select, input').name.replace(/\[.*?\]$/, '[isActive]');
+                hiddenInput.value = '0';
+                form.appendChild(hiddenInput);
+
+                item.querySelectorAll('select, input').forEach(field => {
+                    if (field !== hiddenInput) {
+                        field.disabled = true;
+                    }
+                });
+
+                removeBtn.classList.remove('btn-danger');
+                removeBtn.classList.add('btn-success');
+                removeBtn.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i>';
+                removeBtn.classList.remove('remove-result');
+                removeBtn.classList.add('restore-result');
+            }
+        }
+
+        // Restore result
+        const restoreBtn = e.target.closest('.restore-result');
+        if (restoreBtn) {
+            const item = restoreBtn.closest('.game-result-item');
+
+            item.style.opacity = '1';
+            item.style.textDecoration = 'none';
+
+            const hiddenInput = item.querySelector('input[name$="[isActive]"]');
+            if (hiddenInput) {
+                hiddenInput.remove();
+            }
+
+            item.querySelectorAll('select, input').forEach(field => {
+                field.disabled = false;
+            });
+
+            restoreBtn.classList.remove('btn-success');
+            restoreBtn.classList.add('btn-danger');
+            restoreBtn.innerHTML = '<i class="bi bi-trash"></i>';
+            restoreBtn.classList.remove('restore-result');
+            restoreBtn.classList.add('remove-result');
+        }
+    });
 }

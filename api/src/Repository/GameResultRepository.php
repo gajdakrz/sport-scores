@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Game;
 use App\Entity\GameResult;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -39,6 +40,28 @@ class GameResultRepository extends ServiceEntityRepository
 
         /** @var GameResult[] */
         return $this->createActiveQueryBuilder($orderBy, $direction)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param Game $game
+     * @param string $orderBy
+     * @param string $direction
+     * @return GameResult[]
+     */
+    public function findActiveByGame(
+        Game $game,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
+        /** @var GameResult[] */
+        return $this->createQueryBuilder('gr')
+            ->where('gr.game = :game')
+            ->andWhere('gr.isActive = :isActive')
+            ->setParameter('isActive', true)
+            ->setParameter('game', $game)
+            ->orderBy('gr.' . $orderBy, $direction)
             ->getQuery()
             ->getResult();
     }

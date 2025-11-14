@@ -10,9 +10,11 @@ use App\Entity\Game;
 use App\Entity\Sport;
 use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
+use App\Repository\GameResultRepository;
 use App\Repository\SportRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
@@ -30,7 +32,7 @@ final class GameType extends AbstractType
                 'mapped' => false,
                 'placeholder' => 'Select sport',
                 'query_builder' =>
-                    fn(SportRepository $sportRepository) =>$sportRepository->createActiveQueryBuilder(
+                    fn(SportRepository $sportRepository) => $sportRepository->createActiveQueryBuilder(
                         'name',
                         'ASC'
                     ),
@@ -41,7 +43,9 @@ final class GameType extends AbstractType
                 'mapped' => false,
                 'placeholder' => 'Select competition',
                 'query_builder' =>
-                    fn(CompetitionRepository $competitionRepository) =>$competitionRepository->createActiveQueryBuilder(
+                    fn(
+                        CompetitionRepository $competitionRepository
+                    ) => $competitionRepository->createActiveQueryBuilder(
                         'name',
                         'ASC'
                     ),
@@ -52,7 +56,7 @@ final class GameType extends AbstractType
                 'choice_label' => 'name',
                 'placeholder' => 'Select event',
                 'query_builder' =>
-                    fn(EventRepository $eventRepository) =>$eventRepository->createActiveQueryBuilder(
+                    fn(EventRepository $eventRepository) => $eventRepository->createActiveQueryBuilder(
                         'name',
                         'ASC'
                     ),
@@ -62,6 +66,17 @@ final class GameType extends AbstractType
                 'label' => 'Game name',
                 'required' => false,
                 'empty_data' => null,
+            ])
+            ->add('gameResults', CollectionType::class, [
+                'entry_type' => GameResultType::class,
+                'entry_options' => [
+                    'label' => false,
+                    'include_game' => false,
+                ],
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
+                'label' => false,
             ]);
 
         $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {

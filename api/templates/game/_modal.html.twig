@@ -1,8 +1,9 @@
+{# templates/game/_modal.html.twig #}
 <div class="modal fade" id="gameModal" tabindex="-1" aria-labelledby="gameModalLabel" aria-hidden="true"
      data-initial-sport="{{ initialSport ? initialSport.id : '' }}"
      data-initial-competition="{{ initialCompetition ? initialCompetition.id : '' }}"
      data-initial-event="{{ initialEvent ? initialEvent.id : '' }}">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="gameModalLabel">
@@ -34,6 +35,40 @@
                 <div class="mb-3">
                     {{ form_row(form.name) }}
                 </div>
+
+                <hr class="my-4">
+
+                <h6>Game Results</h6>
+                <div id="gameResultsContainer" class="mb-3">
+                    <div class="game-results-list" data-prototype="{{ form_widget(form.gameResults.vars.prototype)|e('html_attr') }}" data-index="{{ form.gameResults|length }}">
+                        {% for gameResult in form.gameResults %}
+                            <div class="game-result-item card mb-2">
+                                <div class="card-body">
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-md-5">
+                                            {{ form_row(gameResult.team) }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            {{ form_row(gameResult.matchScore) }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            {{ form_row(gameResult.rankingScore) }}
+                                        </div>
+                                        <div class="col-md-1 d-flex align-items-center pb-3">
+                                            <button type="button" class="btn btn-danger btn-sm remove-result w-100" title="Remove">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-success btn-sm" id="addGameResult">
+                    <i class="bi bi-plus-circle"></i> Add Result
+                </button>
             </div>
 
             <div class="modal-footer">

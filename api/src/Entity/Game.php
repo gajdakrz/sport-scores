@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Repository\GameRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
@@ -31,7 +32,12 @@ class Game extends AbstractAuditableEntity
     /**
      * @var Collection<int, GameResult>
      */
-    #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'game', orphanRemoval: true)]
+    #[ORM\OneToMany(
+        targetEntity: GameResult::class,
+        mappedBy: 'game',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: false
+    )]
     private Collection $gameResults;
 
     public function __construct()
@@ -81,6 +87,16 @@ class Game extends AbstractAuditableEntity
      */
     public function getGameResults(): Collection
     {
+        return $this->gameResults->filter(
+            fn(GameResult $gameResult) => $gameResult->isActive()
+        );
+    }
+
+    /**
+     * @return Collection<int, GameResult>
+     */
+    public function getAllGameResults(): Collection
+    {
         return $this->gameResults;
     }
 
@@ -96,11 +112,9 @@ class Game extends AbstractAuditableEntity
 
     public function removeGameResult(GameResult $gameResult): static
     {
-        if ($this->gameResults->removeElement($gameResult)) {
-            // set the owning side to null (unless already changed)
-            if ($gameResult->getGame() === $this) {
-                $gameResult->setGame(null);
-            }
+        if ($this->gameResults->contains($gameResult)) {
+            $gameResult->setIsActive(false);
+            // NIE usuwamy z kolekcji: $this->gameResults->removeElement($gameResult);
         }
 
         return $this;

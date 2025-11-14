@@ -56,8 +56,30 @@ final class GameController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $now = new DateTimeImmutable();
+
+            // Obsługa GameResults - ustaw użytkownika dla nowych wyników
+            foreach ($game->getGameResults() as $gameResult) {
+                if (!$gameResult->getId()) {
+                    // Nowy wynik
+                    $gameResult->setCreatedBy($user);
+                    $gameResult->setModifiedBy($user);
+                } else {
+                    // Istniejący wynik (aktualizacja)
+                    $gameResult->setModifiedBy($user);
+                    $gameResult->setModifiedAt($now);
+                }
+
+                // Obsługa soft delete
+                if (!$gameResult->isActive()) {
+                    $gameResult->setModifiedBy($user);
+                    $gameResult->setModifiedAt($now);
+                }
+            }
+
             $em->persist($game);
             $em->flush();
+
             return $this->redirectToRoute('game_index');
         }
 
@@ -78,11 +100,32 @@ final class GameController extends AbstractController
         $now = new DateTimeImmutable();
         $game->setModifiedBy($user);
         $game->setModifiedAt($now);
+
         $form = $this->createForm(GameType::class, $game);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Obsługa GameResults
+            foreach ($game->getGameResults() as $gameResult) {
+                if (!$gameResult->getId()) {
+                    // Nowy wynik dodany podczas edycji
+                    $gameResult->setCreatedBy($user);
+                    $gameResult->setModifiedBy($user);
+                } else {
+                    // Istniejący wynik (aktualizacja lub soft delete)
+                    $gameResult->setModifiedBy($user);
+                    $gameResult->setModifiedAt($now);
+                }
+
+                // Obsługa soft delete
+                if (!$gameResult->isActive()) {
+                    $gameResult->setModifiedBy($user);
+                    $gameResult->setModifiedAt($now);
+                }
+            }
+
             $em->flush();
+
             return $this->redirectToRoute('game_index');
         }
 
@@ -110,8 +153,18 @@ final class GameController extends AbstractController
             $game->setModifiedBy($user);
             $game->setModifiedAt($now);
             $game->setIsActive(false);
+
+            foreach ($game->getGameResults() as $gameResult) {
+                if ($gameResult->isActive()) {
+                    $gameResult->setIsActive(false);
+                    $gameResult->setModifiedBy($user);
+                    $gameResult->setModifiedAt($now);
+                }
+            }
+
             $em->flush();
         }
+
         return $this->redirectToRoute('game_index');
     }
 
@@ -119,7 +172,8 @@ final class GameController extends AbstractController
     public function results(Game $game, GameResultRepository $gameResultRepository): Response
     {
         return $this->render('game/_results.html.twig', [
-            'gameResults' => $gameResultRepository->findBy(['game' => $game]),
+            'gameResults' => $gameResultRepository->findActiveByGame($game),
+//            'gameResults' => $gameResultRepository->findBy(['game' => $game]),
         ]);
     }
 }
