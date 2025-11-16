@@ -34,14 +34,6 @@ final class EventType extends AbstractType
                             'name',
                             'ASC'
                         ),
-            ])
-            ->add('startDate', DateType::class, [
-                'label' => 'Start date',
-                'widget' => 'single_text',
-                'format' => 'yyyy-MM-dd',
-                'html5' => true,
-                'input' => 'datetime_immutable',
-                'attr' => ['class' => 'form-control flatpickr'],
             ]);
     }
 

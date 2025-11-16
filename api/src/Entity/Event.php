@@ -29,9 +29,6 @@ class Event extends AbstractAuditableEntity
     )]
     private ?Competition $competition = null;
 
-    #[ORM\Column(type: 'date_immutable')]
-    private DateTimeImmutable $startDate;
-
     /**
      * @var Collection<int, Game>
      */
@@ -41,7 +38,6 @@ class Event extends AbstractAuditableEntity
     public function __construct()
     {
         parent::__construct();
-        $this->startDate = $this->now;
         $this->games = new ArrayCollection();
     }
 
@@ -77,18 +73,6 @@ class Event extends AbstractAuditableEntity
     public function setCompetition(Competition $competition): static
     {
         $this->competition = $competition;
-
-        return $this;
-    }
-
-    public function getStartDate(): DateTimeImmutable
-    {
-        return $this->startDate;
-    }
-
-    public function setStartDate(DateTimeImmutable $startDate): static
-    {
-        $this->startDate = $startDate;
 
         return $this;
     }

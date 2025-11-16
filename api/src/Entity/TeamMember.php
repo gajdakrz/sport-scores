@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\TeamMemberRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TeamMemberRepository::class)]
@@ -15,11 +16,12 @@ class TeamMember extends AbstractAuditableEntity
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 10)]
-    private string $startDate;
+    #[ORM\Column(type: 'date_immutable')]
+    private DateTimeImmutable $startDate;
 
-    #[ORM\Column(length: 10, nullable: true)]
-    private ?string $endDate = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?DateTimeImmutable $endDate = null;
 
     #[ORM\ManyToOne(inversedBy: 'teamCompetitors')]
     #[ORM\JoinColumn(
@@ -40,7 +42,7 @@ class TeamMember extends AbstractAuditableEntity
     public function __construct()
     {
         parent::__construct();
-        $this->startDate = $this->now->format(self::DATE_FORMAT);
+        $this->startDate = $this->now;
     }
 
     public function getId(): ?int
@@ -55,24 +57,24 @@ class TeamMember extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getStartDate(): ?string
+    public function getStartDate(): DateTimeImmutable
     {
         return $this->startDate;
     }
 
-    public function setStartDate(string $startDate): static
+    public function setStartDate(DateTimeImmutable $startDate): static
     {
         $this->startDate = $startDate;
 
         return $this;
     }
 
-    public function getEndDate(): ?string
+    public function getEndDate(): ?DateTimeImmutable
     {
         return $this->endDate;
     }
 
-    public function setEndDate(?string $endDate): static
+    public function setEndDate(?DateTimeImmutable $endDate): static
     {
         $this->endDate = $endDate;
 
