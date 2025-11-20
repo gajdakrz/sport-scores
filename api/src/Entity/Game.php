@@ -29,6 +29,14 @@ class Game extends AbstractAuditableEntity
     )]
     private ?Event $event = null;
 
+    #[ORM\ManyToOne(targetEntity: Season::class, inversedBy: 'games')]
+    #[ORM\JoinColumn(
+        name: 'season_id',
+        referencedColumnName: 'id',
+        nullable: false
+    )]
+    private ?Season $season = null;
+
     /**
      * @var Collection<int, GameResult>
      */
@@ -78,6 +86,18 @@ class Game extends AbstractAuditableEntity
     public function setEvent(Event $event): static
     {
         $this->event = $event;
+
+        return $this;
+    }
+
+    public function getSeason(): ?Season
+    {
+        return $this->season;
+    }
+
+    public function setSeason(Season $season): static
+    {
+        $this->season = $season;
 
         return $this;
     }

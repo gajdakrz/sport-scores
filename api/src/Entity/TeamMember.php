@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Repository\TeamMemberRepository;
 use DateTimeImmutable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TeamMemberRepository::class)]
@@ -16,11 +17,11 @@ class TeamMember extends AbstractAuditableEntity
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'date_immutable')]
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
     private DateTimeImmutable $startDate;
 
 
-    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTimeImmutable $endDate = null;
 
     #[ORM\ManyToOne(inversedBy: 'teamCompetitors')]
@@ -38,6 +39,14 @@ class TeamMember extends AbstractAuditableEntity
         nullable: false
     )]
     private ?Person $person = null;
+
+    #[ORM\ManyToOne(targetEntity: Season::class, inversedBy: 'games')]
+    #[ORM\JoinColumn(
+        name: 'season_id',
+        referencedColumnName: 'id',
+        nullable: false
+    )]
+    private ?Season $season = null;
 
     public function __construct()
     {
@@ -101,6 +110,18 @@ class TeamMember extends AbstractAuditableEntity
     public function setPerson(?Person $person): static
     {
         $this->person = $person;
+
+        return $this;
+    }
+
+    public function getSeason(): ?Season
+    {
+        return $this->season;
+    }
+
+    public function setSeason(Season $season): static
+    {
+        $this->season = $season;
 
         return $this;
     }
