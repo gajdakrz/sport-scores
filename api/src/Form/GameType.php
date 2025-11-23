@@ -7,10 +7,12 @@ namespace App\Form;
 use App\Entity\Competition;
 use App\Entity\Event;
 use App\Entity\Game;
+use App\Entity\Season;
 use App\Entity\Sport;
 use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
 use App\Repository\GameResultRepository;
+use App\Repository\SeasonRepository;
 use App\Repository\SportRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -36,6 +38,13 @@ final class GameType extends AbstractType
                         'name',
                         'ASC'
                     ),
+            ])
+            ->add('season', EntityType::class, [
+                'class' => Season::class,
+                'choice_label' => 'mergedStartEndYear',
+                'placeholder' => 'Select season',
+                'query_builder' =>
+                    fn(SeasonRepository $seasonRepository) => $seasonRepository->createActiveQueryBuilder('endYear'),
             ])
             ->add('competition', EntityType::class, [
                 'class' => Competition::class,

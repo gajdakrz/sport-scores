@@ -21,6 +21,10 @@
                     {{ form_widget(form.sport, { 'attr': {'data-url': path('competition_by_sport', {'sportId': 'SPORT_ID'})} }) }}
                 </div>
                 <div class="mb-3">
+                    {{ form_label(form.season) }}
+                    {{ form_widget(form.season) }}
+                </div>
+                <div class="mb-3">
                     {{ form_label(form.competition) }}
                     {{ form_widget(form.competition, { 'attr': {'data-url': path('event_by_competition', {'competitionId': 'COMP_ID'})} }) }}
                 </div>

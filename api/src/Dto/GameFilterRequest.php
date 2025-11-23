@@ -17,6 +17,9 @@ class GameFilterRequest
     #[Assert\Type('integer')]
     private ?int $eventId = null;
 
+    #[Assert\Type('integer')]
+    private ?int $seasonId = null;
+
     public function getSportId(): ?int
     {
         return $this->sportId;
@@ -49,6 +52,18 @@ class GameFilterRequest
     public function setEventId(?int $eventId): static
     {
         $this->eventId = $eventId;
+
+        return $this;
+    }
+
+    public function getSeasonId(): ?int
+    {
+        return $this->seasonId;
+    }
+
+    public function setSeasonId(?int $seasonId): static
+    {
+        $this->seasonId = $seasonId;
 
         return $this;
     }

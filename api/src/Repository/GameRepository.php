@@ -59,7 +59,8 @@ class GameRepository extends ServiceEntityRepository
             ->join('g.event', 'event')
             ->join('event.competition', 'competition')
             ->join('competition.sport', 'sport')
-            ->addSelect('event', 'competition', 'sport')
+            ->join('g.season', 'season')
+            ->addSelect('event', 'competition', 'sport', 'season')
             ->where('g.isActive = true')
             ->orderBy('g.' . $orderBy, $direction);
 
@@ -76,6 +77,11 @@ class GameRepository extends ServiceEntityRepository
         if ($gameFilterRequest->getEventId()) {
             $qb->andWhere('event.id = :eventId')
                 ->setParameter('eventId', $gameFilterRequest->getEventId());
+        }
+
+        if ($gameFilterRequest->getSeasonId()) {
+            $qb->andWhere('season.id = :seasonId')
+                ->setParameter('seasonId', $gameFilterRequest->getSeasonId());
         }
 
         /** @var Game[] */

@@ -144,4 +144,13 @@ class Season extends AbstractAuditableEntity
                 ->addViolation();
         }
     }
+
+    public function getMergedStartEndYear(): string
+    {
+        if ($this->startYear === $this->endYear) {
+            return (string) $this->startYear;
+        }
+
+        return $this->startYear . ' - ' . $this->endYear;
+    }
 }

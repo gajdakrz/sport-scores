@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Dto\GameFilterRequest;
-use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\User;
 use App\Form\GameType;
@@ -13,6 +12,7 @@ use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
 use App\Repository\GameRepository;
 use App\Repository\GameResultRepository;
+use App\Repository\SeasonRepository;
 use App\Repository\SportRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,12 +34,14 @@ final class GameController extends AbstractController
         SportRepository $sportRepository,
         CompetitionRepository $competitionRepository,
         EventRepository $eventRepository,
+        SeasonRepository $seasonRepository,
     ): Response {
         return $this->render('game/index.html.twig', [
             'games' => $gameRepository->findActiveFilteredSortedBy($gameFilterRequest),
             'sports' => $sportRepository->findActiveSortedBy('name', 'ASC'),
             'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC'),
             'events' => $eventRepository->findActiveSortedBy('name', 'ASC'),
+            'seasons' => $seasonRepository->findActiveSortedBy('startYear'),
         ]);
     }
 

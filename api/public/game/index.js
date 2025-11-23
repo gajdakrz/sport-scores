@@ -43,7 +43,7 @@ function initGameFormListeners() {
     const competitionSelect = document.getElementById('game_competition');
     const eventSelect = document.getElementById('game_event');
     const modal = document.getElementById('gameModal');
-    const sportSelectFilter = document.getElementById('sportSelectFilter');
+    const sportSelectFilter = document.getElementById('sportId');
 
     if (!sportSelect || !competitionSelect || !eventSelect || !modal) {
         console.error('One or more elements not found!');
