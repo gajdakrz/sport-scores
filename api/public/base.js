@@ -89,5 +89,16 @@ window.AppBase = {
                 focusedElement.blur();
             }
         });
+    },
+
+    initAutoHideAlerts({ delay = 5000 } = {}) {
+        const alerts = document.querySelectorAll('.alert');
+
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, delay);
+        });
     }
 };

@@ -1,0 +1,113 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controller;
+
+use App\Entity\Season;
+use App\Entity\User;
+use App\Form\SeasonType;
+use App\Repository\SeasonRepository;
+use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[Route('/seasons')]
+final class SeasonController extends AbstractController
+{
+    #[Route('', name: 'season_index', methods: ['GET'])]
+    public function index(SeasonRepository $seasonRepository): Response
+    {
+        return $this->render('season/index.html.twig', [
+            'seasons' => $seasonRepository->findActiveSortedBy(),
+        ]);
+    }
+
+    #[Route('/new', name: 'season_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $em): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $season = new Season();
+        $season->setCreatedBy($user);
+        $season->setModifiedBy($user);
+
+        $form = $this->createForm(SeasonType::class, $season);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                $em->persist($season);
+                $em->flush();
+            } else {
+                $errors = $form->getErrors(true);
+
+                /** @var FormError $error */
+                foreach ($errors as $error) {
+                    $this->addFlash('danger', $error->getMessage());
+                }
+            }
+
+            return $this->redirectToRoute('season_index');
+        }
+
+        return $this->render('season/_modal.html.twig', [
+            'form' => $form->createView(),
+            'season' => $season,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'season_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Season $season, EntityManagerInterface $em): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $now = new DateTimeImmutable();
+        $season->setModifiedBy($user);
+        $season->setModifiedAt($now);
+        $form = $this->createForm(SeasonType::class, $season);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                $em->flush();
+            } else {
+                $errors = $form->getErrors(true);
+
+                /** @var FormError $error */
+                foreach ($errors as $error) {
+                    $this->addFlash('danger', $error->getMessage());
+                }
+            }
+
+            return $this->redirectToRoute('season_index');
+        }
+
+        return $this->render('season/_modal.html.twig', [
+            'form' => $form->createView(),
+            'season' => $season,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'season_delete', methods: ['POST'])]
+    public function delete(Request $request, Season $season, EntityManagerInterface $em): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if ($this->isCsrfTokenValid('delete' . $season->getId(), (string) $request->request->get('_token'))) {
+            $now = new DateTimeImmutable();
+            $season->setModifiedBy($user);
+            $season->setModifiedAt($now);
+            $season->setIsActive(false);
+            $em->flush();
+        }
+        return $this->redirectToRoute('season_index');
+    }
+}

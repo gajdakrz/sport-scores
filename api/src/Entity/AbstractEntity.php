@@ -11,7 +11,6 @@ use DateTimeImmutable;
 #[ORM\MappedSuperclass]
 abstract class AbstractEntity
 {
-    protected const string DATE_FORMAT = 'Y-m-d';
     protected DateTimeImmutable $now;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => 1])]

@@ -5,6 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
         newBtnId: 'newTeamBtn',
         newUrl: '/teams/new'
     });
-
     AppBase.initDeleteModal();
+    AppBase.initAutoHideAlerts();
 });

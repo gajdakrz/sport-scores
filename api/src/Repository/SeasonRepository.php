@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Season;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,28 +17,29 @@ class SeasonRepository extends ServiceEntityRepository
         parent::__construct($registry, Season::class);
     }
 
-    //    /**
-    //     * @return Season[] Returns an array of Season objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function createActiveQueryBuilder(
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): QueryBuilder {
+        return $this->createQueryBuilder('s')
+            ->where('s.isActive = :isActive')
+            ->setParameter('isActive', true)
+            ->orderBy('s.' . $orderBy, $direction);
+    }
 
-    //    public function findOneBySomeField($value): ?Season
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * @param string $orderBy
+     * @param string $direction
+     * @return Season[]
+     */
+    public function findActiveSortedBy(
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC'
+    ): array {
+
+        /** @var Season[] */
+        return $this->createActiveQueryBuilder($orderBy, $direction)
+            ->getQuery()
+            ->getResult();
+    }
 }

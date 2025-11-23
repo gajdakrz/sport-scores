@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
         newUrl: '/games/new',
         onLoaded: initGameFormListeners
     });
-
     AppBase.initDeleteModal();
+    AppBase.initAutoHideAlerts();
 
     document.querySelectorAll('.expand-results').forEach(btn => {
         btn.addEventListener('click', async () => {

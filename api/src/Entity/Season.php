@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\SeasonRepository;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SeasonRepository::class)]
 class Season extends AbstractAuditableEntity
@@ -130,5 +133,15 @@ class Season extends AbstractAuditableEntity
         }
 
         return $this;
+    }
+
+    #[Assert\Callback]
+    public function validateYearRange(ExecutionContextInterface $context): void
+    {
+        if ($this->endYear < $this->startYear) {
+            $context->buildViolation('End year cannot be before start year.')
+                ->atPath('endYear')
+                ->addViolation();
+        }
     }
 }

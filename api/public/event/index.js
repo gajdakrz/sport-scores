@@ -5,6 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
         newBtnId: 'newEventBtn',
         newUrl: '/events/new'
     });
-
     AppBase.initDeleteModal();
+    AppBase.initAutoHideAlerts();
 });

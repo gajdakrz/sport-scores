@@ -15,29 +15,23 @@
             {{ form_start(form, {
                 'action': game.id ? path('game_edit', {'id': game.id}) : path('game_new')
             }) }}
-
             <div class="modal-body">
                 <div class="mb-3">
                     {{ form_label(form.sport) }}
                     {{ form_widget(form.sport, { 'attr': {'data-url': path('competition_by_sport', {'sportId': 'SPORT_ID'})} }) }}
                 </div>
-
                 <div class="mb-3">
                     {{ form_label(form.competition) }}
                     {{ form_widget(form.competition, { 'attr': {'data-url': path('event_by_competition', {'competitionId': 'COMP_ID'})} }) }}
                 </div>
-
                 <div class="mb-3">
                     {{ form_label(form.event) }}
                     {{ form_widget(form.event) }}
                 </div>
-
                 <div class="mb-3">
                     {{ form_row(form.name) }}
                 </div>
-
                 <hr class="my-4">
-
                 <h6>Game Results</h6>
                 <div id="gameResultsContainer" class="mb-3">
                     <div class="game-results-list" data-prototype="{{ form_widget(form.gameResults.vars.prototype)|e('html_attr') }}" data-index="{{ form.gameResults|length }}">
@@ -65,17 +59,14 @@
                         {% endfor %}
                     </div>
                 </div>
-
                 <button type="button" class="btn btn-success btn-sm" id="addGameResult">
                     <i class="bi bi-plus-circle"></i> Add Result
                 </button>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="submit" class="btn btn-primary">Save</button>
             </div>
-
             {{ form_end(form) }}
         </div>
     </div>

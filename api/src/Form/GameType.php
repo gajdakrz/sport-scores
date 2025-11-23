@@ -77,28 +77,27 @@ final class GameType extends AbstractType
                 'allow_delete' => true,
                 'by_reference' => false,
                 'label' => false,
-            ]);
+            ])
+            ->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
+                /** @var Game|null $game */
+                $game = $event->getData();
+                $form = $event->getForm();
 
-        $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
-            /** @var Game|null $game */
-            $game = $event->getData();
-            $form = $event->getForm();
+                if (!$game) {
+                    return;
+                }
 
-            if (!$game) {
-                return;
-            }
+                $competition = $game->getEvent()?->getCompetition();
+                $sport = $game->getEvent()?->getCompetition()?->getSport();
 
-            $competition = $game->getEvent()?->getCompetition();
-            $sport = $game->getEvent()?->getCompetition()?->getSport();
+                if ($sport) {
+                    $form->get('sport')->setData($sport);
+                }
 
-            if ($sport) {
-                $form->get('sport')->setData($sport);
-            }
-
-            if ($competition) {
-                $form->get('competition')->setData($competition);
-            }
-        });
+                if ($competition) {
+                    $form->get('competition')->setData($competition);
+                }
+            });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

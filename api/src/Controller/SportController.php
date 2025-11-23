@@ -81,7 +81,6 @@ final class SportController extends AbstractController
         $user = $this->getUser();
 
         if ($this->isCsrfTokenValid('delete' . $sport->getId(), (string) $request->request->get('_token'))) {
-//            $em->remove($sport);
             $now = new DateTimeImmutable();
             $sport->setModifiedBy($user);
             $sport->setModifiedAt($now);

@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     AppBase.initModalFeature({
-        containerId: 'competitionModalContainer',
-        modalId: 'competitionModal',
-        newBtnId: 'newCompetitionBtn',
-        newUrl: '/competitions/new'
+        containerId: 'seasonModalContainer',
+        modalId: 'seasonModal',
+        newBtnId: 'newSeasonBtn',
+        newUrl: '/seasons/new'
     });
     AppBase.initDeleteModal();
     AppBase.initAutoHideAlerts();

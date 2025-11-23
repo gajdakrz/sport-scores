@@ -5,6 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
         newBtnId: 'newGameResultBtn',
         newUrl: '/game-results/new'
     });
-
     AppBase.initDeleteModal();
+    AppBase.initAutoHideAlerts();
 });
