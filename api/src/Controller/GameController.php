@@ -17,6 +17,7 @@ use App\Repository\SportRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
@@ -56,6 +57,17 @@ final class GameController extends AbstractController
 
         $form = $this->createForm(GameType::class, $game);
         $form->handleRequest($request);
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $errors = $form->getErrors(true);
+
+            /** @var FormError $error */
+            foreach ($errors as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+
+            return $this->redirectToRoute('game_index');
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             $now = new DateTimeImmutable();
@@ -105,6 +117,17 @@ final class GameController extends AbstractController
 
         $form = $this->createForm(GameType::class, $game);
         $form->handleRequest($request);
+
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $errors = $form->getErrors(true);
+
+            /** @var FormError $error */
+            foreach ($errors as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+
+            return $this->redirectToRoute('game_index');
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             // Obsługa GameResults

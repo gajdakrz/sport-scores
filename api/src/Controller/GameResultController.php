@@ -11,6 +11,7 @@ use App\Repository\GameResultRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -40,9 +41,19 @@ final class GameResultController extends AbstractController
         $form = $this->createForm(GameResultType::class, $gameResult);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($gameResult);
-            $em->flush();
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                $em->persist($gameResult);
+                $em->flush();
+            } else {
+                $errors = $form->getErrors(true);
+
+                /** @var FormError $error */
+                foreach ($errors as $error) {
+                    $this->addFlash('danger', $error->getMessage());
+                }
+            }
+
             return $this->redirectToRoute('game_result_index');
         }
 
@@ -63,8 +74,18 @@ final class GameResultController extends AbstractController
         $form = $this->createForm(GameResultType::class, $gameResult);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                $em->flush();
+            } else {
+                $errors = $form->getErrors(true);
+
+                /** @var FormError $error */
+                foreach ($errors as $error) {
+                    $this->addFlash('danger', $error->getMessage());
+                }
+            }
+
             return $this->redirectToRoute('game_result_index');
         }
 

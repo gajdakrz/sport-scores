@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\GameResultRepository;
+use App\Validator\AtLeastOneScore;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GameResultRepository::class)]
+#[AtLeastOneScore]
 class GameResult extends AbstractAuditableEntity
 {
     #[ORM\Id]
@@ -39,10 +41,10 @@ class GameResult extends AbstractAuditableEntity
     )]
     private ?Person $person = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $matchScore = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $rankingScore = null;
 
     public function getId(): ?int
@@ -98,7 +100,7 @@ class GameResult extends AbstractAuditableEntity
         return $this->matchScore;
     }
 
-    public function setMatchScore(int $matchScore): static
+    public function setMatchScore(?int $matchScore): static
     {
         $this->matchScore = $matchScore;
 
@@ -110,7 +112,7 @@ class GameResult extends AbstractAuditableEntity
         return $this->rankingScore;
     }
 
-    public function setRankingScore(int $rankingScore): static
+    public function setRankingScore(?int $rankingScore): static
     {
         $this->rankingScore = $rankingScore;
 

@@ -47,12 +47,16 @@ final class GameResultType extends AbstractType
             ])
             ->add('matchScore', IntegerType::class, [
                 'label' => 'Match score',
+                'required' => false,
+                'empty_data' => null,
                 'attr' => [
                     'min' => 0,
                 ],
             ])
             ->add('rankingScore', IntegerType::class, [
                 'label' => 'Ranking score',
+                'required' => false,
+                'empty_data' => null,
                 'attr' => [
                     'min' => 1,
                 ],
