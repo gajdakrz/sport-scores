@@ -60,7 +60,8 @@ final class GameResultType extends AbstractType
                 'attr' => [
                     'min' => 1,
                 ],
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

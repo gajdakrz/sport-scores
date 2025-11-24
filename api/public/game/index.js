@@ -50,8 +50,6 @@ function initGameFormListeners() {
         return;
     }
 
-    sportSelect.value = sportSelectFilter.value;
-
     const initialSportId = modal.dataset.initialSport;
     const initialCompetitionId = modal.dataset.initialCompetition;
     const initialEventId = modal.dataset.initialEvent;
@@ -93,7 +91,7 @@ function initGameFormListeners() {
             return;
         }
 
-        const url = competitionSelect.dataset.url.replace('COMP_ID', this.value);
+        const url = competitionSelect.dataset.url.replace('COMPETITION_ID', this.value);
 
         try {
             const res = await fetch(url);
@@ -109,6 +107,11 @@ function initGameFormListeners() {
         }
     });
 
+    if (sportSelectFilter.value !== '') {
+        sportSelect.value = sportSelectFilter.value;
+        sportSelect.dispatchEvent(new Event('change'));
+    }
+
 
     initGameResultsCollection();
 
@@ -122,17 +125,17 @@ function initGameFormListeners() {
 
             competitionSelect.innerHTML = '<option value="">Select competition</option>';
             competitions.forEach(c => {
-                const selected = c.id == competitionId ? 'selected' : '';
+                const selected = c.id === competitionId ? 'selected' : '';
                 competitionSelect.innerHTML += `<option value="${c.id}" ${selected}>${c.name}</option>`;
             });
 
-            const eventUrl = competitionSelect.dataset.url.replace('COMP_ID', competitionId);
+            const eventUrl = competitionSelect.dataset.url.replace('COMPETITION_ID', competitionId);
             const eventRes = await fetch(eventUrl);
             const events = await eventRes.json();
 
             eventSelect.innerHTML = '<option value="">Select event</option>';
             events.forEach(e => {
-                const selected = e.id == eventId ? 'selected' : '';
+                const selected = e.id === eventId ? 'selected' : '';
                 eventSelect.innerHTML += `<option value="${e.id}" ${selected}>${e.name}</option>`;
             });
         } catch (err) {

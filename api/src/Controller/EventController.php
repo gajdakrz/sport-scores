@@ -50,6 +50,8 @@ final class EventController extends AbstractController
         return $this->render('event/_modal.html.twig', [
             'form' => $form->createView(),
             'event' => $event,
+            'initialSport' => null,
+            'initialCompetition' => null,
         ]);
     }
 
@@ -69,9 +71,14 @@ final class EventController extends AbstractController
             return $this->redirectToRoute('event_index');
         }
 
+        $competition = $event->getCompetition();
+        $sport = $competition?->getSport();
+
         return $this->render('event/_modal.html.twig', [
             'form' => $form->createView(),
             'event' => $event,
+            'initialSport' => $sport,
+            'initialCompetition' => $competition,
         ]);
     }
 

@@ -88,16 +88,16 @@ final class GameType extends AbstractType
                 'label' => false,
             ])
             ->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
-                /** @var Game|null $game */
-                $game = $event->getData();
+                /** @var Game|null $data */
+                $data = $event->getData();
                 $form = $event->getForm();
 
-                if (!$game) {
+                if (!$data) {
                     return;
                 }
 
-                $competition = $game->getEvent()?->getCompetition();
-                $sport = $game->getEvent()?->getCompetition()?->getSport();
+                $competition = $data->getEvent()?->getCompetition();
+                $sport = $data->getEvent()?->getCompetition()?->getSport();
 
                 if ($sport) {
                     $form->get('sport')->setData($sport);
@@ -106,7 +106,8 @@ final class GameType extends AbstractType
                 if ($competition) {
                     $form->get('competition')->setData($competition);
                 }
-            });
+            })
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

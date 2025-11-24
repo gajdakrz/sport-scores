@@ -22,6 +22,8 @@ class EventRepository extends ServiceEntityRepository
         string $direction = 'DESC'
     ): QueryBuilder {
         return $this->createQueryBuilder('e')
+            ->join('e.competition', 'competition')
+            ->join('competition.sport', 'sport')
             ->andWhere('e.isActive = :isActive')
             ->setParameter('isActive', true)
             ->orderBy('e.' . $orderBy, $direction);

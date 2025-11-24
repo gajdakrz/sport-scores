@@ -18,8 +18,8 @@
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
-                <th>Name</th>
                 <th>Sport</th>
+                <th>Name</th>
                 <th>Gender</th>
                 <th>Created At</th>
                 <th>Modified At</th>
@@ -30,8 +30,8 @@
             {% for competition in competitions %}
                 <tr>
                     <td>{{ competition.id }}</td>
-                    <td>{{ competition.name }}</td>
                     <td>{{ competition.sport.name ?? '' }}</td>
+                    <td>{{ competition.name }}</td>
                     <td>{{ competition.gender.name|replace({'_': ' '})|capitalize }}</td>
                     <td>{{ competition.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ competition.modifiedAt|date(DATETIME_FORMAT) }}</td>

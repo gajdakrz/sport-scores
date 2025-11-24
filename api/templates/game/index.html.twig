@@ -18,7 +18,6 @@
             <div class="col-md-3">
                 <label for="sportId" class="form-label">Sport</label>
                 <select name="sportId" id="sportId" class="form-select">
-                    <option value="">All</option>
                     {% for sport in sports %}
                         <option value="{{ sport.id }}" {% if sport.id == app.request.get('sportId') %}selected{% endif %}>
                             {{ sport.name }}
@@ -68,8 +67,8 @@
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
-                <th>Name</th>
                 <th>Sport</th>
+                <th>Name</th>
                 <th>Season</th>
                 <th>Competition</th>
                 <th>Event</th>
@@ -82,8 +81,8 @@
             {% for game in games %}
                 <tr>
                     <td>{{ game.id }}</td>
-                    <td>{{ game.name }}</td>
                     <td>{{ game.event.competition.sport.name ?? '' }}</td>
+                    <td>{{ game.name }}</td>
                     <td>{{ game.season.mergedStartEndYear ?? '' }}</td>
                     <td>{{ game.event.competition.name ?? '' }}</td>
                     <td>{{ game.event.name ?? '' }}</td>

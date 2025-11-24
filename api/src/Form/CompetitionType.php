@@ -18,15 +18,6 @@ class CompetitionType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
-                'label' => 'Competition name',
-            ])
-            ->add('gender', EnumType::class, [
-                'label' => 'Gender',
-                'class' => Gender::class,
-                'choice_label' => fn(Gender $enum) => $enum->label(),
-                'placeholder' => 'Select type',
-            ])
             ->add('sport', EntityType::class, [
                 'class' => Sport::class,
                 'choice_label' => 'name',
@@ -36,6 +27,15 @@ class CompetitionType extends AbstractType
                         'name',
                         'ASC'
                     ),
+            ])
+            ->add('name', TextType::class, [
+                'label' => 'Competition name',
+            ])
+            ->add('gender', EnumType::class, [
+                'label' => 'Gender',
+                'class' => Gender::class,
+                'choice_label' => fn(Gender $enum) => $enum->label(),
+                'placeholder' => 'Select type',
             ])
         ;
     }

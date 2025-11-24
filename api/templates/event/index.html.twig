@@ -18,6 +18,7 @@
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
+                <th>Sport</th>
                 <th>Name</th>
                 <th>Competition</th>
                 <th>Created At</th>
@@ -29,6 +30,7 @@
             {% for event in events %}
                 <tr>
                     <td>{{ event.id }}</td>
+                    <td>{{ event.competition.sport.name ?? '' }}</td>
                     <td>{{ event.name }}</td>
                     <td>{{ event.competition.name ?? '' }}</td>
                     <td>{{ event.createdAt|date(DATETIME_FORMAT) }}</td>

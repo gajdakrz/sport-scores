@@ -17,7 +17,8 @@ final class CountryType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Country name',
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

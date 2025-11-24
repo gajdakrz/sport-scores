@@ -39,7 +39,8 @@ final class TeamType extends AbstractType
                         'name',
                         'ASC'
                     ),
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -17,7 +17,8 @@ final class SportType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Sport name',
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

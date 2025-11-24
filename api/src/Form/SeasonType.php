@@ -43,7 +43,8 @@ final class SeasonType extends AbstractType
                     range($maxEndYear, $minYear),
                     range($maxEndYear, $minYear)
                 ),
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
