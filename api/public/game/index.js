@@ -8,33 +8,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     AppBase.initDeleteModal();
     AppBase.initAutoHideAlerts();
+});
 
-    document.querySelectorAll('.expand-results').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const tr = btn.closest('tr');
-            const gameId = btn.dataset.id;
-            const existing = document.querySelector('.game-results-row');
+document.querySelectorAll('.expand-results').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const tr = btn.closest('tr');
+        const gameId = btn.dataset.id;
+        const existing = document.querySelector('.game-results-row');
 
-            if (existing) {
-                existing.remove();
-                if (existing.previousElementSibling === tr) return;
+        if (existing) {
+            existing.remove();
+            if (existing.previousElementSibling === tr) return;
+        }
+
+        try {
+            const res = await fetch(`/games/${gameId}/results`);
+            if (!res.ok) {
+                throw new Error('Failed to fetch results');
             }
-
-            try {
-                const res = await fetch(`/games/${gameId}/results`);
-                if (!res.ok) {
-                    throw new Error('Failed to fetch results');
-                }
-                const html = await res.text();
-                const row = document.createElement('tr');
-                row.classList.add('game-results-row');
-                row.innerHTML = `<td colspan="8">${html}</td>`;
-                tr.insertAdjacentElement('afterend', row);
-            } catch (err) {
-                console.error(err);
-                alert('Error loading results');
-            }
-        });
+            const html = await res.text();
+            const row = document.createElement('tr');
+            row.classList.add('game-results-row');
+            row.innerHTML = `<td colspan="8">${html}</td>`;
+            tr.insertAdjacentElement('afterend', row);
+        } catch (err) {
+            console.error(err);
+            alert('Error loading results');
+        }
     });
 });
 
@@ -107,11 +107,10 @@ function initGameFormListeners() {
         }
     });
 
-    if (sportSelectFilter.value !== '') {
+    if (!initialSportId && sportSelectFilter.value !== '') {
         sportSelect.value = sportSelectFilter.value;
         sportSelect.dispatchEvent(new Event('change'));
     }
-
 
     initGameResultsCollection();
 
@@ -125,8 +124,11 @@ function initGameFormListeners() {
 
             competitionSelect.innerHTML = '<option value="">Select competition</option>';
             competitions.forEach(c => {
-                const selected = c.id === competitionId ? 'selected' : '';
-                competitionSelect.innerHTML += `<option value="${c.id}" ${selected}>${c.name}</option>`;
+                const competitionOption = document.createElement('option');
+                competitionOption.value = c.id;
+                competitionOption.textContent = c.name;
+                competitionOption.selected = Number(c.id) === Number(competitionId);
+                competitionSelect.appendChild(competitionOption);
             });
 
             const eventUrl = competitionSelect.dataset.url.replace('COMPETITION_ID', competitionId);
@@ -135,8 +137,11 @@ function initGameFormListeners() {
 
             eventSelect.innerHTML = '<option value="">Select event</option>';
             events.forEach(e => {
-                const selected = e.id === eventId ? 'selected' : '';
-                eventSelect.innerHTML += `<option value="${e.id}" ${selected}>${e.name}</option>`;
+                const eventOption = document.createElement('option');
+                eventOption.value = e.id;
+                eventOption.textContent = e.name;
+                eventOption.selected = Number(e.id) === Number(eventId);
+                eventSelect.appendChild(eventOption);
             });
         } catch (err) {
             console.error('Error loading initial data:', err);

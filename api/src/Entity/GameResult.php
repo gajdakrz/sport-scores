@@ -118,4 +118,14 @@ class GameResult extends AbstractAuditableEntity
 
         return $this;
     }
+
+    public function getOpponent(): ?self
+    {
+        foreach ($this->game->getGameResults() as $result) {
+            if ($result->getId() !== $this->getId()) {
+                return $result;
+            }
+        }
+        return null;
+    }
 }

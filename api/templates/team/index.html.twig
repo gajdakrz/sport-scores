@@ -49,6 +49,9 @@
                             data-token="{{ csrf_token('delete' ~ team.id) }}">
                             Delete
                         </button>
+                        <button class="btn btn-sm btn-outline-info expand-results" data-id="{{ team.id }}">
+                            Results
+                        </button>
                     </td>
                 </tr>
             {% else %}

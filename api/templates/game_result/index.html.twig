@@ -3,7 +3,7 @@
 {% block title %}Game results{% endblock %}
 
 {% block body %}
-    {% set columnCount = 8 %}
+    {% set columnCount = 9 %}
 
     <div class="container mt-5">
 
@@ -18,7 +18,8 @@
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
-                <th>Game</th>
+                <th>Game Id</th>
+                <th>Game Name</th>
                 <th>Team</th>
                 <th>Match score</th>
                 <th>Ranking score</th>
@@ -31,6 +32,7 @@
             {% for gameResult in gameResults %}
                 <tr>
                     <td>{{ gameResult.id }}</td>
+                    <td>{{ gameResult.game.id ?? '' }}</td>
                     <td>{{ gameResult.game.name ?? '' }}</td>
                     <td>{{ gameResult.team.name ?? '' }}</td>
                     <td>{{ gameResult.matchScore }}</td>

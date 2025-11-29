@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\Team;
 use App\Entity\User;
 use App\Form\TeamType;
+use App\Repository\GameResultRepository;
 use App\Repository\TeamRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -88,5 +89,13 @@ final class TeamController extends AbstractController
             $em->flush();
         }
         return $this->redirectToRoute('team_index');
+    }
+
+    #[Route('/{id}/results', name: 'game_results', methods: ['GET'])]
+    public function results(Team $team, GameResultRepository $gameResultRepository): Response
+    {
+        return $this->render('team/_results.html.twig', [
+            'gameResults' => $gameResultRepository->findActiveByTeam($team),
+        ]);
     }
 }

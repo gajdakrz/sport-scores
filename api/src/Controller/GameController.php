@@ -198,7 +198,6 @@ final class GameController extends AbstractController
     {
         return $this->render('game/_results.html.twig', [
             'gameResults' => $gameResultRepository->findActiveByGame($game),
-//            'gameResults' => $gameResultRepository->findBy(['game' => $game]),
         ]);
     }
 }
