@@ -1,0 +1,78 @@
+<div class="modal fade" id="teamSeasonDetailsModalContainer" tabindex="-1" aria-labelledby="teamSeasonDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="teamSeasonDetailsModalLabel">
+                    Game Results Details for: {{ team.name ?? '' }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div class="mb-3 row">
+                        <label for="teamName" class="col-sm-2 col-form-label">Team</label>
+                        <div class="col-sm-10">
+                            <input type="text" readonly class="form-control-plaintext fw-bold"
+                                   id="teamName" value="{{ team.name }}">
+                        </div>
+                        <label for="seasonName" class="col-sm-2 col-form-label">Season</label>
+                        <div class="col-sm-10">
+                            <input type="text" readonly class="form-control-plaintext fw-bold"
+                                   id="seasonName" value="{{ season.mergedStartEndYear }}">
+                        </div>
+                        <label for="competitionName" class="col-sm-2 col-form-label">Competition</label>
+                        <div class="col-sm-10">
+                            <input type="text" readonly class="form-control-plaintext fw-bold"
+                                   id="competitionName" value="{{ competition.name }}">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    {% set childColumnCount = 11 %}
+                    <table class="table table-striped table-hover align-middle" id="seasonDetails">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Event</th>
+                            <th>Our Name</th>
+                            <th>Our match score</th>
+                            <th>Opponent match score</th>
+                            <th>Opponent name</th>
+                            <th>Match status</th>
+                            <th>Created At</th>
+                            <th>Modified At</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for gameResult in gameResults %}
+                            <tr>
+                                <td>{{ gameResult.id }}</td>
+                                <td>{{ gameResult.game.event.name ?? '' }}</td>
+                                <td>{{ gameResult.team.name ?? '' }}</td>
+                                <td>{{ gameResult.matchScore }}</td>
+                                <td>{{ gameResult.opponent.matchScore ?? '' }}</td>
+                                <td>{{ gameResult.opponent.team.name ?? '' }}</td>
+                                <td>{{ gameResult.matchResult.value ?? '' }}</td>
+                                <td>{{ gameResult.createdAt|date(DATETIME_FORMAT) }}</td>
+                                <td>{{ gameResult.modifiedAt|date(DATETIME_FORMAT) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="{{ childColumnCount }}" class="text-center text-muted">
+                                    No game results found.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

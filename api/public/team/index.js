@@ -1,3 +1,5 @@
+const tableBody = document.querySelector('#teamTable tbody');
+
 document.addEventListener('DOMContentLoaded', () => {
     AppBase.initModalFeature({
         containerId: 'teamModalContainer',
@@ -21,7 +23,7 @@ document.querySelectorAll('.expand-results').forEach(btn => {
         }
 
         try {
-            const res = await fetch(`/teams/${teamId}/results`);
+            const res = await fetch(`/teams/${teamId}/result-season-stats`);
             if (!res.ok) {
                 throw new Error('Failed to fetch results');
             }
@@ -35,4 +37,24 @@ document.querySelectorAll('.expand-results').forEach(btn => {
             alert('Error loading results');
         }
     });
+})
+
+tableBody.addEventListener('click', (event) => {
+    const btn = event.target.closest('.season-details');
+    if (!btn) {
+        return;
+    }
+    const teamId = btn.dataset.teamId;
+    const seasonId = btn.dataset.seasonId;
+    const competitionId = btn.dataset.competitionId;
+
+    fetch(`/teams/${teamId}/seasons/${seasonId}/competitions/${competitionId}/details`)
+        .then(res => res.text())
+        .then(html => {
+            const container = document.getElementById('teamSeasonDetailsModalContainer');
+            container.innerHTML = html;
+            const modalEl = container.querySelector('.modal');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        });
 });

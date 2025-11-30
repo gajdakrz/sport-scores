@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Competition;
+use App\Entity\Season;
 use App\Entity\Team;
 use App\Entity\User;
 use App\Form\TeamType;
@@ -91,11 +93,32 @@ final class TeamController extends AbstractController
         return $this->redirectToRoute('team_index');
     }
 
-    #[Route('/{id}/results', name: 'game_results', methods: ['GET'])]
-    public function results(Team $team, GameResultRepository $gameResultRepository): Response
-    {
-        return $this->render('team/_results.html.twig', [
-            'gameResults' => $gameResultRepository->findActiveByTeam($team),
+    #[Route(
+        '/{team}/seasons/{season}/competitions/{competition}/details',
+        name: 'team_season_details',
+        methods: ['GET']
+    )]
+    public function results(
+        Team $team,
+        Season $season,
+        Competition $competition,
+        GameResultRepository $gameResultRepository
+    ): Response {
+        return $this->render('team/_modal_season-details.html.twig', [
+            'season' => $season,
+            'team' => $team,
+            'competition' => $competition,
+            'gameResults' => $gameResultRepository->findActiveByTeamAndSeason($team, $season),
+        ]);
+    }
+
+    #[Route('/{id}/result-season-stats', name: 'team_game_result_season_stats', methods: ['GET'])]
+    public function resultSeasonStats(
+        Team $team,
+        GameResultRepository $gameResultRepository
+    ): Response {
+        return $this->render('team/_result-season-stats.html.twig', [
+            'resultSeasonStats' => $gameResultRepository->getResultsGroupedBySeason($team)
         ]);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\MatchResultStatus;
 use App\Repository\GameResultRepository;
 use App\Validator\AtLeastOneScore;
 use Doctrine\ORM\Mapping as ORM;
@@ -121,11 +122,51 @@ class GameResult extends AbstractAuditableEntity
 
     public function getOpponent(): ?self
     {
+        if ($this->game === null) {
+            return null;
+        }
+
         foreach ($this->game->getGameResults() as $result) {
             if ($result->getId() !== $this->getId()) {
                 return $result;
             }
         }
+
         return null;
+    }
+
+    public function getMatchResult(): MatchResultStatus
+    {
+        $result = MatchResultStatus::UNKNOWN;
+        $opponent = $this->getOpponent();
+
+        if (!$opponent) {
+            return $result;
+        }
+
+        if ($this->getMatchScore() > $opponent->getMatchScore()) {
+            $result = MatchResultStatus::WIN;
+        } elseif ($this->getMatchScore() < $opponent->getMatchScore()) {
+            $result = MatchResultStatus::LOSS;
+        } else {
+            $result = MatchResultStatus::DRAW;
+        }
+
+        return $result;
+    }
+
+    public function isWin(): bool
+    {
+        return $this->getMatchResult() === MatchResultStatus::WIN;
+    }
+
+    public function isLoss(): bool
+    {
+        return $this->getMatchResult() === MatchResultStatus::LOSS;
+    }
+
+    public function isDraw(): bool
+    {
+        return $this->getMatchResult() === MatchResultStatus::DRAW;
     }
 }
