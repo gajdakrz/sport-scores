@@ -33,28 +33,32 @@
                         <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Game Date</th>
                             <th>Event</th>
                             <th>Our Name</th>
                             <th>Our match score</th>
                             <th>Opponent match score</th>
                             <th>Opponent name</th>
                             <th>Match status</th>
-                            <th>Created At</th>
-                            <th>Modified At</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for gameResult in gameResults %}
-                            <tr>
+                            <tr class="
+                                {% if gameResult.matchResult is not null %}
+                                    {% if gameResult.matchResult.value == 'loss' %}table-danger{% endif %}
+                                    {% if gameResult.matchResult.value == 'win' %}table-success{% endif %}
+                                    {% if gameResult.matchResult.value == 'draw' %}table-warning{% endif %}
+                                {% endif %}
+                            ">
                                 <td>{{ gameResult.id }}</td>
+                                <td>{{ gameResult.game.date|default('')|date(DATE_FORMAT) }}</td>
                                 <td>{{ gameResult.game.event.name ?? '' }}</td>
                                 <td>{{ gameResult.team.name ?? '' }}</td>
                                 <td>{{ gameResult.matchScore }}</td>
                                 <td>{{ gameResult.opponent.matchScore ?? '' }}</td>
                                 <td>{{ gameResult.opponent.team.name ?? '' }}</td>
                                 <td>{{ gameResult.matchResult.value ?? '' }}</td>
-                                <td>{{ gameResult.createdAt|date(DATETIME_FORMAT) }}</td>
-                                <td>{{ gameResult.modifiedAt|date(DATETIME_FORMAT) }}</td>
                             </tr>
                         {% else %}
                             <tr>

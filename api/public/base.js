@@ -19,7 +19,7 @@ window.AppBase = {
                 flatpickr(input, {
                     dateFormat: "Y-m-d",
                     locale: "pl",
-                    defaultDate: "today"
+                    defaultDate: input.value || "today"
                 });
             });
 

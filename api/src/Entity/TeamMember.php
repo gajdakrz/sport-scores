@@ -17,11 +17,11 @@ class TeamMember extends AbstractAuditableEntity
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['default' => 'CURRENT_DATE'])]
     private DateTimeImmutable $startDate;
 
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $endDate = null;
 
     #[ORM\ManyToOne(inversedBy: 'teamCompetitors')]

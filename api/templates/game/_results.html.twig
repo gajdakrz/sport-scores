@@ -3,7 +3,6 @@
     <thead>
     <tr>
         <th>ID</th>
-        <th>Game</th>
         <th>Team</th>
         <th>Match score</th>
         <th>Ranking score</th>
@@ -15,7 +14,6 @@
     {% for gameResult in gameResults %}
         <tr>
             <td>{{ gameResult.id }}</td>
-            <td>{{ gameResult.game.name ?? '' }}</td>
             <td>{{ gameResult.team.name ?? '' }}</td>
             <td>{{ gameResult.matchScore }}</td>
             <td>{{ gameResult.rankingScore }}</td>

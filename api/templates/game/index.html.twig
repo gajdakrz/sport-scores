@@ -67,8 +67,8 @@
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
+                <th>Date</th>
                 <th>Sport</th>
-                <th>Name</th>
                 <th>Season</th>
                 <th>Competition</th>
                 <th>Event</th>
@@ -81,8 +81,8 @@
             {% for game in games %}
                 <tr>
                     <td>{{ game.id }}</td>
+                    <td>{{ game.date|date(DATE_FORMAT) }}</td>
                     <td>{{ game.event.competition.sport.name ?? '' }}</td>
-                    <td>{{ game.name }}</td>
                     <td>{{ game.season.mergedStartEndYear ?? '' }}</td>
                     <td>{{ game.event.competition.name ?? '' }}</td>
                     <td>{{ game.event.name ?? '' }}</td>
@@ -98,7 +98,7 @@
                             data-bs-toggle="modal"
                             data-bs-target="#confirmDeleteModal"
                             data-delete-url="{{ path('game_delete', {'id': game.id}) }}"
-                            data-item-name="{{ game.name }}"
+                            data-item-name="{{ game.id }}"
                             data-token="{{ csrf_token('delete' ~ game.id) }}">
                             Delete
                         </button>

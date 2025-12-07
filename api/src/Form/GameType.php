@@ -11,13 +11,13 @@ use App\Entity\Season;
 use App\Entity\Sport;
 use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
-use App\Repository\GameResultRepository;
 use App\Repository\SeasonRepository;
 use App\Repository\SportRepository;
+use DateTimeImmutable;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -71,10 +71,11 @@ final class GameType extends AbstractType
                     ),
                 'required' => true,
             ])
-            ->add('name', TextType::class, [
-                'label' => 'Game name',
-                'required' => false,
-                'empty_data' => null,
+            ->add('date', DateType::class, [
+                'label' => 'Game date',
+                'widget' => 'single_text',
+                'required' => true,
+                'attr' => ['class' => 'form-control flatpickr'],
             ])
             ->add('gameResults', CollectionType::class, [
                 'entry_type' => GameResultType::class,

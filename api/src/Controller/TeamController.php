@@ -108,7 +108,7 @@ final class TeamController extends AbstractController
             'season' => $season,
             'team' => $team,
             'competition' => $competition,
-            'gameResults' => $gameResultRepository->findActiveByTeamAndSeason($team, $season),
+            'gameResults' => $gameResultRepository->findActiveByTeamAndSeason($team, $season, 'g.date'),
         ]);
     }
 

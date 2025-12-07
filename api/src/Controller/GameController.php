@@ -38,7 +38,7 @@ final class GameController extends AbstractController
         SeasonRepository $seasonRepository,
     ): Response {
         return $this->render('game/index.html.twig', [
-            'games' => $gameRepository->findActiveFilteredSortedBy($gameFilterRequest),
+            'games' => $gameRepository->findActiveFilteredSortedBy($gameFilterRequest, 'date'),
             'sports' => $sportRepository->findActiveSortedBy('name', 'ASC'),
             'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC'),
             'events' => $eventRepository->findActiveSortedBy('name', 'ASC'),

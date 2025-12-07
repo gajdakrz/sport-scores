@@ -80,7 +80,7 @@ class GameResultRepository extends ServiceEntityRepository
     public function findActiveByTeamAndSeason(
         Team $team,
         ?Season $season = null,
-        string $orderBy = 'createdAt',
+        string $orderBy = 'gr1.createdAt',
         string $direction = 'DESC'
     ): array {
         $qb = $this->createQueryBuilder('gr1')
@@ -96,7 +96,7 @@ class GameResultRepository extends ServiceEntityRepository
             ->andWhere('gr1.isActive = :isActive')
             ->setParameter('isActive', true)
             ->setParameter('team', $team)
-            ->orderBy('gr1.' . $orderBy, $direction);
+            ->orderBy($orderBy, $direction);
 
         if ($season !== null) {
             $qb->andWhere('g.season = :season')

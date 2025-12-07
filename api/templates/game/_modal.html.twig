@@ -16,24 +16,35 @@
                 'action': game.id ? path('game_edit', {'id': game.id}) : path('game_new')
             }) }}
             <div class="modal-body">
-                <div class="mb-3">
-                    {{ form_label(form.sport) }}
-                    {{ form_widget(form.sport, { 'attr': {'data-url': path('competition_by_sport', {'sportId': 'SPORT_ID'})} }) }}
+                <div class="mb-3 row">
+                    {{ form_label(form.sport, null, {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.sport, { 'attr': {'data-url': path('competition_by_sport', {'sportId': 'SPORT_ID'})} }) }}
+                    </div>
                 </div>
-                <div class="mb-3">
-                    {{ form_label(form.season) }}
-                    {{ form_widget(form.season) }}
+                <div class="mb-3 row">
+                    {{ form_label(form.season, null, {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.season) }}
+                    </div>
                 </div>
-                <div class="mb-3">
-                    {{ form_label(form.competition) }}
-                    {{ form_widget(form.competition, { 'attr': {'data-url': path('event_by_competition', {'competitionId': 'COMPETITION_ID'})} }) }}
+                <div class="mb-3 row">
+                    {{ form_label(form.competition, null, {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.competition, { 'attr': {'data-url': path('event_by_competition', {'competitionId': 'COMPETITION_ID'})} }) }}
+                    </div>
                 </div>
-                <div class="mb-3">
-                    {{ form_label(form.event) }}
-                    {{ form_widget(form.event) }}
+                <div class="mb-3 row">
+                    {{ form_label(form.event, null, {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.event) }}
+                    </div>
                 </div>
-                <div class="mb-3">
-                    {{ form_row(form.name) }}
+                <div class="mb-3 row">
+                    {{ form_label(form.date, null, {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.date) }}
+                    </div>
                 </div>
                 <hr class="my-4">
                 <h6>Game Results</h6>
