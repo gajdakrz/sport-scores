@@ -30,4 +30,9 @@ class CurrentSportProvider
     {
         return $this->getSport()?->getId();
     }
+
+    public function getSportName(): ?string
+    {
+        return $this->getSport()?->getName();
+    }
 }
