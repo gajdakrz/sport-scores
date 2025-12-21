@@ -64,20 +64,6 @@ final class GameResultType extends AbstractType
                     'min' => 1,
                 ],
             ])
-            ->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
-                /** @var ?Event $data */
-                $data = $event->getData();
-                $form = $event->getForm();
-
-                if (!$data) {
-                    return;
-                }
-                $sport = $data->getCompetition()?->getSport();
-
-                if ($sport) {
-                    $form->get('sport')->setData($sport);
-                }
-            })
         ;
     }
 
