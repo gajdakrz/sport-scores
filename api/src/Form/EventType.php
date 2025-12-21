@@ -8,7 +8,6 @@ use App\Entity\Competition;
 use App\Entity\Event;
 use App\Entity\Sport;
 use App\Repository\CompetitionRepository;
-use App\Repository\SportRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -21,17 +20,16 @@ final class EventType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var ?Event $event */
+        $event = $builder->getData();
+        /** @var ?Sport $sport */
+        $sport = $options['current_sport'] ?? $event?->getCompetition()?->getSport();
+
         $builder
-            ->add('sport', EntityType::class, [
-                'class' => Sport::class,
-                'choice_label' => 'name',
+            ->add('sport', TextType::class, [
                 'mapped' => false,
-                'placeholder' => 'Select sport',
-                'query_builder' =>
-                    fn(SportRepository $sportRepository) => $sportRepository->createActiveQueryBuilder(
-                        'name',
-                        'ASC'
-                    ),
+                'disabled' => true,
+                'data' => $sport?->getName(),
             ])
             ->add('competition', EntityType::class, [
                 'label' => 'Competition',
@@ -42,7 +40,8 @@ final class EventType extends AbstractType
                     fn(CompetitionRepository $competitionRepository) => $competitionRepository
                         ->createActiveQueryBuilder(
                             'name',
-                            'ASC'
+                            'ASC',
+                            $sport,
                         ),
             ])
             ->add('name', TextType::class, [
@@ -69,6 +68,9 @@ final class EventType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Event::class,
+            'current_sport' => null,
         ]);
+
+        $resolver->setAllowedTypes('current_sport', [Sport::class, 'null']);
     }
 }

@@ -14,6 +14,7 @@ use App\Repository\GameRepository;
 use App\Repository\GameResultRepository;
 use App\Repository\SeasonRepository;
 use App\Repository\SportRepository;
+use App\Service\CurrentSportProvider;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,30 +33,47 @@ final class GameController extends AbstractController
     public function index(
         #[MapQueryString] GameFilterRequest $gameFilterRequest,
         GameRepository $gameRepository,
-        SportRepository $sportRepository,
         CompetitionRepository $competitionRepository,
         EventRepository $eventRepository,
         SeasonRepository $seasonRepository,
+        CurrentSportProvider $currentSportProvider
     ): Response {
+        $currentSport = $currentSportProvider->getSport();
+
         return $this->render('game/index.html.twig', [
-            'games' => $gameRepository->findActiveFilteredSortedBy($gameFilterRequest, 'date'),
-            'sports' => $sportRepository->findActiveSortedBy('name', 'ASC'),
-            'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC'),
+            'games' => $gameRepository->findActiveFilteredSortedBy(
+                $gameFilterRequest,
+                'date',
+                'DESC',
+                $currentSport
+            ),
+            'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC', $currentSport),
             'events' => $eventRepository->findActiveSortedBy('name', 'ASC'),
             'seasons' => $seasonRepository->findActiveSortedBy('startYear'),
         ]);
     }
 
     #[Route('/new', name: 'game_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $em,
+        CurrentSportProvider $currentSportProvider
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
         $game = new Game();
         $game->setCreatedBy($user);
         $game->setModifiedBy($user);
+        $currentSport = $currentSportProvider->getSport();
 
-        $form = $this->createForm(GameType::class, $game);
+        if (!$currentSport) {
+            $this->addFlash('danger', 'Sport not selected');
+            return $this->redirectToRoute('game_index');
+        }
+
+        $form = $this->createForm(GameType::class, $game, [
+            'current_sport' => $currentSport,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && !$form->isValid()) {

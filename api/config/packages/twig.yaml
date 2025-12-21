@@ -4,6 +4,7 @@ twig:
     globals:
         DATETIME_FORMAT: 'Y-m-d H:i'
         DATE_FORMAT: 'Y-m-d'
+        currentSport: '@App\Service\CurrentSportProvider'
 
 when@test:
     twig:

@@ -13,7 +13,7 @@
             <div class="modal-body">
                 <div class="mb-3">
                     {{ form_label(form.sport) }}
-                    {{ form_widget(form.sport, { 'attr': {'data-url': path('competition_by_sport', {'sportId': 'SPORT_ID'})} }) }}
+                    {{ form_widget(form.sport) }}
                 </div>
                 <div class="mb-3">
                     {{ form_label(form.competition) }}

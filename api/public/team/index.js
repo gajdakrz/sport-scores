@@ -7,8 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
         newBtnId: 'newTeamBtn',
         newUrl: '/teams/new'
     });
-    AppBase.initDeleteModal();
-    AppBase.initAutoHideAlerts();
 });
 
 document.querySelectorAll('.expand-results').forEach(btn => {

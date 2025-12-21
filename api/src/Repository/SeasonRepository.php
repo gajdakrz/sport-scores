@@ -21,10 +21,10 @@ class SeasonRepository extends ServiceEntityRepository
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): QueryBuilder {
-        return $this->createQueryBuilder('s')
-            ->where('s.isActive = :isActive')
+        return $this->createQueryBuilder('season')
+            ->where('season.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('s.' . $orderBy, $direction);
+            ->orderBy('season.' . $orderBy, $direction);
     }
 
     /**

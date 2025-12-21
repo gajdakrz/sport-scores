@@ -6,8 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
         newUrl: '/games/new',
         onLoaded: initGameFormListeners
     });
-    AppBase.initDeleteModal();
-    AppBase.initAutoHideAlerts();
 });
 
 document.querySelectorAll('.expand-results').forEach(btn => {
@@ -39,50 +37,21 @@ document.querySelectorAll('.expand-results').forEach(btn => {
 });
 
 function initGameFormListeners() {
-    const sportSelect = document.getElementById('game_sport');
     const competitionSelect = document.getElementById('game_competition');
     const eventSelect = document.getElementById('game_event');
     const modal = document.getElementById('gameModal');
-    const sportSelectFilter = document.getElementById('sportId');
 
-    if (!sportSelect || !competitionSelect || !eventSelect || !modal) {
+    if (!competitionSelect || !eventSelect || !modal) {
         console.error('One or more elements not found!');
         return;
     }
 
-    const initialSportId = modal.dataset.initialSport;
     const initialCompetitionId = modal.dataset.initialCompetition;
     const initialEventId = modal.dataset.initialEvent;
 
-    if (initialSportId && initialCompetitionId && initialEventId) {
-        loadInitialData(initialSportId, initialCompetitionId, initialEventId);
+    if (initialCompetitionId && initialEventId) {
+        loadInitialData(initialCompetitionId, initialEventId);
     }
-
-    // Sport change handler
-    sportSelect.addEventListener('change', async function () {
-        if (!this.value) {
-            competitionSelect.innerHTML = '<option value="">Select competition</option>';
-            eventSelect.innerHTML = '<option value="">Select event</option>';
-            return;
-        }
-
-        const url = sportSelect.dataset.url.replace('SPORT_ID', this.value);
-
-        try {
-            const res = await fetch(url);
-            const competitions = await res.json();
-
-            competitionSelect.innerHTML = '<option value="">Select competition</option>';
-            eventSelect.innerHTML = '<option value="">Select event</option>';
-
-            competitions.forEach(c => {
-                competitionSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-            });
-        } catch (err) {
-            console.error('Error loading competitions:', err);
-            alert('Failed to load competitions');
-        }
-    });
 
     // Competition change handler
     competitionSelect.addEventListener('change', async function () {
@@ -106,42 +75,22 @@ function initGameFormListeners() {
             alert('Failed to load events');
         }
     });
-
-    if (!initialSportId && sportSelectFilter.value !== '') {
-        sportSelect.value = sportSelectFilter.value;
-        sportSelect.dispatchEvent(new Event('change'));
-    }
-
     initGameResultsCollection();
 
-    async function loadInitialData(sportId, competitionId, eventId) {
+    async function loadInitialData(competitionId, eventId) {
         try {
-            sportSelect.value = sportId;
-
-            const compUrl = sportSelect.dataset.url.replace('SPORT_ID', sportId);
-            const compRes = await fetch(compUrl);
-            const competitions = await compRes.json();
-
-            competitionSelect.innerHTML = '<option value="">Select competition</option>';
-            competitions.forEach(c => {
-                const competitionOption = document.createElement('option');
-                competitionOption.value = c.id;
-                competitionOption.textContent = c.name;
-                competitionOption.selected = Number(c.id) === Number(competitionId);
-                competitionSelect.appendChild(competitionOption);
-            });
-
+            competitionSelect.value = competitionId;
             const eventUrl = competitionSelect.dataset.url.replace('COMPETITION_ID', competitionId);
             const eventRes = await fetch(eventUrl);
             const events = await eventRes.json();
 
             eventSelect.innerHTML = '<option value="">Select event</option>';
             events.forEach(e => {
-                const eventOption = document.createElement('option');
-                eventOption.value = e.id;
-                eventOption.textContent = e.name;
-                eventOption.selected = Number(e.id) === Number(eventId);
-                eventSelect.appendChild(eventOption);
+                const option = document.createElement('option');
+                option.value = e.id;
+                option.textContent = e.name;
+                option.selected = Number(e.id) === Number(eventId);
+                eventSelect.appendChild(option);
             });
         } catch (err) {
             console.error('Error loading initial data:', err);

@@ -11,6 +11,7 @@ use App\Entity\User;
 use App\Form\TeamType;
 use App\Repository\GameResultRepository;
 use App\Repository\TeamRepository;
+use App\Service\CurrentSportProvider;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,23 +25,34 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class TeamController extends AbstractController
 {
     #[Route('', name: 'team_index', methods: ['GET'])]
-    public function index(TeamRepository $teamRepository): Response
+    public function index(TeamRepository $teamRepository, CurrentSportProvider $currentSportProvider): Response
     {
         return $this->render('team/index.html.twig', [
-            'teams' => $teamRepository->findActiveSortedBy(),
+            'teams' => $teamRepository->findActiveSortedBy(sport: $currentSportProvider->getSport()),
         ]);
     }
 
     #[Route('/new', name: 'team_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $em,
+        CurrentSportProvider $currentSportProvider
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
         $team = new Team();
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
+        $currentSport = $currentSportProvider->getSport();
 
-        $form = $this->createForm(TeamType::class, $team);
+        if (!$currentSport) {
+            $this->addFlash('danger', 'Sport not selected');
+            return $this->redirectToRoute('event_index');
+        }
+
+        $form = $this->createForm(TeamType::class, $team, [
+            'current_sport' => $currentSport,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

@@ -6,6 +6,7 @@ use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\GameResult;
 use App\Entity\Season;
+use App\Entity\Sport;
 use App\Entity\Team;
 use App\Enum\MatchResultStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -24,12 +25,24 @@ class GameResultRepository extends ServiceEntityRepository
 
     public function createActiveQueryBuilder(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null
     ): QueryBuilder {
-        return $this->createQueryBuilder('g')
-            ->andWhere('g.isActive = :isActive')
+        $qb = $this->createQueryBuilder('gameResult')
+            ->join('gameResult.game', 'game')
+            ->join('game.event', 'event')
+            ->join('event.competition', 'competition')
+            ->join('competition.sport', 'sport')
+            ->andWhere('gameResult.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('g.' . $orderBy, $direction);
+            ->orderBy('gameResult.' . $orderBy, $direction);
+
+        if ($sport !== null) {
+            $qb->andWhere('competition.sport = :sport')
+                ->setParameter('sport', $sport);
+        }
+
+        return $qb;
     }
 
     /**
@@ -39,11 +52,12 @@ class GameResultRepository extends ServiceEntityRepository
      */
     public function findActiveSortedBy(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null
     ): array {
 
         /** @var GameResult[] */
-        return $this->createActiveQueryBuilder($orderBy, $direction)
+        return $this->createActiveQueryBuilder($orderBy, $direction, $sport)
             ->getQuery()
             ->getResult();
     }

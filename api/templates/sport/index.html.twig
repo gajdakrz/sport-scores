@@ -45,7 +45,9 @@
                             data-token="{{ csrf_token('delete' ~ sport.id) }}">
                             Delete
                         </button>
-                        <a class="btn btn-outline-success" href="{{ path('game_index') }}?sportId={{ sport.id }}">Select Games</a>
+                        <button class="btn btn-sm btn-outline-success select-btn" data-id="{{ sport.id }}">
+                            Select Games
+                        </button>
                     </td>
                 </tr>
             {% else %}

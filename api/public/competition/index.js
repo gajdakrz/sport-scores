@@ -5,6 +5,4 @@ document.addEventListener('DOMContentLoaded', () => {
         newBtnId: 'newCompetitionBtn',
         newUrl: '/competitions/new'
     });
-    AppBase.initDeleteModal();
-    AppBase.initAutoHideAlerts();
 });

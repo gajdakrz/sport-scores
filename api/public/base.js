@@ -100,5 +100,36 @@ window.AppBase = {
                 bsAlert.close();
             }, delay);
         });
+    },
+
+    initSportSwitcher() {
+        const switcher = document.getElementById('sport-switcher');
+        if (!switcher) {
+            return;
+        }
+
+        switcher.addEventListener('change', async (e) => {
+            const sportId = e.target.value;
+            if (!sportId) {
+                return;
+            }
+
+            try {
+                await fetch(`sports/set/${sportId}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                window.location.reload();
+            } catch (e) {
+                console.error('Failed to switch sport', e);
+            }
+        });
     }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    AppBase.initSportSwitcher();
+    AppBase.initAutoHideAlerts();
+    AppBase.initDeleteModal();
+});

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Event;
+use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,14 +20,22 @@ class EventRepository extends ServiceEntityRepository
 
     public function createActiveQueryBuilder(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null
     ): QueryBuilder {
-        return $this->createQueryBuilder('e')
-            ->join('e.competition', 'competition')
+        $qb = $this->createQueryBuilder('event')
+            ->join('event.competition', 'competition')
             ->join('competition.sport', 'sport')
-            ->andWhere('e.isActive = :isActive')
+            ->andWhere('event.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('e.' . $orderBy, $direction);
+            ->orderBy('event.' . $orderBy, $direction);
+
+        if ($sport !== null) {
+            $qb->andWhere('competition.sport = :sport')
+                ->setParameter('sport', $sport);
+        }
+
+        return $qb;
     }
 
     /**
@@ -36,11 +45,12 @@ class EventRepository extends ServiceEntityRepository
      */
     public function findActiveSortedBy(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null
     ): array {
 
         /** @var Event[] */
-        return $this->createActiveQueryBuilder($orderBy, $direction)
+        return $this->createActiveQueryBuilder($orderBy, $direction, $sport)
             ->getQuery()
             ->getResult();
     }

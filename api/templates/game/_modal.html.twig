@@ -11,7 +11,6 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             {{ form_start(form, {
                 'action': game.id ? path('game_edit', {'id': game.id}) : path('game_new')
             }) }}
@@ -19,7 +18,7 @@
                 <div class="mb-3 row">
                     {{ form_label(form.sport, null, {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
                     <div class="col-sm-10">
-                        {{ form_widget(form.sport, { 'attr': {'data-url': path('competition_by_sport', {'sportId': 'SPORT_ID'})} }) }}
+                        {{ form_widget(form.sport) }}
                     </div>
                 </div>
                 <div class="mb-3 row">

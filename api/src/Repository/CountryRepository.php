@@ -21,10 +21,10 @@ class CountryRepository extends ServiceEntityRepository
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): QueryBuilder {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.isActive = :isActive')
+        return $this->createQueryBuilder('country')
+            ->andWhere('country.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('c.' . $orderBy, $direction);
+            ->orderBy('country.' . $orderBy, $direction);
     }
 
     /**

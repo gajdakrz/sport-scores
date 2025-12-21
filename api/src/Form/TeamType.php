@@ -21,16 +21,16 @@ final class TeamType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var ?Team $team */
+        $team = $builder->getData();
+        /** @var ?Sport $sport */
+        $sport = $options['current_sport'] ?? $team?->getSport();
+
         $builder
-            ->add('sport', EntityType::class, [
-                'class' => Sport::class,
-                'choice_label' => 'name',
-                'placeholder' => 'Select sport',
-                'query_builder' =>
-                    fn(SportRepository $sportRepository) =>$sportRepository->createActiveQueryBuilder(
-                        'name',
-                        'ASC'
-                    ),
+            ->add('sport', TextType::class, [
+                'mapped' => false,
+                'disabled' => true,
+                'data' => $sport?->getName(),
             ])
             ->add('teamType', EnumType::class, [
                 'label' => 'Team type',
@@ -59,6 +59,9 @@ final class TeamType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Team::class,
+            'current_sport' => null,
         ]);
+
+        $resolver->setAllowedTypes('current_sport', [Sport::class, 'null']);
     }
 }

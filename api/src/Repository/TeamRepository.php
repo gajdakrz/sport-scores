@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Sport;
 use App\Entity\Team;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -19,12 +20,20 @@ class TeamRepository extends ServiceEntityRepository
 
     public function createActiveQueryBuilder(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null,
     ): QueryBuilder {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.isActive = :isActive')
+        $qb = $this->createQueryBuilder('team')
+            ->andWhere('team.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('t.' . $orderBy, $direction);
+            ->orderBy('team.' . $orderBy, $direction);
+
+        if ($sport !== null) {
+            $qb->andWhere('team.sport = :sport')
+                ->setParameter('sport', $sport);
+        }
+
+        return $qb;
     }
 
     /**
@@ -34,11 +43,12 @@ class TeamRepository extends ServiceEntityRepository
      */
     public function findActiveSortedBy(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null,
     ): array {
 
         /** @var Team[] */
-        return $this->createActiveQueryBuilder($orderBy, $direction)
+        return $this->createActiveQueryBuilder($orderBy, $direction, $sport)
             ->getQuery()
             ->getResult();
     }

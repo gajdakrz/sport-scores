@@ -89,4 +89,14 @@ final class SportController extends AbstractController
         }
         return $this->redirectToRoute('sport_index');
     }
+
+    #[Route('/set/{id}', name: 'sport_set', methods: ['POST'])]
+    public function setSport(
+        Sport $sport,
+        Request $request
+    ): Response {
+        $request->getSession()->set('current_sport_id', $sport->getId());
+
+        return new Response(null, 204);
+    }
 }

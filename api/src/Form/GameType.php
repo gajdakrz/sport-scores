@@ -12,11 +12,11 @@ use App\Entity\Sport;
 use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
 use App\Repository\SeasonRepository;
-use App\Repository\SportRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -24,19 +24,23 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class GameType extends AbstractType
 {
+    /**
+     * @param array{
+     *     current_sport: ?Sport
+     * } $options
+     */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var ?Game $game */
+        $game = $builder->getData();
+        /** @var ?Sport $sport */
+        $sport = $options['current_sport'] ?? $game?->getEvent()?->getCompetition()?->getSport();
+
         $builder
-            ->add('sport', EntityType::class, [
-                'class' => Sport::class,
-                'choice_label' => 'name',
+            ->add('sport', TextType::class, [
                 'mapped' => false,
-                'placeholder' => 'Select sport',
-                'query_builder' =>
-                    fn(SportRepository $sportRepository) => $sportRepository->createActiveQueryBuilder(
-                        'name',
-                        'ASC'
-                    ),
+                'disabled' => true,
+                'data' => $sport?->getName(),
             ])
             ->add('season', EntityType::class, [
                 'class' => Season::class,
@@ -55,7 +59,8 @@ final class GameType extends AbstractType
                         CompetitionRepository $competitionRepository
                     ) => $competitionRepository->createActiveQueryBuilder(
                         'name',
-                        'ASC'
+                        'ASC',
+                        $sport,
                     ),
                 'required' => false,
             ])
@@ -66,7 +71,8 @@ final class GameType extends AbstractType
                 'query_builder' =>
                     fn(EventRepository $eventRepository) => $eventRepository->createActiveQueryBuilder(
                         'name',
-                        'ASC'
+                        'ASC',
+                        $sport
                     ),
                 'required' => true,
             ])
@@ -81,6 +87,7 @@ final class GameType extends AbstractType
                 'entry_options' => [
                     'label' => false,
                     'include_game' => false,
+                    'current_sport' => $sport,
                 ],
                 'allow_add' => true,
                 'allow_delete' => true,
@@ -97,12 +104,6 @@ final class GameType extends AbstractType
                 }
 
                 $competition = $data->getEvent()?->getCompetition();
-                $sport = $data->getEvent()?->getCompetition()?->getSport();
-
-                if ($sport) {
-                    $form->get('sport')->setData($sport);
-                }
-
                 if ($competition) {
                     $form->get('competition')->setData($competition);
                 }
@@ -114,6 +115,9 @@ final class GameType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Game::class,
+            'current_sport' => null,
         ]);
+
+        $resolver->setAllowedTypes('current_sport', [Sport::class, 'null']);
     }
 }

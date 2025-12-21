@@ -5,6 +5,4 @@ document.addEventListener('DOMContentLoaded', () => {
         newBtnId: 'newSeasonBtn',
         newUrl: '/seasons/new'
     });
-    AppBase.initDeleteModal();
-    AppBase.initAutoHideAlerts();
 });

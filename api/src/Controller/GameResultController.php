@@ -8,6 +8,7 @@ use App\Entity\GameResult;
 use App\Entity\User;
 use App\Form\GameResultType;
 use App\Repository\GameResultRepository;
+use App\Service\CurrentSportProvider;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,23 +23,36 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class GameResultController extends AbstractController
 {
     #[Route('', name: 'game_result_index', methods: ['GET'])]
-    public function index(GameResultRepository $gameResultRepository): Response
+    public function index(GameResultRepository $gameResultRepository, CurrentSportProvider $currentSportProvider): Response
     {
         return $this->render('game_result/index.html.twig', [
-            'gameResults' => $gameResultRepository->findActiveSortedBy(),
+            'gameResults' => $gameResultRepository->findActiveSortedBy(sport: $currentSportProvider->getSport()),
         ]);
     }
 
     #[Route('/new', name: 'game_result_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $em,
+        CurrentSportProvider $currentSportProvider
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
         $gameResult = new GameResult();
         $gameResult->setCreatedBy($user);
         $gameResult->setModifiedBy($user);
+        $currentSport = $currentSportProvider->getSport();
 
-        $form = $this->createForm(GameResultType::class, $gameResult);
+        if (!$currentSport) {
+            $this->addFlash('danger', 'Sport not selected');
+            return $this->redirectToRoute('event_index');
+        }
+
+        $form = $this->createForm(GameResultType::class, $gameResult, [
+            'include_game' => true,
+            'current_sport' => $currentSport,
+        ]);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {

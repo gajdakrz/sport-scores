@@ -7,6 +7,7 @@ namespace App\Form;
 use App\Entity\Event;
 use App\Entity\Game;
 use App\Entity\GameResult;
+use App\Entity\Sport;
 use App\Entity\Team;
 use App\Repository\GameRepository;
 use App\Repository\TeamRepository;
@@ -22,6 +23,11 @@ final class GameResultType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var ?GameResult $gameResult */
+        $gameResult = $builder->getData();
+        /** @var ?Sport $sport */
+        $sport = $options['current_sport'] ?? $gameResult?->getGame()?->getEvent()?->getCompetition()?->getSport();
+
         if ($options['include_game']) {
             $builder->add('game', EntityType::class, [
                 'label' => 'Game',
@@ -31,7 +37,8 @@ final class GameResultType extends AbstractType
                 'query_builder' =>
                     fn(GameRepository $gameRepository) => $gameRepository->createActiveQueryBuilder(
                         'date',
-                        'ASC'
+                        'ASC',
+                        $sport
                     ),
             ]);
         }
@@ -45,7 +52,8 @@ final class GameResultType extends AbstractType
                 'query_builder' =>
                     fn(TeamRepository $teamRepository) => $teamRepository->createActiveQueryBuilder(
                         'name',
-                        'ASC'
+                        'ASC',
+                        $sport
                     ),
             ])
             ->add('matchScore', IntegerType::class, [
@@ -72,8 +80,10 @@ final class GameResultType extends AbstractType
         $resolver->setDefaults([
             'data_class' => GameResult::class,
             'include_game' => true,
+            'current_sport' => null,
         ]);
 
         $resolver->setAllowedTypes('include_game', 'bool');
+        $resolver->setAllowedTypes('current_sport', [Sport::class, 'null']);
     }
 }

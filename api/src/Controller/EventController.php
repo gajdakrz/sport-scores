@@ -8,6 +8,7 @@ use App\Entity\Event;
 use App\Entity\User;
 use App\Form\EventType;
 use App\Repository\EventRepository;
+use App\Service\CurrentSportProvider;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,23 +23,36 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class EventController extends AbstractController
 {
     #[Route('', name: 'event_index', methods: ['GET'])]
-    public function index(EventRepository $eventRepository): Response
+    public function index(EventRepository $eventRepository, CurrentSportProvider $currentSportProvider): Response
     {
         return $this->render('event/index.html.twig', [
-            'events' => $eventRepository->findActiveSortedBy(),
+            'events' => $eventRepository->findActiveSortedBy(sport: $currentSportProvider->getSport()),
         ]);
     }
 
     #[Route('/new', name: 'event_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $em,
+        CurrentSportProvider $currentSportProvider
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
         $event = new Event();
         $event->setCreatedBy($user);
         $event->setModifiedBy($user);
 
-        $form = $this->createForm(EventType::class, $event);
+        $currentSport = $currentSportProvider->getSport();
+
+        if (!$currentSport) {
+            $this->addFlash('danger', 'Sport not selected');
+            return $this->redirectToRoute('event_index');
+        }
+
+        $form = $this->createForm(EventType::class, $event, [
+            'current_sport' => $currentSport,
+        ]);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

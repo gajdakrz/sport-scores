@@ -8,6 +8,7 @@ use App\Entity\Competition;
 use App\Entity\User;
 use App\Form\CompetitionType;
 use App\Repository\CompetitionRepository;
+use App\Service\CurrentSportProvider;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,23 +23,40 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CompetitionController extends AbstractController
 {
     #[Route('', name: 'competition_index', methods: ['GET'])]
-    public function index(CompetitionRepository $competitionRepository): Response
-    {
+    public function index(
+        CompetitionRepository $competitionRepository,
+        CurrentSportProvider $currentSportProvider
+    ): Response {
         return $this->render('competition/index.html.twig', [
-            'competitions' => $competitionRepository->findActiveSortedBy(),
+            'competitions' => $competitionRepository->findActiveSortedBy(
+                'name',
+                'ASC',
+                $currentSportProvider->getSport()
+            ),
         ]);
     }
 
     #[Route('/new', name: 'competition_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $em,
+        CurrentSportProvider $currentSportProvider
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
         $competition = new Competition();
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
+        $currentSport = $currentSportProvider->getSport();
 
-        $form = $this->createForm(CompetitionType::class, $competition);
+        if (!$currentSport) {
+            $this->addFlash('danger', 'Sport not selected');
+            return $this->redirectToRoute('event_index');
+        }
+
+        $form = $this->createForm(CompetitionType::class, $competition, [
+            'current_sport' => $currentSport,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

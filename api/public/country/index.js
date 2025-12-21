@@ -5,6 +5,4 @@ document.addEventListener('DOMContentLoaded', () => {
         newBtnId: 'newCountryBtn',
         newUrl: '/countries/new'
     });
-    AppBase.initDeleteModal();
-    AppBase.initAutoHideAlerts();
 });

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Dto\GameFilterRequest;
 use App\Entity\Game;
+use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -20,12 +21,23 @@ class GameRepository extends ServiceEntityRepository
 
     public function createActiveQueryBuilder(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null
     ): QueryBuilder {
-        return $this->createQueryBuilder('g')
-            ->andWhere('g.isActive = :isActive')
+
+        $qb = $this->createQueryBuilder('game')
+            ->join('game.event', 'event')
+            ->join('event.competition', 'competition')
+            ->andWhere('game.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('g.' . $orderBy, $direction);
+            ->orderBy('game.' . $orderBy, $direction);
+
+        if ($sport !== null) {
+            $qb->andWhere('competition.sport = :sport')
+                ->setParameter('sport', $sport);
+        }
+
+        return $qb;
     }
 
     /**
@@ -35,11 +47,12 @@ class GameRepository extends ServiceEntityRepository
      */
     public function findActiveSortedBy(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null
     ): array {
 
         /** @var Game[] */
-        return $this->createActiveQueryBuilder($orderBy, $direction)
+        return $this->createActiveQueryBuilder($orderBy, $direction, $sport)
             ->getQuery()
             ->getResult();
     }
@@ -53,7 +66,8 @@ class GameRepository extends ServiceEntityRepository
     public function findActiveFilteredSortedBy(
         GameFilterRequest $gameFilterRequest,
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null,
     ): array {
         $qb = $this->createQueryBuilder('g')
             ->join('g.event', 'event')
@@ -64,9 +78,9 @@ class GameRepository extends ServiceEntityRepository
             ->where('g.isActive = true')
             ->orderBy('g.' . $orderBy, $direction);
 
-        if ($gameFilterRequest->getSportId()) {
-            $qb->andWhere('sport.id = :sportId')
-                ->setParameter('sportId', $gameFilterRequest->getSportId());
+        if ($sport !== null) {
+            $qb->andWhere('competition.sport = :sport')
+                ->setParameter('sport', $sport);
         }
 
         if ($gameFilterRequest->getCompetitionId()) {

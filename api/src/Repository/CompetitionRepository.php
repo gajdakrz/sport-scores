@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Competition;
+use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,12 +20,20 @@ class CompetitionRepository extends ServiceEntityRepository
 
     public function createActiveQueryBuilder(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null,
     ): QueryBuilder {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.isActive = :isActive')
+        $qb = $this->createQueryBuilder('competition')
+            ->andWhere('competition.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('c.' . $orderBy, $direction);
+            ->orderBy('competition.' . $orderBy, $direction);
+
+        if ($sport !== null) {
+            $qb->andWhere('competition.sport = :sport')
+                ->setParameter('sport', $sport);
+        }
+
+        return $qb;
     }
 
     /**
@@ -34,11 +43,12 @@ class CompetitionRepository extends ServiceEntityRepository
      */
     public function findActiveSortedBy(
         string $orderBy = 'createdAt',
-        string $direction = 'DESC'
+        string $direction = 'DESC',
+        ?Sport $sport = null,
     ): array {
 
         /** @var Competition[] */
-        return $this->createActiveQueryBuilder($orderBy, $direction)
+        return $this->createActiveQueryBuilder($orderBy, $direction, $sport)
             ->getQuery()
             ->getResult();
     }

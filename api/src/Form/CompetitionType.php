@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Competition;
+use App\Entity\Event;
 use App\Entity\Sport;
 use App\Enum\Gender;
 use App\Repository\SportRepository;
@@ -17,25 +18,25 @@ class CompetitionType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var ?Competition $competition */
+        $competition = $builder->getData();
+        /** @var ?Sport $sport */
+        $sport = $options['current_sport'] ?? $competition?->getSport();
+
         $builder
-            ->add('sport', EntityType::class, [
-                'class' => Sport::class,
-                'choice_label' => 'name',
-                'placeholder' => 'Select sport',
-                'query_builder' =>
-                    fn(SportRepository $sportRepository) =>$sportRepository->createActiveQueryBuilder(
-                        'name',
-                        'ASC'
-                    ),
-            ])
-            ->add('name', TextType::class, [
-                'label' => 'Competition name',
+            ->add('sport', TextType::class, [
+                'mapped' => false,
+                'disabled' => true,
+                'data' => $sport?->getName(),
             ])
             ->add('gender', EnumType::class, [
                 'label' => 'Gender',
                 'class' => Gender::class,
                 'choice_label' => fn(Gender $enum) => $enum->label(),
                 'placeholder' => 'Select type',
+            ])
+            ->add('name', TextType::class, [
+                'label' => 'Competition name',
             ])
         ;
     }
@@ -44,6 +45,9 @@ class CompetitionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Competition::class,
+            'current_sport' => null,
         ]);
+
+        $resolver->setAllowedTypes('current_sport', [Sport::class, 'null']);
     }
 }

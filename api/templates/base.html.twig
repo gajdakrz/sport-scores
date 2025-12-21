@@ -19,7 +19,26 @@
 <body class="bg-light" data-page="{{ app.request.attributes.get('_route') }}">
     <nav class="navbar navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">SportScore</a>
+            <div class="d-flex align-items-center gap-3">
+                <a class="navbar-brand mb-0" href="#">SportScore</a>
+                {# === SPORT SWITCHER (LEFT) === #}
+                <select id="sport-switcher"
+                        class="form-select form-select-sm text-bg-dark"
+                        style="width: 160px;">
+                    {% if currentSport.getSport() %}
+                        <option value="{{ currentSport.getSport().id }}" selected>
+                            {{ currentSport.getSport().name }}
+                        </option>
+                    {% else %}
+                        <option value="" selected>Select sport</option>
+                    {% endif %}
+                    {% for sport in sports %}
+                        {% if not currentSport.getSport() or sport.id != currentSport.getSport().id %}
+                            <option value="{{ sport.id }}">{{ sport.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>

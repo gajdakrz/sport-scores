@@ -21,10 +21,10 @@ class SportRepository extends ServiceEntityRepository
         string $orderBy = 'createdAt',
         string $direction = 'DESC'
     ): QueryBuilder {
-        return $this->createQueryBuilder('s')
-            ->where('s.isActive = :isActive')
+        return $this->createQueryBuilder('sport')
+            ->where('sport.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('s.' . $orderBy, $direction);
+            ->orderBy('sport.' . $orderBy, $direction);
     }
 
     /**
