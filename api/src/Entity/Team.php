@@ -44,6 +44,14 @@ class Team extends AbstractAuditableEntity
     #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'team')]
     private Collection $gameResults;
 
+    #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'teams')]
+    #[ORM\JoinColumn(
+        name: 'sport_id',
+        referencedColumnName: 'id',
+        nullable: false
+    )]
+    private ?Sport $sport = null;
+
     public function __construct()
     {
         parent::__construct();
@@ -150,6 +158,18 @@ class Team extends AbstractAuditableEntity
                 $gameResult->setTeam(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getSport(): ?Sport
+    {
+        return $this->sport;
+    }
+
+    public function setSport(Sport $sport): static
+    {
+        $this->sport = $sport;
 
         return $this;
     }

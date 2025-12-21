@@ -13,7 +13,6 @@ use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
 use App\Repository\SeasonRepository;
 use App\Repository\SportRepository;
-use DateTimeImmutable;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -89,7 +88,7 @@ final class GameType extends AbstractType
                 'label' => false,
             ])
             ->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
-                /** @var Game|null $data */
+                /** @var ?Game $data */
                 $data = $event->getData();
                 $form = $event->getForm();
 

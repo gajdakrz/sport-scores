@@ -9,10 +9,8 @@ use App\Entity\Event;
 use App\Entity\Sport;
 use App\Repository\CompetitionRepository;
 use App\Repository\SportRepository;
-use DateTimeImmutable;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
@@ -51,7 +49,7 @@ final class EventType extends AbstractType
                 'label' => 'Event name',
             ])
             ->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
-                /** @var Event|null $data */
+                /** @var ?Event $data */
                 $data = $event->getData();
                 $form = $event->getForm();
 

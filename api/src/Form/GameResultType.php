@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Form;
 
+use App\Entity\Event;
 use App\Entity\Game;
 use App\Entity\GameResult;
 use App\Entity\Team;
@@ -13,6 +14,8 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class GameResultType extends AbstractType
@@ -23,11 +26,11 @@ final class GameResultType extends AbstractType
             $builder->add('game', EntityType::class, [
                 'label' => 'Game',
                 'class' => Game::class,
-                'choice_label' => 'name',
-                'placeholder' => 'Select game',
+                'choice_label' => fn (Game $game) => $game->getDate()->format('Y-m-d'),
+                'placeholder' => 'Select game date',
                 'query_builder' =>
                     fn(GameRepository $gameRepository) => $gameRepository->createActiveQueryBuilder(
-                        'name',
+                        'date',
                         'ASC'
                     ),
             ]);
@@ -61,6 +64,20 @@ final class GameResultType extends AbstractType
                     'min' => 1,
                 ],
             ])
+            ->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
+                /** @var ?Event $data */
+                $data = $event->getData();
+                $form = $event->getForm();
+
+                if (!$data) {
+                    return;
+                }
+                $sport = $data->getCompetition()?->getSport();
+
+                if ($sport) {
+                    $form->get('sport')->setData($sport);
+                }
+            })
         ;
     }
 

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Country;
+use App\Entity\Sport;
 use App\Entity\Team;
 use App\Enum\TeamType as TeamTypeEnum;
 use App\Repository\CountryRepository;
+use App\Repository\SportRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -20,8 +22,15 @@ final class TeamType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
-                'label' => 'Team name',
+            ->add('sport', EntityType::class, [
+                'class' => Sport::class,
+                'choice_label' => 'name',
+                'placeholder' => 'Select sport',
+                'query_builder' =>
+                    fn(SportRepository $sportRepository) =>$sportRepository->createActiveQueryBuilder(
+                        'name',
+                        'ASC'
+                    ),
             ])
             ->add('teamType', EnumType::class, [
                 'label' => 'Team type',
@@ -39,6 +48,9 @@ final class TeamType extends AbstractType
                         'name',
                         'ASC'
                     ),
+            ])
+            ->add('name', TextType::class, [
+                'label' => 'Team name',
             ])
         ;
     }

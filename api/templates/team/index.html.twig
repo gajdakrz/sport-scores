@@ -18,6 +18,7 @@
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
+                <th>Sport</th>
                 <th>Name</th>
                 <th>Type</th>
                 <th>Country</th>
@@ -30,6 +31,7 @@
             {% for team in teams %}
                 <tr>
                     <td>{{ team.id }}</td>
+                    <td>{{ team.sport.name ?? '' }}</td>
                     <td>{{ team.name }}</td>
                     <td>{{ team.teamType.name|replace({'_': ' '})|capitalize }}</td>
                     <td>{{ team.country.name ?? '' }}</td>
