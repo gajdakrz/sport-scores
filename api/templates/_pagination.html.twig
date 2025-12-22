@@ -1,0 +1,29 @@
+{% if pagination.totalPages > 1 %}
+    <nav aria-label="{{ label|default('Pagination') }}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {# Previous button #}
+            <li class="page-item {{ not pagination.hasPrevious ? 'disabled' }}">
+                <a class="page-link"
+                   href="{{ path(route, query|merge({'page': pagination.currentPage - 1})) }}">
+                    Previous
+                </a>
+            </li>
+            {# Numbered pages #}
+            {% for p in 1..pagination.totalPages %}
+                <li class="page-item {{ p == pagination.currentPage ? 'active' }}">
+                    <a class="page-link"
+                       href="{{ path(route, query|merge({'page': p})) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+            {# Next button #}
+            <li class="page-item {{ not pagination.hasNext ? 'disabled' }}">
+                <a class="page-link"
+                   href="{{ path(route, query|merge({'page': pagination.currentPage + 1})) }}">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}

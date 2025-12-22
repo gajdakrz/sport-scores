@@ -13,8 +13,8 @@ use App\Repository\EventRepository;
 use App\Repository\GameRepository;
 use App\Repository\GameResultRepository;
 use App\Repository\SeasonRepository;
-use App\Repository\SportRepository;
 use App\Service\CurrentSportProvider;
+use App\Service\PaginationService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,17 +36,20 @@ final class GameController extends AbstractController
         CompetitionRepository $competitionRepository,
         EventRepository $eventRepository,
         SeasonRepository $seasonRepository,
-        CurrentSportProvider $currentSportProvider
+        CurrentSportProvider $currentSportProvider,
+        PaginationService $paginationService
     ): Response {
         $currentSport = $currentSportProvider->getSport();
+        $paginator = $gameRepository->findForIndexPaginated(
+            $gameFilterRequest,
+            'date',
+            'DESC',
+            $currentSportProvider->getSport()
+        );
 
         return $this->render('game/index.html.twig', [
-            'games' => $gameRepository->findActiveFilteredSortedBy(
-                $gameFilterRequest,
-                'date',
-                'DESC',
-                $currentSport
-            ),
+            'games' => $paginator,
+            'pagination' => $paginationService->getPaginationData($gameFilterRequest, $paginator),
             'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC', $currentSport),
             'events' => $eventRepository->findActiveSortedBy('name', 'ASC'),
             'seasons' => $seasonRepository->findActiveSortedBy('startYear'),

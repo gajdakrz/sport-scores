@@ -3,11 +3,8 @@
 namespace App\Form;
 
 use App\Entity\Competition;
-use App\Entity\Event;
 use App\Entity\Sport;
-use App\Enum\Gender;
-use App\Repository\SportRepository;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Repository\Gender;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;

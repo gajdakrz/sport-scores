@@ -45,7 +45,7 @@ final class GameResultController extends AbstractController
 
         if (!$currentSport) {
             $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('event_index');
+            return $this->redirectToRoute('game_result_index');
         }
 
         $form = $this->createForm(GameResultType::class, $gameResult, [

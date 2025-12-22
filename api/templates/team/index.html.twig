@@ -13,15 +13,53 @@
                 Create New
             </button>
         </div>
-
+        {# --- FILTER FORM --- #}
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="name" class="form-label">Name</label>
+                <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    class="form-control"
+                    value="{{ app.request.get('name') ?: '' }}"
+                    placeholder="All">
+            </div>
+            <div class="col-md-3">
+                <label for="countryId" class="form-label">Country</label>
+                <select name="countryId" id="countryId" class="form-select">
+                    <option value="">All</option>
+                    {% for country in countries %}
+                        <option value="{{ country.id }}" {% if country.id == app.request.get('countryId') %}selected{% endif %}>
+                            {{ country.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="teamType" class="form-label">Team Type</label>
+                <select name="teamType" id="teamType" class="form-select">
+                    <option value="">All</option>
+                    {% for type in teamTypes %}
+                        <option value="{{ type.value }}" {% if type.value == app.request.get('teamType') %}selected{% endif %}>
+                            {{ type.label() ?: type.name|capitalize }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 align-self-end">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+        </form>
+        {# --- END FILTER FORM --- #}
         <table id="teamTable" class="table table-striped table-hover align-middle">
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
                 <th>Sport</th>
                 <th>Name</th>
-                <th>Type</th>
                 <th>Country</th>
+                <th>Type</th>
                 <th>Created At</th>
                 <th>Modified At</th>
                 <th class="text-end">Actions</th>
@@ -33,8 +71,8 @@
                     <td>{{ team.id }}</td>
                     <td>{{ team.sport.name ?? '' }}</td>
                     <td>{{ team.name }}</td>
-                    <td>{{ team.teamType.name|replace({'_': ' '})|capitalize }}</td>
                     <td>{{ team.country.name ?? '' }}</td>
+                    <td>{{ team.teamType.name|replace({'_': ' '})|capitalize }}</td>
                     <td>{{ team.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ team.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
@@ -63,6 +101,12 @@
             {% endfor %}
             </tbody>
         </table>
+        {% include '_pagination.html.twig' with {
+            pagination: pagination,
+            route: app.request.attributes.get('_route'),
+            query: app.request.query.all,
+            label: 'Games pagination'
+        } %}
     </div>
 
     {# modal partial #}

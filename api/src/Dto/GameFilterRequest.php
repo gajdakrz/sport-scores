@@ -6,11 +6,8 @@ namespace App\Dto;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class GameFilterRequest
+class GameFilterRequest extends PaginationRequest
 {
-    #[Assert\Type('integer')]
-    private ?int $sportId = null;
-
     #[Assert\Type('integer')]
     private ?int $competitionId = null;
 
@@ -19,18 +16,6 @@ class GameFilterRequest
 
     #[Assert\Type('integer')]
     private ?int $seasonId = null;
-
-    public function getSportId(): ?int
-    {
-        return $this->sportId;
-    }
-
-    public function setSportId(?int $sportId): static
-    {
-        $this->sportId = $sportId;
-
-        return $this;
-    }
 
     public function getCompetitionId(): ?int
     {

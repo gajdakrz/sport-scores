@@ -51,7 +51,7 @@ final class CompetitionController extends AbstractController
 
         if (!$currentSport) {
             $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('event_index');
+            return $this->redirectToRoute('competition_index');
         }
 
         $form = $this->createForm(CompetitionType::class, $competition, [

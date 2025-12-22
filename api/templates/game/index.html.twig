@@ -104,6 +104,12 @@
             {% endfor %}
             </tbody>
         </table>
+        {% include '_pagination.html.twig' with {
+            pagination: pagination,
+            route: app.request.attributes.get('_route'),
+            query: app.request.query.all,
+            label: 'Games pagination'
+        } %}
     </div>
 
     {# modal partial #}

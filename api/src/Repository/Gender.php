@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Enum;
+namespace App\Repository;
+
+use App\Enum\EnumLabelTrait;
 
 enum Gender: string
 {

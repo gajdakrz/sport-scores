@@ -7,6 +7,7 @@ use App\Entity\Game;
 use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -58,47 +59,50 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param GameFilterRequest $filter
      * @param string $orderBy
      * @param string $direction
-     * @param GameFilterRequest $gameFilterRequest
-     * @return Game[]
+     * @param ?Sport $sport
+     * @return Paginator<Game>
      */
-    public function findActiveFilteredSortedBy(
-        GameFilterRequest $gameFilterRequest,
-        string $orderBy = 'createdAt',
+    public function findForIndexPaginated(
+        GameFilterRequest $filter,
+        string $orderBy = 'date',
         string $direction = 'DESC',
         ?Sport $sport = null,
-    ): array {
-        $qb = $this->createQueryBuilder('g')
-            ->join('g.event', 'event')
+    ): Paginator {
+        $qb = $this->createQueryBuilder('game')
+            ->join('game.event', 'event')
             ->join('event.competition', 'competition')
             ->join('competition.sport', 'sport')
-            ->join('g.season', 'season')
+            ->join('game.season', 'season')
             ->addSelect('event', 'competition', 'sport', 'season')
-            ->where('g.isActive = true')
-            ->orderBy('g.' . $orderBy, $direction);
+            ->where('game.isActive = true')
+            ->orderBy('game.' . $orderBy, $direction);
 
-        if ($sport !== null) {
+        if ($sport) {
             $qb->andWhere('competition.sport = :sport')
                 ->setParameter('sport', $sport);
         }
 
-        if ($gameFilterRequest->getCompetitionId()) {
+        if ($filter->getCompetitionId()) {
             $qb->andWhere('competition.id = :competitionId')
-                ->setParameter('competitionId', $gameFilterRequest->getCompetitionId());
+                ->setParameter('competitionId', $filter->getCompetitionId());
         }
 
-        if ($gameFilterRequest->getEventId()) {
+        if ($filter->getEventId()) {
             $qb->andWhere('event.id = :eventId')
-                ->setParameter('eventId', $gameFilterRequest->getEventId());
+                ->setParameter('eventId', $filter->getEventId());
         }
 
-        if ($gameFilterRequest->getSeasonId()) {
+        if ($filter->getSeasonId()) {
             $qb->andWhere('season.id = :seasonId')
-                ->setParameter('seasonId', $gameFilterRequest->getSeasonId());
+                ->setParameter('seasonId', $filter->getSeasonId());
         }
 
-        /** @var Game[] */
-        return $qb->getQuery()->getResult();
+        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
+
+        /** @var Paginator<Game> */
+        return new Paginator($qb);
     }
 }

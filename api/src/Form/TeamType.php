@@ -32,12 +32,6 @@ final class TeamType extends AbstractType
                 'disabled' => true,
                 'data' => $sport?->getName(),
             ])
-            ->add('teamType', EnumType::class, [
-                'label' => 'Team type',
-                'class' => TeamTypeEnum::class,
-                'choice_label' => fn(TeamTypeEnum $enum) => $enum->label(),
-                'placeholder' => 'Select type',
-            ])
             ->add('country', EntityType::class, [
                 'label' => 'Country',
                 'class' => Country::class,
@@ -48,6 +42,12 @@ final class TeamType extends AbstractType
                         'name',
                         'ASC'
                     ),
+            ])
+            ->add('teamType', EnumType::class, [
+                'label' => 'Team type',
+                'class' => TeamTypeEnum::class,
+                'choice_label' => fn(TeamTypeEnum $enum) => $enum->label(),
+                'placeholder' => 'Select type',
             ])
             ->add('name', TextType::class, [
                 'label' => 'Team name',

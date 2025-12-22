@@ -4,19 +4,24 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\TeamFilterRequest;
 use App\Entity\Competition;
 use App\Entity\Season;
 use App\Entity\Team;
 use App\Entity\User;
 use App\Form\TeamType;
+use App\Enum\TeamType as TeamTypeEnum;
+use App\Repository\CountryRepository;
 use App\Repository\GameResultRepository;
 use App\Repository\TeamRepository;
 use App\Service\CurrentSportProvider;
+use App\Service\PaginationService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -25,10 +30,23 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class TeamController extends AbstractController
 {
     #[Route('', name: 'team_index', methods: ['GET'])]
-    public function index(TeamRepository $teamRepository, CurrentSportProvider $currentSportProvider): Response
-    {
+    public function index(
+        #[MapQueryString] TeamFilterRequest $teamFilterRequest,
+        TeamRepository $teamRepository,
+        CountryRepository $countryRepository,
+        CurrentSportProvider $currentSportProvider,
+        PaginationService $paginationService
+    ): Response {
+        $paginator = $teamRepository->findForIndexPaginated(
+            filter: $teamFilterRequest,
+            sport: $currentSportProvider->getSport()
+        );
+
         return $this->render('team/index.html.twig', [
-            'teams' => $teamRepository->findActiveSortedBy(sport: $currentSportProvider->getSport()),
+            'teams' => $paginator,
+            'pagination' => $paginationService->getPaginationData($teamFilterRequest, $paginator),
+            'teamTypes' => TeamTypeEnum::cases(),
+            'countries' => $countryRepository->findActiveSortedBy('name', 'ASC'),
         ]);
     }
 
@@ -47,7 +65,7 @@ final class TeamController extends AbstractController
 
         if (!$currentSport) {
             $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('event_index');
+            return $this->redirectToRoute('team_index');
         }
 
         $form = $this->createForm(TeamType::class, $team, [
