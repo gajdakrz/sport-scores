@@ -79,8 +79,8 @@ class TeamRepository extends ServiceEntityRepository
         }
 
         if ($filter->getName()) {
-            $qb->andWhere('team.name = :name')
-                ->setParameter('name', $filter->getName());
+            $qb->andWhere($qb->expr()->like('LOWER(team.name)', 'LOWER(:name)'))
+                ->setParameter('name', '%' . $filter->getName() . '%');
         }
 
         if ($filter->getCountryId()) {

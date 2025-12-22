@@ -4,7 +4,7 @@ namespace App\Form;
 
 use App\Entity\Competition;
 use App\Entity\Sport;
-use App\Repository\Gender;
+use App\Enum\Gender;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
