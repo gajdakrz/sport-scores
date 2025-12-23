@@ -62,7 +62,7 @@ class TeamRepository extends ServiceEntityRepository
      * @param ?Sport $sport
      * @return Paginator<Team>
      */
-    public function findForIndexPaginated(
+    public function findActivePaginatedByFilter(
         TeamFilterRequest $filter,
         string $orderBy = 'createdAt',
         string $direction = 'DESC',

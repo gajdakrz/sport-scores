@@ -19,7 +19,8 @@ window.AppBase = {
                 flatpickr(input, {
                     dateFormat: "Y-m-d",
                     locale: "pl",
-                    defaultDate: input.value || "today"
+                    defaultDate: input.value || "today",
+                    allowInput: true,
                 });
             });
 
@@ -132,4 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
     AppBase.initSportSwitcher();
     AppBase.initAutoHideAlerts();
     AppBase.initDeleteModal();
+
+    document.querySelectorAll('.flatpickr').forEach(input => {
+        flatpickr(input, {
+            dateFormat: "Y-m-d",
+            locale: "pl",
+            defaultDate: input.value || null,
+            allowInput: true
+        });
+    });
 });

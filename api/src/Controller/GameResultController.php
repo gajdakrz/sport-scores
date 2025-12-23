@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\GameResultFilterRequest;
 use App\Entity\GameResult;
 use App\Entity\User;
+use App\Enum\MatchResultStatus;
 use App\Form\GameResultType;
 use App\Repository\GameResultRepository;
+use App\Repository\TeamRepository;
 use App\Service\CurrentSportProvider;
+use App\Service\PaginationService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,10 +28,23 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class GameResultController extends AbstractController
 {
     #[Route('', name: 'game_result_index', methods: ['GET'])]
-    public function index(GameResultRepository $gameResultRepository, CurrentSportProvider $currentSportProvider): Response
-    {
+    public function index(
+        #[MapQueryString] GameResultFilterRequest $gameResultFilterRequest,
+        GameResultRepository $gameResultRepository,
+        TeamRepository $teamRepository,
+        CurrentSportProvider $currentSportProvider,
+        PaginationService $paginationService
+    ): Response {
+        $currentSport = $currentSportProvider->getSport();
+        $paginator = $gameResultRepository->findActivePaginatedByFilter(
+            filter: $gameResultFilterRequest,
+            sport: $currentSportProvider->getSport(),
+        );
         return $this->render('game_result/index.html.twig', [
-            'gameResults' => $gameResultRepository->findActiveSortedBy(sport: $currentSportProvider->getSport()),
+            'gameResults' => $paginator,
+            'pagination' => $paginationService->getPaginationData($gameResultFilterRequest, $paginator),
+            'teams' => $teamRepository->findActiveSortedBy('name', 'ASC', $currentSport),
+            'matchResultStatuses' => MatchResultStatus::getValues(),
         ]);
     }
 

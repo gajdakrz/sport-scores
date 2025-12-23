@@ -8,6 +8,7 @@
 /var/
 /vendor/
 .idea/
+.idea/php.xml
 /api/.env
 ###< symfony/framework-bundle ###
 

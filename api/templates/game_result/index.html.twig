@@ -13,7 +13,45 @@
                 Create New
             </button>
         </div>
-
+        {# --- FILTER FORM --- #}
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="date" class="form-label">Game Date</label>
+                <input
+                    type="text"
+                    name="date"
+                    id="date"
+                    class="form-control flatpickr"
+                    value="{{ app.request.get('date') ?: '' }}"
+                    placeholder="All">
+            </div>
+            <div class="col-md-3">
+                <label for="teamId" class="form-label">Team</label>
+                <select name="teamId" id="teamId" class="form-select">
+                    <option value="">All</option>
+                    {% for team in teams %}
+                        <option value="{{ team.id }}" {% if team.id == app.request.get('teamId') %}selected{% endif %}>
+                            {{ team.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="matchStatus" class="form-label">Match status</label>
+                <select name="matchResultStatus" id="matchStatus" class="form-select">
+                    <option value="">All</option>
+                    {% for status in matchResultStatuses %}
+                        <option value="{{ status }}" {% if status == app.request.get('matchResultStatus') %}selected{% endif %}>
+                            {{ status|capitalize }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 align-self-end">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+        </form>
+        {# --- END FILTER FORM --- #}
         <table class="table table-striped table-hover align-middle" id="gameResultTable">
             <thead class="table-dark">
             <tr>
@@ -23,6 +61,7 @@
                 <th>Team</th>
                 <th>Match score</th>
                 <th>Ranking score</th>
+                <th>Match status</th>
                 <th>Created At</th>
                 <th>Modified At</th>
                 <th class="text-end">Actions</th>
@@ -37,6 +76,7 @@
                     <td>{{ gameResult.team.name ?? '' }}</td>
                     <td>{{ gameResult.matchScore }}</td>
                     <td>{{ gameResult.rankingScore }}</td>
+                    <td>{{ gameResult.matchResult.value ?? '' }}</td>
                     <td>{{ gameResult.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ gameResult.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
@@ -62,6 +102,12 @@
             {% endfor %}
             </tbody>
         </table>
+        {% include '_pagination.html.twig' with {
+            pagination: pagination,
+            route: app.request.attributes.get('_route'),
+            query: app.request.query.all,
+            label: 'Game result pagination'
+        } %}
     </div>
 
     {# modal partial #}

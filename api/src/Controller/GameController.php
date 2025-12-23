@@ -40,11 +40,9 @@ final class GameController extends AbstractController
         PaginationService $paginationService
     ): Response {
         $currentSport = $currentSportProvider->getSport();
-        $paginator = $gameRepository->findForIndexPaginated(
-            $gameFilterRequest,
-            'date',
-            'DESC',
-            $currentSportProvider->getSport()
+        $paginator = $gameRepository->findActivePaginatedByFilter(
+            filter: $gameFilterRequest,
+            sport: $currentSport
         );
 
         return $this->render('game/index.html.twig', [

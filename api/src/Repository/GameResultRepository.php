@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Dto\GameResultFilterRequest;
 use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\GameResult;
@@ -11,6 +12,7 @@ use App\Entity\Team;
 use App\Enum\MatchResultStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -213,5 +215,72 @@ class GameResultRepository extends ServiceEntityRepository
         krsort($groupedBySeason);
 
         return $groupedBySeason;
+    }
+
+
+    /**
+     * @param GameResultFilterRequest $filter
+     * @param string $orderBy
+     * @param string $direction
+     * @param ?Sport $sport
+     * @return Paginator<GameResult>
+     */
+    public function findActivePaginatedByFilter(
+        GameResultFilterRequest $filter,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC',
+        ?Sport $sport = null,
+    ): Paginator {
+        $qb = $this->createQueryBuilder('gameResult')
+            ->join('gameResult.game', 'game')
+            ->join('game.event', 'event')
+            ->join('event.competition', 'competition')
+            ->join('competition.sport', 'sport')
+            ->join(
+                GameResult::class,
+                'opponent',
+                'WITH',
+                'opponent.game = gameResult.game AND opponent.id != gameResult.id'
+            )
+            ->andWhere('gameResult.isActive = :isActive')
+            ->setParameter('isActive', true)
+            ->orderBy('gameResult.' . $orderBy, $direction);
+
+        if ($sport !== null) {
+            $qb->andWhere('competition.sport = :sport')
+                ->setParameter('sport', $sport);
+        }
+
+        if ($filter->getDate()) {
+            $qb->andWhere('game.date = :date')
+                ->setParameter('date', $filter->getDate());
+        }
+
+        if ($filter->getTeamId()) {
+            $qb->andWhere('gameResult.team = :teamId')
+                ->setParameter('teamId', $filter->getTeamId());
+        }
+
+        if ($filter->getMatchResultStatus()) {
+            switch ($filter->getMatchResultStatus()) {
+                case MatchResultStatus::WIN->value:
+                    $qb->andWhere('gameResult.matchScore > opponent.matchScore');
+                    break;
+
+                case MatchResultStatus::LOSS->value:
+                    $qb->andWhere('gameResult.matchScore < opponent.matchScore');
+                    break;
+
+                case MatchResultStatus::DRAW->value:
+                    $qb->andWhere('gameResult.matchScore = opponent.matchScore');
+                    break;
+                default:
+                    break;
+            }
+        }
+        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
+
+        /** @var Paginator<GameResult> */
+        return new Paginator($qb);
     }
 }

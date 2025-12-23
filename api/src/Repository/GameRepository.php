@@ -65,7 +65,7 @@ class GameRepository extends ServiceEntityRepository
      * @param ?Sport $sport
      * @return Paginator<Game>
      */
-    public function findForIndexPaginated(
+    public function findActivePaginatedByFilter(
         GameFilterRequest $filter,
         string $orderBy = 'date',
         string $direction = 'DESC',
@@ -98,6 +98,11 @@ class GameRepository extends ServiceEntityRepository
         if ($filter->getSeasonId()) {
             $qb->andWhere('season.id = :seasonId')
                 ->setParameter('seasonId', $filter->getSeasonId());
+        }
+
+        if ($filter->getDate()) {
+            $qb->andWhere('game.date = :date')
+                ->setParameter('date', $filter->getDate());
         }
 
         $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());

@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\EventFilterRequest;
 use App\Entity\Event;
 use App\Entity\User;
 use App\Form\EventType;
+use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
 use App\Service\CurrentSportProvider;
+use App\Service\PaginationService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,10 +27,23 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class EventController extends AbstractController
 {
     #[Route('', name: 'event_index', methods: ['GET'])]
-    public function index(EventRepository $eventRepository, CurrentSportProvider $currentSportProvider): Response
-    {
+    public function index(
+        #[MapQueryString] EventFilterRequest $eventFilterRequest,
+        EventRepository $eventRepository,
+        CompetitionRepository $competitionRepository,
+        CurrentSportProvider $currentSportProvider,
+        PaginationService $paginationService
+    ): Response {
+        $currentSport = $currentSportProvider->getSport();
+        $paginator = $eventRepository->findActivePaginatedByFilter(
+            filter: $eventFilterRequest,
+            sport: $currentSport
+        );
+
         return $this->render('event/index.html.twig', [
-            'events' => $eventRepository->findActiveSortedBy(sport: $currentSportProvider->getSport()),
+            'events' => $paginator,
+            'pagination' => $paginationService->getPaginationData($eventFilterRequest, $paginator),
+            'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC', $currentSport),
         ]);
     }
 

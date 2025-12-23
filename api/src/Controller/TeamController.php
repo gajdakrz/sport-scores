@@ -37,7 +37,7 @@ final class TeamController extends AbstractController
         CurrentSportProvider $currentSportProvider,
         PaginationService $paginationService
     ): Response {
-        $paginator = $teamRepository->findForIndexPaginated(
+        $paginator = $teamRepository->findActivePaginatedByFilter(
             filter: $teamFilterRequest,
             sport: $currentSportProvider->getSport()
         );

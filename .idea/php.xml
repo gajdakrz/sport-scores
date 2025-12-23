@@ -13,6 +13,7 @@
   <component name="PhpCodeSniffer">
     <phpcs_settings>
       <PhpCSConfiguration beautifier_path="$PROJECT_DIR$/api/vendor/bin/phpcbf" tool_path="$PROJECT_DIR$/api/vendor/bin/phpcs" />
+      <phpcs_by_interpreter asDefaultInterpreter="true" interpreter_id="c77022c2-3366-4a01-8813-681b1757747c" beautifier_path="$PROJECT_DIR$/api/vendor/bin/phpcbf" tool_path="/home/gajdak/PROJECTS/MOJE/SportScores-Symfony7/api/vendor/bin/phpcs" timeout="30000" />
     </phpcs_settings>
   </component>
   <component name="PhpIncludePathManager">
@@ -135,6 +136,7 @@
   <component name="PhpStan">
     <PhpStan_settings>
       <PhpStanConfiguration tool_path="$PROJECT_DIR$/api/vendor/bin/phpstan" />
+      <phpstan_by_interpreter asDefaultInterpreter="true" interpreter_id="c77022c2-3366-4a01-8813-681b1757747c" tool_path="$PROJECT_DIR$/api/vendor/bin/phpstan" timeout="60000" />
     </PhpStan_settings>
   </component>
   <component name="PhpStanOptionsConfiguration">
@@ -144,6 +146,11 @@
     <phpunit_settings>
       <PhpUnitSettings configuration_file_path="$PROJECT_DIR$/api/phpunit.xml.dist" custom_loader_path="$PROJECT_DIR$/api/vendor/autoload.php" use_configuration_file="true" />
     </phpunit_settings>
+  </component>
+  <component name="Psalm">
+    <Psalm_settings>
+      <psalm_fixer_by_interpreter asDefaultInterpreter="true" interpreter_id="c77022c2-3366-4a01-8813-681b1757747c" timeout="60000" />
+    </Psalm_settings>
   </component>
   <component name="PsalmOptionsConfiguration">
     <option name="transferred" value="true" />

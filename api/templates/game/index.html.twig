@@ -48,6 +48,16 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="col-md-3">
+                <label for="date" class="form-label">Date</label>
+                <input
+                    type="text"
+                    name="date"
+                    id="date"
+                    class="form-control flatpickr"
+                    value="{{ app.request.get('date') ?: '' }}"
+                    placeholder="All">
+            </div>
             <div class="col-md-2 align-self-end">
                 <button type="submit" class="btn btn-secondary w-100">Filter</button>
             </div>

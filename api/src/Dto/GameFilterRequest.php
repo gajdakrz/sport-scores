@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class GameFilterRequest extends PaginationRequest
@@ -16,6 +17,9 @@ class GameFilterRequest extends PaginationRequest
 
     #[Assert\Type('integer')]
     private ?int $seasonId = null;
+
+    #[Assert\DateTime(format: 'Y-m-d')]
+    private ?string $date = null;
 
     public function getCompetitionId(): ?int
     {
@@ -49,6 +53,18 @@ class GameFilterRequest extends PaginationRequest
     public function setSeasonId(?int $seasonId): static
     {
         $this->seasonId = $seasonId;
+
+        return $this;
+    }
+
+    public function getDate(): ?string
+    {
+        return $this->date;
+    }
+
+    public function setDate(?string $date): static
+    {
+        $this->date = $date;
 
         return $this;
     }
