@@ -74,9 +74,8 @@ class GameRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('game')
             ->join('game.event', 'event')
             ->join('event.competition', 'competition')
-            ->join('competition.sport', 'sport')
             ->join('game.season', 'season')
-            ->addSelect('event', 'competition', 'sport', 'season')
+            ->addSelect('event', 'competition', 'season')
             ->where('game.isActive = true')
             ->orderBy('game.' . $orderBy, $direction);
 

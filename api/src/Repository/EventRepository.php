@@ -72,7 +72,6 @@ class EventRepository extends ServiceEntityRepository
     ): Paginator {
         $qb = $this->createQueryBuilder('event')
             ->join('event.competition', 'competition')
-            ->join('competition.sport', 'sport')
             ->andWhere('event.isActive = :isActive')
             ->setParameter('isActive', true)
             ->orderBy('event.' . $orderBy, $direction);

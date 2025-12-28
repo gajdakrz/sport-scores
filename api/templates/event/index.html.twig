@@ -45,7 +45,6 @@
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
-                <th>Sport</th>
                 <th>Name</th>
                 <th>Competition</th>
                 <th>Created At</th>
@@ -57,7 +56,6 @@
             {% for event in events %}
                 <tr>
                     <td>{{ event.id }}</td>
-                    <td>{{ event.competition.sport.name ?? '' }}</td>
                     <td>{{ event.name }}</td>
                     <td>{{ event.competition.name ?? '' }}</td>
                     <td>{{ event.createdAt|date(DATETIME_FORMAT) }}</td>
@@ -88,6 +86,7 @@
         {% include '_pagination.html.twig' with {
             pagination: pagination,
             route: app.request.attributes.get('_route'),
+            routeParams: app.request.attributes.get('_route_params'),
             query: app.request.query.all,
             label: 'Events pagination'
         } %}

@@ -16,6 +16,16 @@
         {# --- FILTER FORM --- #}
         <form method="get" class="row g-3 mb-4">
             <div class="col-md-3">
+                <label for="date" class="form-label">Date</label>
+                <input
+                    type="text"
+                    name="date"
+                    id="date"
+                    class="form-control flatpickr"
+                    value="{{ app.request.get('date') ?: '' }}"
+                    placeholder="All">
+            </div>
+            <div class="col-md-3">
                 <label for="seasonId" class="form-label">Season</label>
                 <select name="seasonId" id="seasonId" class="form-select">
                     <option value="">All</option>
@@ -48,16 +58,6 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
-                <label for="date" class="form-label">Date</label>
-                <input
-                    type="text"
-                    name="date"
-                    id="date"
-                    class="form-control flatpickr"
-                    value="{{ app.request.get('date') ?: '' }}"
-                    placeholder="All">
-            </div>
             <div class="col-md-2 align-self-end">
                 <button type="submit" class="btn btn-secondary w-100">Filter</button>
             </div>
@@ -68,7 +68,6 @@
             <tr>
                 <th>ID</th>
                 <th>Date</th>
-                <th>Sport</th>
                 <th>Season</th>
                 <th>Competition</th>
                 <th>Event</th>
@@ -82,7 +81,6 @@
                 <tr>
                     <td>{{ game.id }}</td>
                     <td>{{ game.date|date(DATE_FORMAT) }}</td>
-                    <td>{{ game.event.competition.sport.name ?? '' }}</td>
                     <td>{{ game.season.mergedStartEndYear ?? '' }}</td>
                     <td>{{ game.event.competition.name ?? '' }}</td>
                     <td>{{ game.event.name ?? '' }}</td>
@@ -117,6 +115,7 @@
         {% include '_pagination.html.twig' with {
             pagination: pagination,
             route: app.request.attributes.get('_route'),
+            routeParams: app.request.attributes.get('_route_params'),
             query: app.request.query.all,
             label: 'Games pagination'
         } %}

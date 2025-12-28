@@ -105,8 +105,9 @@
         {% include '_pagination.html.twig' with {
             pagination: pagination,
             route: app.request.attributes.get('_route'),
+            routeParams: app.request.attributes.get('_route_params'),
             query: app.request.query.all,
-            label: 'Game result pagination'
+            label: 'Game results pagination'
         } %}
     </div>
 

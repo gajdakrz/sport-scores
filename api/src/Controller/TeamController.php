@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\PaginationRequest;
+use App\Dto\TeamDetailFilterRequest;
 use App\Dto\TeamFilterRequest;
 use App\Entity\Competition;
 use App\Entity\Season;
@@ -129,17 +131,34 @@ final class TeamController extends AbstractController
         methods: ['GET']
     )]
     public function results(
+        #[MapQueryString] TeamDetailFilterRequest $teamDetailFilterRequest,
+        Request $request,
         Team $team,
         Season $season,
         Competition $competition,
-        GameResultRepository $gameResultRepository
+        GameResultRepository $gameResultRepository,
+        PaginationService $paginationService
     ): Response {
-        return $this->render('team/_modal_season-details.html.twig', [
+        $paginator = $gameResultRepository->findActiveByTeamAndSeasonPaginated(
+            $teamDetailFilterRequest,
+            $team,
+            $season,
+            'g.date'
+        );
+
+        $result = [
             'season' => $season,
             'team' => $team,
             'competition' => $competition,
-            'gameResults' => $gameResultRepository->findActiveByTeamAndSeason($team, $season, 'g.date'),
-        ]);
+            'gameResults' => $paginator,
+            'pagination' => $paginationService->getPaginationData($teamDetailFilterRequest, $paginator),
+        ];
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('team/_modal_season-details-table.html.twig', $result);
+        }
+
+        return $this->render('team/_modal_season-details.html.twig', $result);
     }
 
     #[Route('/{id}/result-season-stats', name: 'team_game_result_season_stats', methods: ['GET'])]

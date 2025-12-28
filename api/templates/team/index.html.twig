@@ -56,7 +56,6 @@
             <thead class="table-dark">
             <tr>
                 <th>ID</th>
-                <th>Sport</th>
                 <th>Name</th>
                 <th>Country</th>
                 <th>Type</th>
@@ -69,7 +68,6 @@
             {% for team in teams %}
                 <tr>
                     <td>{{ team.id }}</td>
-                    <td>{{ team.sport.name ?? '' }}</td>
                     <td>{{ team.name }}</td>
                     <td>{{ team.country.name ?? '' }}</td>
                     <td>{{ team.teamType.name|replace({'_': ' '})|capitalize }}</td>
@@ -104,6 +102,7 @@
         {% include '_pagination.html.twig' with {
             pagination: pagination,
             route: app.request.attributes.get('_route'),
+            routeParams: app.request.attributes.get('_route_params'),
             query: app.request.query.all,
             label: 'Teams pagination'
         } %}

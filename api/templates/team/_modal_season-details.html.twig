@@ -10,6 +10,11 @@
             <div class="modal-body">
                 <div>
                     <div class="mb-3 row">
+                        <label for="sportName" class="col-sm-2 col-form-label">Sport</label>
+                        <div class="col-sm-10">
+                            <input type="text" readonly class="form-control-plaintext fw-bold"
+                                   id="sportName" value="{{ team.sport.name }}">
+                        </div>
                         <label for="teamName" class="col-sm-2 col-form-label">Team</label>
                         <div class="col-sm-10">
                             <input type="text" readonly class="form-control-plaintext fw-bold"
@@ -27,48 +32,8 @@
                         </div>
                     </div>
                 </div>
-                <div>
-                    {% set childColumnCount = 11 %}
-                    <table class="table table-striped table-hover align-middle" id="seasonDetails">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Game Date</th>
-                            <th>Event</th>
-                            <th>Our Name</th>
-                            <th>Our match score</th>
-                            <th>Opponent match score</th>
-                            <th>Opponent name</th>
-                            <th>Match status</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for gameResult in gameResults %}
-                            <tr class="
-                                {% if gameResult.matchResult is not null %}
-                                    {% if gameResult.matchResult.value == 'loss' %}table-danger{% endif %}
-                                    {% if gameResult.matchResult.value == 'win' %}table-success{% endif %}
-                                    {% if gameResult.matchResult.value == 'draw' %}table-warning{% endif %}
-                                {% endif %}
-                            ">
-                                <td>{{ gameResult.id }}</td>
-                                <td>{{ gameResult.game.date|default('')|date(DATE_FORMAT) }}</td>
-                                <td>{{ gameResult.game.event.name ?? '' }}</td>
-                                <td>{{ gameResult.team.name ?? '' }}</td>
-                                <td>{{ gameResult.matchScore }}</td>
-                                <td>{{ gameResult.opponent.matchScore ?? '' }}</td>
-                                <td>{{ gameResult.opponent.team.name ?? '' }}</td>
-                                <td>{{ gameResult.matchResult.value ?? '' }}</td>
-                            </tr>
-                        {% else %}
-                            <tr>
-                                <td colspan="{{ childColumnCount }}" class="text-center text-muted">
-                                    No game results found.
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                <div id="season-details-body">
+                    {% include 'team/_modal_season-details-table.html.twig' %}
                 </div>
             </div>
 

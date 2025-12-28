@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Dto\GameResultFilterRequest;
+use App\Dto\TeamDetailFilterRequest;
 use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\GameResult;
@@ -86,19 +87,12 @@ class GameResultRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * @param Team $team
-     * @param ?Season $season
-     * @param string $orderBy
-     * @param string $direction
-     * @return GameResult[]
-     */
-    public function findActiveByTeamAndSeason(
+    public function buildActiveByTeamAndSeason(
         Team $team,
         ?Season $season = null,
         string $orderBy = 'gr1.createdAt',
         string $direction = 'DESC'
-    ): array {
+    ): QueryBuilder {
         $qb = $this->createQueryBuilder('gr1')
             ->select('gr1', 'gr2', 't1', 't2', 'g', 's', 'e', 'c')
             ->join('gr1.team', 't1')
@@ -119,8 +113,44 @@ class GameResultRepository extends ServiceEntityRepository
                 ->setParameter('season', $season);
         }
 
+        return $qb;
+    }
+
+    /**
+     * @param Team $team
+     * @param ?Season $season
+     * @param string $orderBy
+     * @param string $direction
+     * @return GameResult[]
+     */
+    public function findActiveByTeamAndSeason(
+        Team $team,
+        ?Season $season = null,
+        string $orderBy = 'gr1.createdAt',
+        string $direction = 'DESC'
+    ): array {
+        $qb = $this->buildActiveByTeamAndSeason($team, $season, $orderBy, $direction);
+
         /** @var GameResult[] */
         return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @return Paginator<GameResult>
+     * @phpstan-return Paginator<GameResult>
+     */
+    public function findActiveByTeamAndSeasonPaginated(
+        TeamDetailFilterRequest $filter,
+        Team $team,
+        ?Season $season = null,
+        string $orderBy = 'gr1.createdAt',
+        string $direction = 'DESC'
+    ): Paginator {
+        $qb = $this->buildActiveByTeamAndSeason($team, $season, $orderBy, $direction);
+        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
+
+        /** @var Paginator<GameResult> */
+        return new Paginator($qb);
     }
 
     /**
