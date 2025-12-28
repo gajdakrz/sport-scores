@@ -119,7 +119,7 @@ class TeamMember extends AbstractAuditableEntity
         return $this->season;
     }
 
-    public function setSeason(Season $season): static
+    public function setSeason(?Season $season): static
     {
         $this->season = $season;
 

@@ -14,6 +14,7 @@ use App\Repository\GameRepository;
 use App\Repository\GameResultRepository;
 use App\Repository\SeasonRepository;
 use App\Service\CurrentSportProvider;
+use App\Service\GameResultHandler;
 use App\Service\PaginationService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,7 +59,8 @@ final class GameController extends AbstractController
     public function new(
         Request $request,
         EntityManagerInterface $em,
-        CurrentSportProvider $currentSportProvider
+        CurrentSportProvider $currentSportProvider,
+        GameResultHandler $gameResultHandler
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
@@ -77,52 +79,28 @@ final class GameController extends AbstractController
         ]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && !$form->isValid()) {
-            $errors = $form->getErrors(true);
-
-            /** @var FormError $error */
-            foreach ($errors as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
-
-            return $this->redirectToRoute('game_index');
+        if (!$form->isSubmitted()) {
+            return $this->render('game/_modal.html.twig', [
+                'form' => $form->createView(),
+                'game' => $game,
+                'initialSport' => null,
+                'initialCompetition' => null,
+                'initialEvent' => null,
+            ]);
         }
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $now = new DateTimeImmutable();
-
-            // Obsługa GameResults - ustaw użytkownika dla nowych wyników
-            foreach ($game->getGameResults() as $gameResult) {
-                if (!$gameResult->getId()) {
-                    // Nowy wynik
-                    $gameResult->setCreatedBy($user);
-                    $gameResult->setModifiedBy($user);
-                } else {
-                    // Istniejący wynik (aktualizacja)
-                    $gameResult->setModifiedBy($user);
-                    $gameResult->setModifiedAt($now);
-                }
-
-                // Obsługa soft delete
-                if (!$gameResult->isActive()) {
-                    $gameResult->setModifiedBy($user);
-                    $gameResult->setModifiedAt($now);
-                }
-            }
-
+        if ($form->isValid()) {
+            $gameResultHandler->handle($game, $user);
             $em->persist($game);
             $em->flush();
-
-            return $this->redirectToRoute('game_index');
+        } else {
+            /** @var FormError $error */
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
         }
 
-        return $this->render('game/_modal.html.twig', [
-            'form' => $form->createView(),
-            'game' => $game,
-            'initialSport' => null,
-            'initialCompetition' => null,
-            'initialEvent' => null,
-        ]);
+        return $this->redirectToRoute('game_index');
     }
 
     #[Route('/{id}/edit', name: 'game_edit', methods: ['GET', 'POST'])]

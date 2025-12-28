@@ -23,7 +23,7 @@ class Sport extends AbstractAuditableEntity
     /**
      * @var Collection<int, Competition>
      */
-    #[ORM\OneToMany(targetEntity: Competition::class, mappedBy: 'sport', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Competition::class, mappedBy: 'sport', orphanRemoval: false)]
     private Collection $competitions;
 
     public function __construct()
@@ -66,10 +66,13 @@ class Sport extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeCompetition(Competition $competition): static
+    public function removeCompetition(Competition $competition, User $user): static
     {
-        $this->competitions->removeElement($competition);
-        // orphanRemoval = true -> Competition zostanie usunięty przy flush
+        if ($this->competitions->contains($competition)) {
+            $competition->setIsActive(false);
+            $competition->setModifiedAt($this->now);
+            $competition->setModifiedBy($user);
+        }
 
         return $this;
     }

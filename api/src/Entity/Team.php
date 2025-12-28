@@ -35,13 +35,13 @@ class Team extends AbstractAuditableEntity
     /**
      * @var Collection<int, TeamMember>
      */
-    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'team', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'team', orphanRemoval: false)]
     private Collection $teamMembers;
 
     /**
      * @var Collection<int, GameResult>
      */
-    #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'team')]
+    #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'team', orphanRemoval: false)]
     private Collection $gameResults;
 
     #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'teams')]
@@ -125,9 +125,13 @@ class Team extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeTeamMember(TeamMember $teamMember): static
+    public function removeTeamMember(TeamMember $teamMember, User $user): static
     {
-        $this->teamMembers->removeElement($teamMember);
+        if ($this->teamMembers->contains($teamMember)) {
+            $teamMember->setIsActive(false);
+            $teamMember->setModifiedAt($this->now);
+            $teamMember->setModifiedBy($user);
+        }
 
         return $this;
     }
@@ -150,13 +154,12 @@ class Team extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeGameResult(GameResult $gameResult): static
+    public function removeGameResult(GameResult $gameResult, User $user): static
     {
-        if ($this->gameResults->removeElement($gameResult)) {
-            // set the owning side to null (unless already changed)
-            if ($gameResult->getTeam() === $this) {
-                $gameResult->setTeam(null);
-            }
+        if ($this->gameResults->contains($gameResult)) {
+            $gameResult->setIsActive(false);
+            $gameResult->setModifiedAt($this->now);
+            $gameResult->setModifiedBy($user);
         }
 
         return $this;

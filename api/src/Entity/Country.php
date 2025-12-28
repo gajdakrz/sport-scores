@@ -23,13 +23,13 @@ class Country extends AbstractAuditableEntity
     /**
      * @var Collection<int, Person>
      */
-    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'country')]
+    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'country', orphanRemoval: false)]
     private Collection $persons;
 
     /**
      * @var Collection<int, Team>
      */
-    #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'country')]
+    #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'country', orphanRemoval: false)]
     private Collection $teams;
 
     public function __construct()
@@ -81,9 +81,13 @@ class Country extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removePerson(Person $person): static
+    public function removePerson(Person $person, User $user): static
     {
-        $this->persons->removeElement($person);
+        if ($this->persons->contains($person)) {
+            $person->setIsActive(false);
+            $person->setModifiedAt($this->now);
+            $person->setModifiedBy($user);
+        }
 
         return $this;
     }
@@ -106,13 +110,12 @@ class Country extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeTeam(Team $team): static
+    public function removeTeam(Team $team, User $user): static
     {
-        if ($this->teams->removeElement($team)) {
-            // set the owning side to null (unless already changed)
-            if ($team->getCountry() === $this) {
-                $team->setCountry(null);
-            }
+        if ($this->teams->contains($team)) {
+            $team->setIsActive(false);
+            $team->setModifiedAt($this->now);
+            $team->setModifiedBy($user);
         }
 
         return $this;

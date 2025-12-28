@@ -99,7 +99,7 @@ class Game extends AbstractAuditableEntity
         return $this->season;
     }
 
-    public function setSeason(Season $season): static
+    public function setSeason(?Season $season): static
     {
         $this->season = $season;
 
@@ -134,11 +134,12 @@ class Game extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeGameResult(GameResult $gameResult): static
+    public function removeGameResult(GameResult $gameResult, User $user): static
     {
         if ($this->gameResults->contains($gameResult)) {
             $gameResult->setIsActive(false);
-            // NIE usuwamy z kolekcji: $this->gameResults->removeElement($gameResult);
+            $gameResult->setModifiedAt($this->now);
+            $gameResult->setModifiedBy($user);
         }
 
         return $this;
