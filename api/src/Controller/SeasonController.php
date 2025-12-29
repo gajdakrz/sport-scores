@@ -41,26 +41,26 @@ final class SeasonController extends AbstractController
         $form = $this->createForm(SeasonType::class, $season);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            if ($form->isValid()) {
-                $em->persist($season);
-                $em->flush();
-            } else {
-                $errors = $form->getErrors(true);
-
-                /** @var FormError $error */
-                foreach ($errors as $error) {
-                    $this->addFlash('danger', $error->getMessage());
-                }
-            }
-
-            return $this->redirectToRoute('season_index');
+        if (!$form->isSubmitted()) {
+            return $this->render('season/_modal.html.twig', [
+                'form' => $form->createView(),
+                'season' => $season,
+            ]);
         }
 
-        return $this->render('season/_modal.html.twig', [
-            'form' => $form->createView(),
-            'season' => $season,
-        ]);
+        if ($form->isValid()) {
+            $em->persist($season);
+            $em->flush();
+        } else {
+            $errors = $form->getErrors(true);
+
+            /** @var FormError $error */
+            foreach ($errors as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+        }
+
+        return $this->redirectToRoute('season_index');
     }
 
     #[Route('/{id}/edit', name: 'season_edit', methods: ['GET', 'POST'])]
@@ -74,25 +74,25 @@ final class SeasonController extends AbstractController
         $form = $this->createForm(SeasonType::class, $season);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            if ($form->isValid()) {
-                $em->flush();
-            } else {
-                $errors = $form->getErrors(true);
-
-                /** @var FormError $error */
-                foreach ($errors as $error) {
-                    $this->addFlash('danger', $error->getMessage());
-                }
-            }
-
-            return $this->redirectToRoute('season_index');
+        if (!$form->isSubmitted()) {
+            return $this->render('season/_modal.html.twig', [
+                'form' => $form->createView(),
+                'season' => $season,
+            ]);
         }
 
-        return $this->render('season/_modal.html.twig', [
-            'form' => $form->createView(),
-            'season' => $season,
-        ]);
+        if ($form->isValid()) {
+            $em->flush();
+        } else {
+            $errors = $form->getErrors(true);
+
+            /** @var FormError $error */
+            foreach ($errors as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+        }
+
+        return $this->redirectToRoute('season_index');
     }
 
     #[Route('/{id}', name: 'season_delete', methods: ['POST'])]

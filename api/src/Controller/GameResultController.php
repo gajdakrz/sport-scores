@@ -73,26 +73,26 @@ final class GameResultController extends AbstractController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            if ($form->isValid()) {
-                $em->persist($gameResult);
-                $em->flush();
-            } else {
-                $errors = $form->getErrors(true);
-
-                /** @var FormError $error */
-                foreach ($errors as $error) {
-                    $this->addFlash('danger', $error->getMessage());
-                }
-            }
-
-            return $this->redirectToRoute('game_result_index');
+        if (!$form->isSubmitted()) {
+            return $this->render('game_result/_modal.html.twig', [
+                'form' => $form->createView(),
+                'gameResult' => $gameResult,
+            ]);
         }
 
-        return $this->render('game_result/_modal.html.twig', [
-            'form' => $form->createView(),
-            'gameResult' => $gameResult,
-        ]);
+        if ($form->isValid()) {
+            $em->persist($gameResult);
+            $em->flush();
+        } else {
+            $errors = $form->getErrors(true);
+
+            /** @var FormError $error */
+            foreach ($errors as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+        }
+
+        return $this->redirectToRoute('game_result_index');
     }
 
     #[Route('/{id}/edit', name: 'game_result_edit', methods: ['GET', 'POST'])]
@@ -106,25 +106,25 @@ final class GameResultController extends AbstractController
         $form = $this->createForm(GameResultType::class, $gameResult);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            if ($form->isValid()) {
-                $em->flush();
-            } else {
-                $errors = $form->getErrors(true);
-
-                /** @var FormError $error */
-                foreach ($errors as $error) {
-                    $this->addFlash('danger', $error->getMessage());
-                }
-            }
-
-            return $this->redirectToRoute('game_result_index');
+        if (!$form->isSubmitted()) {
+            return $this->render('game_result/_modal.html.twig', [
+                'form' => $form->createView(),
+                'gameResult' => $gameResult,
+            ]);
         }
 
-        return $this->render('game_result/_modal.html.twig', [
-            'form' => $form->createView(),
-            'gameResult' => $gameResult,
-        ]);
+        if ($form->isValid()) {
+            $em->flush();
+        } else {
+            $errors = $form->getErrors(true);
+
+            /** @var FormError $error */
+            foreach ($errors as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+        }
+
+        return $this->redirectToRoute('game_result_index');
     }
 
     #[Route('/{id}', name: 'game_result_delete', methods: ['POST'])]
