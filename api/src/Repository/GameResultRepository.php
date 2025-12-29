@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Dto\GameResultFilterRequest;
 use App\Dto\TeamDetailFilterRequest;
+use App\Dto\MatchStats;
 use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\GameResult;
@@ -87,9 +90,10 @@ class GameResultRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function buildActiveByTeamAndSeason(
+    public function buildActiveByTeamAndSeasonAndCompetition(
         Team $team,
         ?Season $season = null,
+        ?Competition $competition = null,
         string $orderBy = 'gr1.createdAt',
         string $direction = 'DESC'
     ): QueryBuilder {
@@ -113,6 +117,11 @@ class GameResultRepository extends ServiceEntityRepository
                 ->setParameter('season', $season);
         }
 
+        if ($competition !== null) {
+            $qb->andWhere('e.competition = :competition')
+                ->setParameter('competition', $competition);
+        }
+
         return $qb;
     }
 
@@ -126,10 +135,11 @@ class GameResultRepository extends ServiceEntityRepository
     public function findActiveByTeamAndSeason(
         Team $team,
         ?Season $season = null,
+        ?Competition $competition = null,
         string $orderBy = 'gr1.createdAt',
         string $direction = 'DESC'
     ): array {
-        $qb = $this->buildActiveByTeamAndSeason($team, $season, $orderBy, $direction);
+        $qb = $this->buildActiveByTeamAndSeasonAndCompetition($team, $season, $competition, $orderBy, $direction);
 
         /** @var GameResult[] */
         return $qb->getQuery()->getResult();
@@ -143,10 +153,11 @@ class GameResultRepository extends ServiceEntityRepository
         TeamDetailFilterRequest $filter,
         Team $team,
         ?Season $season = null,
+        ?Competition $competition = null,
         string $orderBy = 'gr1.createdAt',
         string $direction = 'DESC'
     ): Paginator {
-        $qb = $this->buildActiveByTeamAndSeason($team, $season, $orderBy, $direction);
+        $qb = $this->buildActiveByTeamAndSeasonAndCompetition($team, $season, $competition, $orderBy, $direction);
         $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
         /** @var Paginator<GameResult> */
@@ -159,94 +170,47 @@ class GameResultRepository extends ServiceEntityRepository
      *     season: ?Season,
      *     competition: ?Competition,
      *     team: ?Team,
-     *     wins: GameResult[],
-     *     losses: GameResult[],
-     *     draws: GameResult[],
-     *     unknowns: GameResult[],
-     *     all: GameResult[],
-     *     stats: array{
-     *         total: int,
-     *         wins: int,
-     *         losses: int,
-     *         draws: int,
-     *         unknowns: int,
-     *         winRate: float,
-     *         points: int
-     *     }
+     *     stats: MatchStats
      * }>
      */
-    public function getResultsGroupedBySeason(Team $team): array
+    public function getResultsGroupedBySeasonAndCompetition(Team $team): array
     {
         $results = $this->findActiveByTeamAndSeason($team);
-        $groupedBySeason = [];
-
-        if ($results === []) {
-            return $groupedBySeason;
-        }
+        $grouped = [];
 
         foreach ($results as $result) {
-            $season = $result->getGame()?->getSeason();
-            $seasonId = $season?->getId();
-            if ($seasonId === null) {
+            $game = $result->getGame();
+            $season = $game?->getSeason();
+            $competition = $game?->getEvent()?->getCompetition();
+
+            if ($season === null || $competition === null) {
                 continue;
             }
-            $competition = $result->getGame()?->getEvent()?->getCompetition();
-            $team = $result->getTeam();
 
-            if (!isset($groupedBySeason[$seasonId])) {
-                $groupedBySeason[$seasonId] = [
+            $key = $season->getId() . '_' . $competition->getId();
+
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
                     'season' => $season,
                     'competition' => $competition,
-                    'team' => $team,
-                    'wins' => [],
-                    'losses' => [],
-                    'draws' => [],
-                    'unknowns' => [],
-                    'all' => [],
-                    'stats' => [
-                        'total' => 0,
-                        'wins' => 0,
-                        'losses' => 0,
-                        'draws' => 0,
-                        'unknowns' => 0,
-                        'winRate' => 0,
-                        'points' => 0,
-                    ],
+                    'team' => $result->getTeam(),
+                    'stats' => new MatchStats(),
                 ];
             }
-            $matchResult = $result->getMatchResult();
-            $groupedBySeason[$seasonId]['all'][] = $result;
-            $groupedBySeason[$seasonId]['stats']['total']++;
 
-            match ($matchResult) {
-                MatchResultStatus::WIN => [
-                    $groupedBySeason[$seasonId]['wins'][] = $result,
-                    $groupedBySeason[$seasonId]['stats']['wins']++,
-                    $groupedBySeason[$seasonId]['stats']['points'] += 3,
-                ],
-                MatchResultStatus::LOSS => [
-                    $groupedBySeason[$seasonId]['losses'][] = $result,
-                    $groupedBySeason[$seasonId]['stats']['losses']++,
-                ],
-                MatchResultStatus::DRAW => [
-                    $groupedBySeason[$seasonId]['draws'][] = $result,
-                    $groupedBySeason[$seasonId]['stats']['draws']++,
-                    $groupedBySeason[$seasonId]['stats']['points']++,
-                ],
-                MatchResultStatus::UNKNOWN => [
-                    $groupedBySeason[$seasonId]['unknowns'][] = $result,
-                    $groupedBySeason[$seasonId]['stats']['unknowns']++,
-                ],
+            /** @var MatchStats $matchStats */
+            $matchStats = $grouped[$key]['stats'];
+
+            match ($result->getMatchResult()) {
+                MatchResultStatus::WIN => $matchStats->addWin(),
+                MatchResultStatus::LOSS => $matchStats->addLoss(),
+                MatchResultStatus::DRAW => $matchStats->addDraw(),
+                MatchResultStatus::UNKNOWN => $matchStats->addUnknown(),
             };
-            $total = $groupedBySeason[$seasonId]['stats']['total'];
-            $wins = $groupedBySeason[$seasonId]['stats']['wins'];
-            $groupedBySeason[$seasonId]['stats']['winRate'] = round(($wins / $total) * 100, 2);
         }
-        krsort($groupedBySeason);
 
-        return $groupedBySeason;
+        return array_values($grouped);
     }
-
 
     /**
      * @param GameResultFilterRequest $filter

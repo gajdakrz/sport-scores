@@ -143,6 +143,7 @@ final class TeamController extends AbstractController
             $teamDetailFilterRequest,
             $team,
             $season,
+            $competition,
             'g.date'
         );
 
@@ -167,7 +168,7 @@ final class TeamController extends AbstractController
         GameResultRepository $gameResultRepository
     ): Response {
         return $this->render('team/_result-season-stats.html.twig', [
-            'resultSeasonStats' => $gameResultRepository->getResultsGroupedBySeason($team)
+            'resultSeasonStats' => $gameResultRepository->getResultsGroupedBySeasonAndCompetition($team)
         ]);
     }
 }

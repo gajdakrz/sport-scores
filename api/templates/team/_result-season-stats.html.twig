@@ -2,7 +2,6 @@
 <table class="table table-striped table-hover align-middle" id="gameResultTable">
     <thead>
     <tr>
-        <th>Season Id</th>
         <th>Season Name</th>
         <th>Competition</th>
         <th>Matches</th>
@@ -17,7 +16,6 @@
     <tbody>
     {% for resultSeasonStat in resultSeasonStats %}
         <tr>
-            <td>{{ resultSeasonStat.season.id ?? '' }}</td>
             <td>{{ resultSeasonStat.season.mergedStartEndYear ?? '' }}</td>
             <td>{{ resultSeasonStat.competition.name ?? '' }}</td>
             <td>{{ resultSeasonStat.stats.total ?? '' }}</td>

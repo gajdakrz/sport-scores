@@ -60,8 +60,10 @@ final class CompetitionController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $competition->setSport($currentSport);
             $em->persist($competition);
             $em->flush();
+
             return $this->redirectToRoute('competition_index');
         }
 
