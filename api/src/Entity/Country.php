@@ -81,7 +81,17 @@ class Country extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removePerson(Person $person, User $user): static
+    public function removePerson(Person $person): static
+    {
+        if ($this->persons->contains($person) && $person->isActive()) {
+            $person->setIsActive(false);
+            $person->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivatePerson(Person $person, User $user): static
     {
         if ($this->persons->contains($person)) {
             $person->setIsActive(false);
@@ -110,7 +120,17 @@ class Country extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeTeam(Team $team, User $user): static
+    public function removeTeam(Team $team): static
+    {
+        if ($this->teams->contains($team) && $team->isActive()) {
+            $team->setIsActive(false);
+            $team->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateTeam(Team $team, User $user): static
     {
         if ($this->teams->contains($team)) {
             $team->setIsActive(false);

@@ -125,7 +125,17 @@ class Team extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeTeamMember(TeamMember $teamMember, User $user): static
+    public function removeTeamMember(TeamMember $teamMember): static
+    {
+        if ($this->teamMembers->contains($teamMember) && $teamMember->isActive()) {
+            $teamMember->setIsActive(false);
+            $teamMember->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateTeamMember(TeamMember $teamMember, User $user): static
     {
         if ($this->teamMembers->contains($teamMember)) {
             $teamMember->setIsActive(false);
@@ -154,7 +164,17 @@ class Team extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeGameResult(GameResult $gameResult, User $user): static
+    public function removeGameResult(GameResult $gameResult): static
+    {
+        if ($this->gameResults->contains($gameResult) && $gameResult->isActive()) {
+            $gameResult->setIsActive(false);
+            $gameResult->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateGameResult(GameResult $gameResult, User $user): static
     {
         if ($this->gameResults->contains($gameResult)) {
             $gameResult->setIsActive(false);

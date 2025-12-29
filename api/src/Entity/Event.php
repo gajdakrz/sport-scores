@@ -95,7 +95,17 @@ class Event extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeGame(Game $game, User $user): static
+    public function removeGame(Game $game): static
+    {
+        if ($this->games->contains($game) && $game->isActive()) {
+            $game->setIsActive(false);
+            $game->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateGame(Game $game, User $user): static
     {
         if ($this->games->contains($game)) {
             $game->setIsActive(false);

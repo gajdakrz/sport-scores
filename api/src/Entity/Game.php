@@ -134,7 +134,17 @@ class Game extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeGameResult(GameResult $gameResult, User $user): static
+    public function removeGameResult(GameResult $gameResult): static
+    {
+        if ($this->gameResults->contains($gameResult) && $gameResult->isActive()) {
+            $gameResult->setIsActive(false);
+            $gameResult->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateGameResult(GameResult $gameResult, User $user): static
     {
         if ($this->gameResults->contains($gameResult)) {
             $gameResult->setIsActive(false);

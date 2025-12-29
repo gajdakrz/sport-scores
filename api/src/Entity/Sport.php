@@ -66,7 +66,17 @@ class Sport extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeCompetition(Competition $competition, User $user): static
+    public function removeCompetition(Competition $competition): static
+    {
+        if ($this->competitions->contains($competition) && $competition->isActive()) {
+            $competition->setIsActive(false);
+            $competition->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateCompetition(Competition $competition, User $user): static
     {
         if ($this->competitions->contains($competition)) {
             $competition->setIsActive(false);

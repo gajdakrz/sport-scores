@@ -122,7 +122,17 @@ class Competition extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeEvent(Event $event, User $user): static
+    public function removeEvent(Event $event): static
+    {
+        if ($this->events->contains($event) && $event->isActive()) {
+            $event->setIsActive(false);
+            $event->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateEvent(Event $event, User $user): static
     {
         if ($this->events->contains($event)) {
             $event->setIsActive(false);

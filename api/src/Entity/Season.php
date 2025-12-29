@@ -99,7 +99,17 @@ class Season extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeGame(Game $game, User $user): static
+    public function removeGame(Game $game): static
+    {
+        if ($this->games->contains($game) && $game->isActive()) {
+            $game->setIsActive(false);
+            $game->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateGame(Game $game, User $user): static
     {
         if ($this->games->contains($game)) {
             $game->setIsActive(false);
@@ -128,7 +138,17 @@ class Season extends AbstractAuditableEntity
         return $this;
     }
 
-    public function removeTeamMember(TeamMember $teamMember, User $user): static
+    public function removeTeamMember(TeamMember $teamMember): static
+    {
+        if ($this->teamMembers->contains($teamMember) && $teamMember->isActive()) {
+            $teamMember->setIsActive(false);
+            $teamMember->setModifiedAt($this->now);
+        }
+
+        return $this;
+    }
+
+    public function deactivateTeamMember(TeamMember $teamMember, User $user): static
     {
         if ($this->teamMembers->contains($teamMember)) {
             $teamMember->setIsActive(false);

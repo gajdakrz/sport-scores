@@ -104,8 +104,12 @@ final class GameController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'game_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Game $game, EntityManagerInterface $em): Response
-    {
+    public function edit(
+        Request $request,
+        Game $game,
+        EntityManagerInterface $em,
+        GameResultHandler $gameResultHandler
+    ): Response {
         /** @var User $user */
         $user = $this->getUser();
         $now = new DateTimeImmutable();
@@ -115,53 +119,32 @@ final class GameController extends AbstractController
         $form = $this->createForm(GameType::class, $game);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && !$form->isValid()) {
-            $errors = $form->getErrors(true);
+        if (!$form->isSubmitted()) {
+            $event = $game->getEvent();
+            $competition = $event?->getCompetition();
+            $sport = $competition?->getSport();
 
+            return $this->render('game/_modal.html.twig', [
+                'form' => $form->createView(),
+                'game' => $game,
+                'initialSport' => $sport,
+                'initialCompetition' => $competition,
+                'initialEvent' => $event,
+            ]);
+        }
+
+        if ($form->isValid()) {
+            $gameResultHandler->handle($game, $user);
+            $em->persist($game);
+            $em->flush();
+        } else {
             /** @var FormError $error */
-            foreach ($errors as $error) {
+            foreach ($form->getErrors(true) as $error) {
                 $this->addFlash('danger', $error->getMessage());
             }
-
-            return $this->redirectToRoute('game_index');
         }
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Obsługa GameResults
-            foreach ($game->getGameResults() as $gameResult) {
-                if (!$gameResult->getId()) {
-                    // Nowy wynik dodany podczas edycji
-                    $gameResult->setCreatedBy($user);
-                    $gameResult->setModifiedBy($user);
-                } else {
-                    // Istniejący wynik (aktualizacja lub soft delete)
-                    $gameResult->setModifiedBy($user);
-                    $gameResult->setModifiedAt($now);
-                }
-
-                // Obsługa soft delete
-                if (!$gameResult->isActive()) {
-                    $gameResult->setModifiedBy($user);
-                    $gameResult->setModifiedAt($now);
-                }
-            }
-
-            $em->flush();
-
-            return $this->redirectToRoute('game_index');
-        }
-
-        $event = $game->getEvent();
-        $competition = $event?->getCompetition();
-        $sport = $competition?->getSport();
-
-        return $this->render('game/_modal.html.twig', [
-            'form' => $form->createView(),
-            'game' => $game,
-            'initialSport' => $sport,
-            'initialCompetition' => $competition,
-            'initialEvent' => $event,
-        ]);
+        return $this->redirectToRoute('game_index');
     }
 
     #[Route('/{id}', name: 'game_delete', methods: ['POST'])]
