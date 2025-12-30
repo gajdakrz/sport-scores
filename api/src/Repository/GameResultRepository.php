@@ -6,7 +6,7 @@ namespace App\Repository;
 
 use App\Dto\GameResultFilterRequest;
 use App\Dto\TeamDetailFilterRequest;
-use App\Dto\MatchStats;
+use App\Model\MatchStat;
 use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\GameResult;
@@ -128,6 +128,7 @@ class GameResultRepository extends ServiceEntityRepository
     /**
      * @param Team $team
      * @param ?Season $season
+     * @param ?Competition $competition
      * @param string $orderBy
      * @param string $direction
      * @return GameResult[]
@@ -170,7 +171,7 @@ class GameResultRepository extends ServiceEntityRepository
      *     season: ?Season,
      *     competition: ?Competition,
      *     team: ?Team,
-     *     stats: MatchStats
+     *     stats: MatchStat
      * }>
      */
     public function getResultsGroupedBySeasonAndCompetition(Team $team): array
@@ -194,18 +195,18 @@ class GameResultRepository extends ServiceEntityRepository
                     'season' => $season,
                     'competition' => $competition,
                     'team' => $result->getTeam(),
-                    'stats' => new MatchStats(),
+                    'stats' => new MatchStat(),
                 ];
             }
 
-            /** @var MatchStats $matchStats */
-            $matchStats = $grouped[$key]['stats'];
+            /** @var MatchStat $matchStat */
+            $matchStat = $grouped[$key]['stats'];
 
-            match ($result->getMatchResult()) {
-                MatchResultStatus::WIN => $matchStats->addWin(),
-                MatchResultStatus::LOSS => $matchStats->addLoss(),
-                MatchResultStatus::DRAW => $matchStats->addDraw(),
-                MatchResultStatus::UNKNOWN => $matchStats->addUnknown(),
+            $grouped[$key]['stats'] = match ($result->getMatchResult()) {
+                MatchResultStatus::WIN => $matchStat->addWin(),
+                MatchResultStatus::LOSS => $matchStat->addLoss(),
+                MatchResultStatus::DRAW => $matchStat->addDraw(),
+                MatchResultStatus::UNKNOWN => $matchStat->addUnknown(),
             };
         }
 
