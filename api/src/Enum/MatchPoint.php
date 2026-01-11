@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enum;
 
-enum MatchPoints
+enum MatchPoint
 {
     case WIN;
     case DRAW;

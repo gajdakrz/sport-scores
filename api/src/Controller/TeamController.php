@@ -76,6 +76,7 @@ final class TeamController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $team->setSport($currentSport);
             $em->persist($team);
             $em->flush();
             return $this->redirectToRoute('team_index');

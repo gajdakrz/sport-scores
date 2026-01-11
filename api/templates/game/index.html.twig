@@ -69,6 +69,7 @@
                 <th>ID</th>
                 <th>Date</th>
                 <th>Season</th>
+                <th>Gender</th>
                 <th>Competition</th>
                 <th>Event</th>
                 <th>Created At</th>
@@ -82,6 +83,7 @@
                     <td>{{ game.id }}</td>
                     <td>{{ game.date|date(DATE_FORMAT) }}</td>
                     <td>{{ game.season.mergedStartEndYear ?? '' }}</td>
+                    <td>{{ game.event.competition.gender ? game.event.competition.gender.value|capitalize : '' }}</td>
                     <td>{{ game.event.competition.name ?? '' }}</td>
                     <td>{{ game.event.name ?? '' }}</td>
                     <td>{{ game.createdAt|date(DATETIME_FORMAT) }}</td>

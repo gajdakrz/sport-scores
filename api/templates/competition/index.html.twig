@@ -30,7 +30,7 @@
                 <tr>
                     <td>{{ competition.id }}</td>
                     <td>{{ competition.name }}</td>
-                    <td>{{ competition.gender.name|replace({'_': ' '})|capitalize }}</td>
+                    <td>{{ competition.gender.value|capitalize }}</td>
                     <td>{{ competition.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ competition.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">

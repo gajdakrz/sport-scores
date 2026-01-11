@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-use App\Enum\MatchPoints;
+use App\Enum\MatchPoint;
 
 final readonly class MatchStat
 {
@@ -28,7 +28,7 @@ final readonly class MatchStat
             losses: $this->losses,
             draws: $this->draws,
             unknowns: $this->unknowns,
-            points: $this->points + MatchPoints::WIN->points(),
+            points: $this->points + MatchPoint::WIN->points(),
         );
     }
 
@@ -40,7 +40,7 @@ final readonly class MatchStat
             losses: $this->losses + self::ADDED_VALUE,
             draws: $this->draws,
             unknowns: $this->unknowns,
-            points: $this->points + MatchPoints::LOSS->points(),
+            points: $this->points + MatchPoint::LOSS->points(),
         );
     }
 
@@ -52,7 +52,7 @@ final readonly class MatchStat
             losses: $this->losses,
             draws: $this->draws + self::ADDED_VALUE,
             unknowns: $this->unknowns,
-            points: $this->points + MatchPoints::DRAW->points(),
+            points: $this->points + MatchPoint::DRAW->points(),
         );
     }
 
@@ -64,7 +64,7 @@ final readonly class MatchStat
             losses: $this->losses,
             draws: $this->draws,
             unknowns: $this->unknowns + self::ADDED_VALUE,
-            points: $this->points + MatchPoints::UNKNOWN->points(),
+            points: $this->points + MatchPoint::UNKNOWN->points(),
         );
     }
 
