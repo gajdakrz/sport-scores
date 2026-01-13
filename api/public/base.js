@@ -131,11 +131,14 @@ window.AppBase = {
             }
 
             try {
-                await fetch(`sports/set/${sportId}`, {
+                await fetch(`/sports/set/${sportId}`, {
                     method: 'POST',
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
+                // usuń query string (?page=2 itd.)
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
                 window.location.reload();
             } catch (e) {
                 console.error('Failed to switch sport', e);
@@ -162,7 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Handler pagination in modal
 document.addEventListener('click', async (event) => {
-    const link = event.target.closest('.js-modal-pagination');
+    // Sprawdź czy kliknięty element to link paginacji wewnątrz modala
+    const link = event.target.closest('.modal .pagination a.page-link');
     if (!link) {
         return;
     }
@@ -173,6 +177,7 @@ document.addEventListener('click', async (event) => {
     }
 
     event.preventDefault();
+    event.stopPropagation();
 
     const body = modal.querySelector('#season-details-body');
     if (!body) {
@@ -183,12 +188,6 @@ document.addEventListener('click', async (event) => {
         const res = await fetch(link.href, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
-
-        if (!res.ok) {
-            console.error('Pagination fetch failed: HTTP', res.status);
-            return;
-        }
-
         body.innerHTML = await res.text();
     } catch (e) {
         console.error('Pagination fetch failed:', e);

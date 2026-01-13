@@ -12,9 +12,10 @@ use App\Form\GameResultType;
 use App\Repository\GameResultRepository;
 use App\Repository\TeamRepository;
 use App\Service\CurrentSportProvider;
-use App\Service\PaginationService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
+use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,16 +34,20 @@ final class GameResultController extends AbstractController
         GameResultRepository $gameResultRepository,
         TeamRepository $teamRepository,
         CurrentSportProvider $currentSportProvider,
-        PaginationService $paginationService
     ): Response {
         $currentSport = $currentSportProvider->getSport();
-        $paginator = $gameResultRepository->findActivePaginatedByFilter(
+        $queryBuilder = $gameResultRepository->createActiveByFilterBuilder(
             filter: $gameResultFilterRequest,
             sport: $currentSportProvider->getSport(),
         );
+
+        $pagerfanta = new Pagerfanta(new QueryAdapter($queryBuilder));
+        $pagerfanta
+            ->setCurrentPage($gameResultFilterRequest->getPage())
+            ->setMaxPerPage($gameResultFilterRequest->getLimit());
+
         return $this->render('game_result/index.html.twig', [
-            'gameResults' => $paginator,
-            'pagination' => $paginationService->getPaginationData($gameResultFilterRequest, $paginator),
+            'gameResults' => $pagerfanta,
             'teams' => $teamRepository->findActiveSortedBy('name', 'ASC', $currentSport),
             'matchResultStatuses' => MatchResultStatus::getValues(),
         ]);

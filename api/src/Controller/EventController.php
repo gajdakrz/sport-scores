@@ -11,9 +11,10 @@ use App\Form\EventType;
 use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
 use App\Service\CurrentSportProvider;
-use App\Service\PaginationService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
+use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,17 +33,19 @@ final class EventController extends AbstractController
         EventRepository $eventRepository,
         CompetitionRepository $competitionRepository,
         CurrentSportProvider $currentSportProvider,
-        PaginationService $paginationService
     ): Response {
         $currentSport = $currentSportProvider->getSport();
-        $paginator = $eventRepository->findActivePaginatedByFilter(
+        $queryBuilder = $eventRepository->createActiveByFilterBuilder(
             filter: $eventFilterRequest,
             sport: $currentSport
         );
 
+        $pagerfanta = new Pagerfanta(new QueryAdapter($queryBuilder));
+        $pagerfanta->setCurrentPage($eventFilterRequest->getPage());
+        $pagerfanta->setMaxPerPage($eventFilterRequest->getLimit());
+
         return $this->render('event/index.html.twig', [
-            'events' => $paginator,
-            'pagination' => $paginationService->getPaginationData($eventFilterRequest, $paginator),
+            'events' => $pagerfanta,
             'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC', $currentSport),
         ]);
     }

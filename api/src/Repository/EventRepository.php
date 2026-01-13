@@ -9,7 +9,6 @@ use App\Entity\Event;
 use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -64,14 +63,14 @@ class EventRepository extends ServiceEntityRepository
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
-     * @return Paginator<Event>
+     * @return QueryBuilder
      */
-    public function findActivePaginatedByFilter(
+    public function createActiveByFilterBuilder(
         EventFilterRequest $filter,
         string $orderBy = 'createdAt',
         string $direction = 'DESC',
         ?Sport $sport = null,
-    ): Paginator {
+    ): QueryBuilder {
         $qb = $this->createQueryBuilder('event')
             ->join('event.competition', 'competition')
             ->andWhere('event.isActive = :isActive')
@@ -95,7 +94,6 @@ class EventRepository extends ServiceEntityRepository
 
         $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
-        /** @var Paginator<Event> */
-        return new Paginator($qb);
+        return $qb;
     }
 }

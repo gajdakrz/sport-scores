@@ -9,7 +9,6 @@ use App\Entity\Sport;
 use App\Entity\Team;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -62,14 +61,14 @@ class TeamRepository extends ServiceEntityRepository
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
-     * @return Paginator<Team>
+     * @return QueryBuilder
      */
-    public function findActivePaginatedByFilter(
+    public function createActiveByFilterBuilder(
         TeamFilterRequest $filter,
         string $orderBy = 'createdAt',
         string $direction = 'DESC',
         ?Sport $sport = null,
-    ): Paginator {
+    ): QueryBuilder {
         $qb = $this->createQueryBuilder('team')
             ->andWhere('team.isActive = :isActive')
             ->setParameter('isActive', true)
@@ -97,7 +96,6 @@ class TeamRepository extends ServiceEntityRepository
 
         $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
-        /** @var Paginator<Team> */
-        return new Paginator($qb);
+        return $qb;
     }
 }

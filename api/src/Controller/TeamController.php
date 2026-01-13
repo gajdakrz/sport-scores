@@ -4,22 +4,27 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Dto\PaginationRequest;
 use App\Dto\TeamDetailFilterRequest;
 use App\Dto\TeamFilterRequest;
+use App\Dto\TeamGameResultFilterRequest;
+use App\Dto\TeamGameResultSeasonStat;
 use App\Entity\Competition;
 use App\Entity\Season;
 use App\Entity\Team;
 use App\Entity\User;
 use App\Form\TeamType;
 use App\Enum\TeamType as TeamTypeEnum;
+use App\Repository\CompetitionRepository;
 use App\Repository\CountryRepository;
 use App\Repository\GameResultRepository;
+use App\Repository\SeasonRepository;
 use App\Repository\TeamRepository;
 use App\Service\CurrentSportProvider;
-use App\Service\PaginationService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Pagerfanta\Adapter\ArrayAdapter;
+use Pagerfanta\Pagerfanta;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,16 +42,19 @@ final class TeamController extends AbstractController
         TeamRepository $teamRepository,
         CountryRepository $countryRepository,
         CurrentSportProvider $currentSportProvider,
-        PaginationService $paginationService
     ): Response {
-        $paginator = $teamRepository->findActivePaginatedByFilter(
+        $queryBuilder = $teamRepository->createActiveByFilterBuilder(
             filter: $teamFilterRequest,
             sport: $currentSportProvider->getSport()
         );
 
+        $pagerfanta = new Pagerfanta(new QueryAdapter($queryBuilder));
+        $pagerfanta
+            ->setCurrentPage($teamFilterRequest->getPage())
+            ->setMaxPerPage($teamFilterRequest->getLimit());
+
         return $this->render('team/index.html.twig', [
-            'teams' => $paginator,
-            'pagination' => $paginationService->getPaginationData($teamFilterRequest, $paginator),
+            'teams' => $pagerfanta,
             'teamTypes' => TeamTypeEnum::cases(),
             'countries' => $countryRepository->findActiveSortedBy('name', 'ASC'),
         ]);
@@ -138,9 +146,8 @@ final class TeamController extends AbstractController
         Season $season,
         Competition $competition,
         GameResultRepository $gameResultRepository,
-        PaginationService $paginationService
     ): Response {
-        $paginator = $gameResultRepository->findActiveByTeamAndSeasonPaginated(
+        $queryBuilder = $gameResultRepository->activeByTeamAndSeasonAndCompetitionBuilder(
             $teamDetailFilterRequest,
             $team,
             $season,
@@ -148,12 +155,16 @@ final class TeamController extends AbstractController
             'g.date'
         );
 
+        $pagerfanta = new Pagerfanta(new QueryAdapter($queryBuilder));
+        $pagerfanta
+            ->setCurrentPage($teamDetailFilterRequest->getPage())
+            ->setMaxPerPage($teamDetailFilterRequest->getLimit());
+
         $result = [
             'season' => $season,
             'team' => $team,
             'competition' => $competition,
-            'gameResults' => $paginator,
-            'pagination' => $paginationService->getPaginationData($teamDetailFilterRequest, $paginator),
+            'gameResults' => $pagerfanta,
         ];
 
         if ($request->isXmlHttpRequest()) {
@@ -165,11 +176,34 @@ final class TeamController extends AbstractController
 
     #[Route('/{id}/result-season-stats', name: 'team_game_result_season_stats', methods: ['GET'])]
     public function resultSeasonStats(
+        #[MapQueryString] TeamGameResultFilterRequest $teamGameResultFilterRequest,
         Team $team,
-        GameResultRepository $gameResultRepository
+        TeamRepository $teamRepository,
+        GameResultRepository $gameResultRepository,
+        SeasonRepository $seasonRepository,
+        CompetitionRepository $competitionRepository,
+        CurrentSportProvider $currentSportProvider
     ): Response {
-        return $this->render('team/_result-season-stats.html.twig', [
-            'resultSeasonStats' => $gameResultRepository->getResultsGroupedBySeasonAndCompetition($team)
+        $queryBuilder = $gameResultRepository->groupedResultsBySeasonAndCompetitionBuilder(
+            team: $team,
+            filter: $teamGameResultFilterRequest,
+            sport: $currentSportProvider->getSport()
+        );
+
+        /** @var TeamGameResultSeasonStat[] $resultSeasonStats */
+        $resultSeasonStats = $queryBuilder->getQuery()->getResult();
+
+        $pagerfanta = new Pagerfanta(new ArrayAdapter($resultSeasonStats));
+        $pagerfanta->setCurrentPage($teamGameResultFilterRequest->getPage());
+        $pagerfanta->setMaxPerPage($teamGameResultFilterRequest->getLimit());
+
+        $teamCheckBySport = $teamRepository->findOneBy(['sport' => $currentSportProvider->getSport()]);
+
+        return $this->render('team/result-season-stats.html.twig', [
+            'team' => $teamCheckBySport === null ? null : $team,
+            'seasons' => $seasonRepository->findActiveSortedBy('startYear'),
+            'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC'),
+            'resultSeasonStats' => $pagerfanta,
         ]);
     }
 }

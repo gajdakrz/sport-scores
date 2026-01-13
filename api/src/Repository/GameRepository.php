@@ -9,7 +9,6 @@ use App\Entity\Game;
 use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -65,14 +64,14 @@ class GameRepository extends ServiceEntityRepository
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
-     * @return Paginator<Game>
+     * @return QueryBuilder
      */
-    public function findActivePaginatedByFilter(
+    public function createActiveByFilterBuilder(
         GameFilterRequest $filter,
         string $orderBy = 'date',
         string $direction = 'DESC',
         ?Sport $sport = null,
-    ): Paginator {
+    ): QueryBuilder {
         $qb = $this->createQueryBuilder('game')
             ->join('game.event', 'event')
             ->join('event.competition', 'competition')
@@ -108,7 +107,6 @@ class GameRepository extends ServiceEntityRepository
 
         $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
-        /** @var Paginator<Game> */
-        return new Paginator($qb);
+        return $qb;
     }
 }

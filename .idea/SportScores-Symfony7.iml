@@ -113,6 +113,8 @@
       <excludeFolder url="file://$MODULE_DIR$/api/vendor/doctrine/data-fixtures" />
       <excludeFolder url="file://$MODULE_DIR$/api/vendor/doctrine/doctrine-fixtures-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/api/vendor/dama/doctrine-test-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/babdev/pagerfanta-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/api/vendor/pagerfanta/pagerfanta" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

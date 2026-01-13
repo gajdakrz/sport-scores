@@ -6,7 +6,7 @@ namespace App\Repository;
 
 use App\Dto\GameResultFilterRequest;
 use App\Dto\TeamDetailFilterRequest;
-use App\Model\MatchStat;
+use App\Dto\TeamGameResultFilterRequest;
 use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\GameResult;
@@ -16,7 +16,6 @@ use App\Entity\Team;
 use App\Enum\MatchResultStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -90,7 +89,8 @@ class GameResultRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function buildActiveByTeamAndSeasonAndCompetition(
+    public function activeByTeamAndSeasonAndCompetitionBuilder(
+        TeamDetailFilterRequest $filter,
         Team $team,
         ?Season $season = null,
         ?Competition $competition = null,
@@ -121,96 +121,55 @@ class GameResultRepository extends ServiceEntityRepository
             $qb->andWhere('e.competition = :competition')
                 ->setParameter('competition', $competition);
         }
+        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
         return $qb;
     }
 
-    /**
-     * @param Team $team
-     * @param ?Season $season
-     * @param ?Competition $competition
-     * @param string $orderBy
-     * @param string $direction
-     * @return GameResult[]
-     */
-    public function findActiveByTeamAndSeason(
+    public function groupedResultsBySeasonAndCompetitionBuilder(
         Team $team,
-        ?Season $season = null,
-        ?Competition $competition = null,
-        string $orderBy = 'gr1.createdAt',
-        string $direction = 'DESC'
-    ): array {
-        $qb = $this->buildActiveByTeamAndSeasonAndCompetition($team, $season, $competition, $orderBy, $direction);
+        TeamGameResultFilterRequest $filter,
+        string $orderBy = 's.startYear',
+        string $direction = 'DESC',
+        ?Sport $sport = null,
+    ): QueryBuilder {
+        $qb = $this->createQueryBuilder('gr')
+            ->select(
+                'NEW App\Dto\TeamGameResultSeasonStat(s, c, ' .
+                'count(gr.id), ' .
+                'SUM(CASE WHEN gr.matchScore > opponent.matchScore THEN 1 ELSE 0 END), ' .
+                'SUM(CASE WHEN gr.matchScore < opponent.matchScore THEN 1 ELSE 0 END), ' .
+                'SUM(CASE WHEN gr.matchScore = opponent.matchScore THEN 1 ELSE 0 END), ' .
+                'SUM(CASE WHEN gr.matchScore IS NULL OR opponent.matchScore IS NULL THEN 1 ELSE 0 END))'
+            )
+            ->join('gr.team', 't')
+            ->join('gr.game', 'g')
+            ->join('g.season', 's')
+            ->join('g.event', 'e')
+            ->join('e.competition', 'c')
+            ->join('g.gameResults', 'opponent', 'WITH', 'opponent.id != gr.id')
+            ->andWhere('gr.team = :team')
+            ->andWhere('gr.isActive = true')
+            ->setParameter('team', $team)
+            ->groupBy('s.id, c.id')
+            ->orderBy($orderBy, $direction);
 
-        /** @var GameResult[] */
-        return $qb->getQuery()->getResult();
-    }
-
-    /**
-     * @return Paginator<GameResult>
-     * @phpstan-return Paginator<GameResult>
-     */
-    public function findActiveByTeamAndSeasonPaginated(
-        TeamDetailFilterRequest $filter,
-        Team $team,
-        ?Season $season = null,
-        ?Competition $competition = null,
-        string $orderBy = 'gr1.createdAt',
-        string $direction = 'DESC'
-    ): Paginator {
-        $qb = $this->buildActiveByTeamAndSeasonAndCompetition($team, $season, $competition, $orderBy, $direction);
-        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
-
-        /** @var Paginator<GameResult> */
-        return new Paginator($qb);
-    }
-
-    /**
-     * @param Team $team
-     * @return array<int, array{
-     *     season: ?Season,
-     *     competition: ?Competition,
-     *     team: ?Team,
-     *     stats: MatchStat
-     * }>
-     */
-    public function getResultsGroupedBySeasonAndCompetition(Team $team): array
-    {
-        $results = $this->findActiveByTeamAndSeason($team);
-        $grouped = [];
-
-        foreach ($results as $result) {
-            $game = $result->getGame();
-            $season = $game?->getSeason();
-            $competition = $game?->getEvent()?->getCompetition();
-
-            if ($season === null || $competition === null) {
-                continue;
-            }
-
-            $key = $season->getId() . '_' . $competition->getId();
-
-            if (!isset($grouped[$key])) {
-                $grouped[$key] = [
-                    'season' => $season,
-                    'competition' => $competition,
-                    'team' => $result->getTeam(),
-                    'stats' => new MatchStat(),
-                ];
-            }
-
-            /** @var MatchStat $matchStat */
-            $matchStat = $grouped[$key]['stats'];
-
-            $grouped[$key]['stats'] = match ($result->getMatchResult()) {
-                MatchResultStatus::WIN => $matchStat->addWin(),
-                MatchResultStatus::LOSS => $matchStat->addLoss(),
-                MatchResultStatus::DRAW => $matchStat->addDraw(),
-                MatchResultStatus::UNKNOWN => $matchStat->addUnknown(),
-            };
+        if ($filter->getSeasonId() !== null) {
+            $qb->andWhere('g.season = :seasonId')
+                ->setParameter('seasonId', $filter->getSeasonId());
         }
 
-        return array_values($grouped);
+        if ($filter->getCompetitionId() !== null) {
+            $qb->andWhere('e.competition = :competitionId')
+                ->setParameter('competitionId', $filter->getCompetitionId());
+        }
+
+        if ($sport !== null) {
+            $qb->andWhere('c.sport = :sport')
+                ->setParameter('sport', $sport);
+        }
+
+        return $qb;
     }
 
     /**
@@ -218,14 +177,14 @@ class GameResultRepository extends ServiceEntityRepository
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
-     * @return Paginator<GameResult>
+     * @return QueryBuilder
      */
-    public function findActivePaginatedByFilter(
+    public function createActiveByFilterBuilder(
         GameResultFilterRequest $filter,
         string $orderBy = 'createdAt',
         string $direction = 'DESC',
         ?Sport $sport = null,
-    ): Paginator {
+    ): QueryBuilder {
         $qb = $this->createQueryBuilder('gameResult')
             ->join('gameResult.game', 'game')
             ->join('game.event', 'event')
@@ -275,7 +234,6 @@ class GameResultRepository extends ServiceEntityRepository
         }
         $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
-        /** @var Paginator<GameResult> */
-        return new Paginator($qb);
+        return $qb;
     }
 }
