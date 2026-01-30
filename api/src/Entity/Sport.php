@@ -23,13 +23,20 @@ class Sport extends AbstractAuditableEntity
     /**
      * @var Collection<int, Competition>
      */
-    #[ORM\OneToMany(targetEntity: Competition::class, mappedBy: 'sport', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: Competition::class, mappedBy: 'sport', orphanRemoval: true)]
     private Collection $competitions;
+
+    /**
+     * @var Collection<int, MemberPosition>
+     */
+    #[ORM\OneToMany(targetEntity: MemberPosition::class, mappedBy: 'sport', orphanRemoval: true)]
+    private Collection $memberPositions;
 
     public function __construct()
     {
         parent::__construct();
         $this->competitions = new ArrayCollection();
+        $this->memberPositions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -56,6 +63,14 @@ class Sport extends AbstractAuditableEntity
         return $this;
     }
 
+    /**
+     * @return Collection<int, Competition>
+     */
+    public function getCompetitions(): Collection
+    {
+        return $this->competitions;
+    }
+
     public function addCompetition(Competition $competition): static
     {
         if (!$this->competitions->contains($competition)) {
@@ -68,10 +83,7 @@ class Sport extends AbstractAuditableEntity
 
     public function removeCompetition(Competition $competition): static
     {
-        if ($this->competitions->contains($competition) && $competition->isActive()) {
-            $competition->setIsActive(false);
-            $competition->setModifiedAt($this->now);
-        }
+        $this->competitions->removeElement($competition);
 
         return $this;
     }
@@ -82,6 +94,42 @@ class Sport extends AbstractAuditableEntity
             $competition->setIsActive(false);
             $competition->setModifiedAt($this->now);
             $competition->setModifiedBy($user);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MemberPosition>
+     */
+    public function getMemberPositions(): Collection
+    {
+        return $this->memberPositions;
+    }
+
+    public function addMemberPosition(MemberPosition $memberPosition): static
+    {
+        if (!$this->memberPositions->contains($memberPosition)) {
+            $this->memberPositions->add($memberPosition);
+            $memberPosition->setSport($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMemberPosition(MemberPosition $memberPosition): static
+    {
+        $this->memberPositions->removeElement($memberPosition);
+
+        return $this;
+    }
+
+    public function deactivatePosition(MemberPosition $memberPosition, User $user): static
+    {
+        if ($this->memberPositions->contains($memberPosition)) {
+            $memberPosition->setIsActive(false);
+            $memberPosition->setModifiedAt($this->now);
+            $memberPosition->setModifiedBy($user);
         }
 
         return $this;

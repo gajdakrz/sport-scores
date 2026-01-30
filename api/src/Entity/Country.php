@@ -23,13 +23,13 @@ class Country extends AbstractAuditableEntity
     /**
      * @var Collection<int, Person>
      */
-    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'country', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'country', orphanRemoval: true)]
     private Collection $persons;
 
     /**
      * @var Collection<int, Team>
      */
-    #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'country', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'country', orphanRemoval: true)]
     private Collection $teams;
 
     public function __construct()
@@ -83,10 +83,7 @@ class Country extends AbstractAuditableEntity
 
     public function removePerson(Person $person): static
     {
-        if ($this->persons->contains($person) && $person->isActive()) {
-            $person->setIsActive(false);
-            $person->setModifiedAt($this->now);
-        }
+        $this->persons->removeElement($person);
 
         return $this;
     }
@@ -122,10 +119,7 @@ class Country extends AbstractAuditableEntity
 
     public function removeTeam(Team $team): static
     {
-        if ($this->teams->contains($team) && $team->isActive()) {
-            $team->setIsActive(false);
-            $team->setModifiedAt($this->now);
-        }
+        $this->teams->removeElement($team);
 
         return $this;
     }

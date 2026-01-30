@@ -29,13 +29,13 @@ class Season extends AbstractAuditableEntity
     /**
      * @var Collection<int, Game>
      */
-    #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'season', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'season', orphanRemoval: true)]
     private Collection $games;
 
     /**
      * @var Collection<int, TeamMember>
      */
-    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'season', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'season', orphanRemoval: true)]
     private Collection $teamMembers;
 
     public function __construct()
@@ -101,10 +101,7 @@ class Season extends AbstractAuditableEntity
 
     public function removeGame(Game $game): static
     {
-        if ($this->games->contains($game) && $game->isActive()) {
-            $game->setIsActive(false);
-            $game->setModifiedAt($this->now);
-        }
+        $this->games->removeElement($game);
 
         return $this;
     }
@@ -140,10 +137,7 @@ class Season extends AbstractAuditableEntity
 
     public function removeTeamMember(TeamMember $teamMember): static
     {
-        if ($this->teamMembers->contains($teamMember) && $teamMember->isActive()) {
-            $teamMember->setIsActive(false);
-            $teamMember->setModifiedAt($this->now);
-        }
+        $this->teamMembers->removeElement($teamMember);
 
         return $this;
     }

@@ -48,6 +48,10 @@ class TeamMember extends AbstractAuditableEntity
     )]
     private ?Season $season = null;
 
+    #[ORM\ManyToOne(inversedBy: 'teamMembers')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?MemberPosition $memberPosition = null;
+
     public function __construct()
     {
         parent::__construct();
@@ -122,6 +126,18 @@ class TeamMember extends AbstractAuditableEntity
     public function setSeason(?Season $season): static
     {
         $this->season = $season;
+
+        return $this;
+    }
+
+    public function getMemberPosition(): ?MemberPosition
+    {
+        return $this->memberPosition;
+    }
+
+    public function setMemberPosition(?MemberPosition $memberPosition): static
+    {
+        $this->memberPosition = $memberPosition;
 
         return $this;
     }

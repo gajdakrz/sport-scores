@@ -46,7 +46,7 @@ class Game extends AbstractAuditableEntity
         targetEntity: GameResult::class,
         mappedBy: 'game',
         cascade: ['persist', 'remove'],
-        orphanRemoval: false
+        orphanRemoval: true
     )]
     #[Assert\Valid]
     private Collection $gameResults;
@@ -136,10 +136,7 @@ class Game extends AbstractAuditableEntity
 
     public function removeGameResult(GameResult $gameResult): static
     {
-        if ($this->gameResults->contains($gameResult) && $gameResult->isActive()) {
-            $gameResult->setIsActive(false);
-            $gameResult->setModifiedAt($this->now);
-        }
+        $this->gameResults->removeElement($gameResult);
 
         return $this;
     }

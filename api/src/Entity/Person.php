@@ -38,13 +38,13 @@ class Person extends AbstractAuditableEntity
     /**
      * @var Collection<int, TeamMember>
      */
-    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'person', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'person', orphanRemoval: true)]
     private Collection $teamMembers;
 
     /**
      * @var Collection<int, GameResult>
      */
-    #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'person', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'person', orphanRemoval: true)]
     private Collection $gameResults;
 
     #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'persons')]
@@ -142,10 +142,7 @@ class Person extends AbstractAuditableEntity
 
     public function removeTeamMember(TeamMember $teamMember): static
     {
-        if ($this->teamMembers->contains($teamMember) && $teamMember->isActive()) {
-            $teamMember->setIsActive(false);
-            $teamMember->setModifiedAt($this->now);
-        }
+        $this->teamMembers->removeElement($teamMember);
 
         return $this;
     }
@@ -181,10 +178,7 @@ class Person extends AbstractAuditableEntity
 
     public function removeGameResult(GameResult $gameResult): static
     {
-        if ($this->gameResults->contains($gameResult) && $gameResult->isActive()) {
-            $gameResult->setIsActive(false);
-            $gameResult->setModifiedAt($this->now);
-        }
+        $this->gameResults->removeElement($gameResult);
 
         return $this;
     }

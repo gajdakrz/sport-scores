@@ -32,7 +32,7 @@ class Event extends AbstractAuditableEntity
     /**
      * @var Collection<int, Game>
      */
-    #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'event', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'event', orphanRemoval: true)]
     private Collection $games;
 
     public function __construct()
@@ -97,10 +97,7 @@ class Event extends AbstractAuditableEntity
 
     public function removeGame(Game $game): static
     {
-        if ($this->games->contains($game) && $game->isActive()) {
-            $game->setIsActive(false);
-            $game->setModifiedAt($this->now);
-        }
+        $this->games->removeElement($game);
 
         return $this;
     }

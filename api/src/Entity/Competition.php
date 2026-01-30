@@ -35,7 +35,7 @@ class Competition extends AbstractAuditableEntity
     /**
      * @var Collection<int, Event>
      */
-    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'competition', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'competition', orphanRemoval: true)]
     private Collection $events;
 
     public function __construct()
@@ -80,18 +80,6 @@ class Competition extends AbstractAuditableEntity
         return $this;
     }
 
-    public function isActive(): bool
-    {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
-
-        return $this;
-    }
-
     public function getGender(): Gender
     {
         return $this->gender;
@@ -124,10 +112,7 @@ class Competition extends AbstractAuditableEntity
 
     public function removeEvent(Event $event): static
     {
-        if ($this->events->contains($event) && $event->isActive()) {
-            $event->setIsActive(false);
-            $event->setModifiedAt($this->now);
-        }
+        $this->events->removeElement($event);
 
         return $this;
     }
