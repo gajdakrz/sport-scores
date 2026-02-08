@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class BracketController extends AbstractController
 {
     #[Route(
-        '/competitions/{competition}/seasons/{season}/teams/{team}/build',
+        '/competitions/{competition}/seasons/{season}/teams/{team}',
         name: 'build_bracket',
         defaults: ['team' => null],
         methods: ['GET']
