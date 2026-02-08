@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Dto;
+namespace App\Dto\Filter;
 
+use App\Dto\Request\PaginationRequest;
 use App\Enum\TeamType;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class TeamFilterRequest extends PaginationRequest
+class TeamFilterDto extends PaginationRequest
 {
     #[Assert\Type('string')]
     private ?string $name = null;

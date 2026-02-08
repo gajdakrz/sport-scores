@@ -4,19 +4,15 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Dto\RegistrationUserRequest;
-use App\Entity\User;
+use App\Dto\Request\RegistrationUserRequest;
 use App\Exception\HttpConflictException;
-use App\Repository\UserRepository;
 use App\Service\RegistrationUserService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsCommand(

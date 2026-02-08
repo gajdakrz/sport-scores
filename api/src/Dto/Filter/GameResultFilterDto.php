@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Dto;
+namespace App\Dto\Filter;
 
+use App\Dto\Request\PaginationRequest;
 use App\Enum\MatchResultStatus;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class GameResultFilterRequest extends PaginationRequest
+class GameResultFilterDto extends PaginationRequest
 {
     #[Assert\DateTime(format: 'Y-m-d')]
     private ?string $date = null;

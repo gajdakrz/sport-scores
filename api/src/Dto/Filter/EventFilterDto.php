@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace App\Dto;
+namespace App\Dto\Filter;
 
-use App\Enum\MatchResultStatus;
+use App\Dto\Request\PaginationRequest;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class TeamGameResultFilterRequest extends PaginationRequest
+class EventFilterDto extends PaginationRequest
 {
-    #[Assert\Type('integer')]
-    private ?int $seasonId = null;
+    #[Assert\Type('string')]
+    private ?string $name = null;
 
     #[Assert\Type('integer')]
     private ?int $competitionId = null;
 
-    public function getSeasonId(): ?int
+    public function getName(): ?string
     {
-        return $this->seasonId;
+        return $this->name;
     }
 
-    public function setSeasonId(?int $seasonId): static
+    public function setName(?string $name): static
     {
-        $this->seasonId = $seasonId;
+        $this->name = $name;
 
         return $this;
     }

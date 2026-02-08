@@ -47,6 +47,8 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Competition</th>
+                <th>Competition is Bracket</th>
+                <th>Order Index</th>
                 <th>Created At</th>
                 <th>Modified At</th>
                 <th class="text-end">Actions</th>
@@ -58,6 +60,15 @@
                     <td>{{ event.id }}</td>
                     <td>{{ event.name }}</td>
                     <td>{{ event.competition.name ?? '' }}</td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input type="checkbox" class="form-check-input"
+                                   aria-label="Is bracket"
+                                {{ event.competition.isBracket ? 'checked' : '' }}
+                                   disabled>
+                        </div>
+                    </td>
+                    <td>{{ event.orderIndex ?? ''}}</td>
                     <td>{{ event.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ event.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">

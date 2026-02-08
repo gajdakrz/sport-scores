@@ -35,6 +35,9 @@ class Event extends AbstractAuditableEntity
     #[ORM\OneToMany(targetEntity: Game::class, mappedBy: 'event', orphanRemoval: true)]
     private Collection $games;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $orderIndex = null;
+
     public function __construct()
     {
         parent::__construct();
@@ -111,5 +114,15 @@ class Event extends AbstractAuditableEntity
         }
 
         return $this;
+    }
+
+    public function getOrderIndex(): ?int
+    {
+        return $this->orderIndex;
+    }
+
+    public function setOrderIndex(?int $orderIndex): void
+    {
+        $this->orderIndex = $orderIndex;
     }
 }

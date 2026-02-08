@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Dto;
+namespace App\Dto\Response;
 
-use App\Entity\Season;
 use App\Entity\Competition;
+use App\Entity\Season;
 
-final readonly class TeamGameResultSeasonStat
+final readonly class TeamGameStatResponseDto
 {
     public function __construct(
         public Season $season,

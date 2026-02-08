@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Dto\EventFilterRequest;
+use App\Dto\Filter\EventFilterDto;
 use App\Entity\Event;
 use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -59,14 +59,14 @@ class EventRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param EventFilterRequest $filter
+     * @param EventFilterDto $filter
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
      * @return QueryBuilder
      */
     public function createActiveByFilterBuilder(
-        EventFilterRequest $filter,
+        EventFilterDto $filter,
         string $orderBy = 'createdAt',
         string $direction = 'DESC',
         ?Sport $sport = null,

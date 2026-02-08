@@ -8,6 +8,7 @@ use App\Enum\Gender;
 use App\Repository\CompetitionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CompetitionRepository::class)]
@@ -37,6 +38,9 @@ class Competition extends AbstractAuditableEntity
      */
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'competition', orphanRemoval: true)]
     private Collection $events;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => 0])]
+    private bool $isBracket = false;
 
     public function __construct()
     {
@@ -124,6 +128,18 @@ class Competition extends AbstractAuditableEntity
             $event->setModifiedAt($this->now);
             $event->setModifiedBy($user);
         }
+
+        return $this;
+    }
+
+    public function isBracket(): bool
+    {
+        return $this->isBracket;
+    }
+
+    public function setIsBracket(bool $isBracket): static
+    {
+        $this->isBracket = $isBracket;
 
         return $this;
     }

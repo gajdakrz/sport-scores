@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Dto\GameResultFilterRequest;
+use App\Dto\Filter\GameResultFilterDto;
 use App\Entity\GameResult;
 use App\Entity\User;
 use App\Enum\MatchResultStatus;
@@ -30,7 +30,7 @@ final class GameResultController extends AbstractController
 {
     #[Route('', name: 'game_result_index', methods: ['GET'])]
     public function index(
-        #[MapQueryString] GameResultFilterRequest $gameResultFilterRequest,
+        #[MapQueryString] GameResultFilterDto $gameResultFilterRequest,
         GameResultRepository $gameResultRepository,
         TeamRepository $teamRepository,
         CurrentSportProvider $currentSportProvider,

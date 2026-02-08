@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Dto\RegistrationUserRequest;
+use App\Dto\Request\RegistrationUserRequest;
 use App\Exception\CustomBadRequestException;
 use App\Form\RegistrationFormType;
 use App\Service\RegistrationUserService;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Dto\TeamFilterRequest;
+use App\Dto\Filter\TeamFilterDto;
 use App\Entity\Sport;
 use App\Entity\Team;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -57,14 +57,14 @@ class TeamRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param TeamFilterRequest $filter
+     * @param TeamFilterDto $filter
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
      * @return QueryBuilder
      */
     public function createActiveByFilterBuilder(
-        TeamFilterRequest $filter,
+        TeamFilterDto $filter,
         string $orderBy = 'createdAt',
         string $direction = 'DESC',
         ?Sport $sport = null,

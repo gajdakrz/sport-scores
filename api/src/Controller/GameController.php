@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Dto\GameFilterRequest;
+use App\Dto\Filter\GameFilterDto;
 use App\Entity\Game;
 use App\Entity\User;
 use App\Form\GameType;
@@ -33,7 +33,7 @@ final class GameController extends AbstractController
 {
     #[Route('', name: 'game_index', methods: ['GET'])]
     public function index(
-        #[MapQueryString] GameFilterRequest $gameFilterRequest,
+        #[MapQueryString] GameFilterDto $gameFilterRequest,
         GameRepository $gameRepository,
         CompetitionRepository $competitionRepository,
         EventRepository $eventRepository,

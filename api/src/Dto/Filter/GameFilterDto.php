@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Dto;
+namespace App\Dto\Filter;
 
-use DateTimeImmutable;
+use App\Dto\Request\PaginationRequest;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class GameFilterRequest extends PaginationRequest
+class GameFilterDto extends PaginationRequest
 {
     #[Assert\Type('integer')]
     private ?int $competitionId = null;

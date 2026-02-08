@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Dto\TeamDetailFilterRequest;
-use App\Dto\TeamFilterRequest;
-use App\Dto\TeamGameResultFilterRequest;
-use App\Dto\TeamGameResultSeasonStat;
+use App\Dto\Filter\TeamDetailFilterDto;
+use App\Dto\Filter\TeamFilterDto;
+use App\Dto\Filter\TeamGameResultFilterDto;
+use App\Dto\Response\TeamGameStatResponseDto;
 use App\Entity\Competition;
 use App\Entity\Season;
 use App\Entity\Team;
 use App\Entity\User;
-use App\Form\TeamType;
 use App\Enum\TeamType as TeamTypeEnum;
+use App\Form\TeamType;
 use App\Repository\CompetitionRepository;
 use App\Repository\CountryRepository;
 use App\Repository\GameResultRepository;
@@ -23,8 +23,8 @@ use App\Service\CurrentSportProvider;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Adapter\ArrayAdapter;
-use Pagerfanta\Pagerfanta;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
+use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,7 +38,7 @@ final class TeamController extends AbstractController
 {
     #[Route('', name: 'team_index', methods: ['GET'])]
     public function index(
-        #[MapQueryString] TeamFilterRequest $teamFilterRequest,
+        #[MapQueryString] TeamFilterDto $teamFilterRequest,
         TeamRepository $teamRepository,
         CountryRepository $countryRepository,
         CurrentSportProvider $currentSportProvider,
@@ -140,7 +140,7 @@ final class TeamController extends AbstractController
         methods: ['GET']
     )]
     public function results(
-        #[MapQueryString] TeamDetailFilterRequest $teamDetailFilterRequest,
+        #[MapQueryString] TeamDetailFilterDto $teamDetailFilterRequest,
         Request $request,
         Team $team,
         Season $season,
@@ -176,9 +176,8 @@ final class TeamController extends AbstractController
 
     #[Route('/{id}/result-season-stats', name: 'team_game_result_season_stats', methods: ['GET'])]
     public function resultSeasonStats(
-        #[MapQueryString] TeamGameResultFilterRequest $teamGameResultFilterRequest,
+        #[MapQueryString] TeamGameResultFilterDto $teamGameResultFilterRequest,
         Team $team,
-        TeamRepository $teamRepository,
         GameResultRepository $gameResultRepository,
         SeasonRepository $seasonRepository,
         CompetitionRepository $competitionRepository,
@@ -190,17 +189,15 @@ final class TeamController extends AbstractController
             sport: $currentSportProvider->getSport()
         );
 
-        /** @var TeamGameResultSeasonStat[] $resultSeasonStats */
+        /** @var TeamGameStatResponseDto[] $resultSeasonStats */
         $resultSeasonStats = $queryBuilder->getQuery()->getResult();
 
         $pagerfanta = new Pagerfanta(new ArrayAdapter($resultSeasonStats));
         $pagerfanta->setCurrentPage($teamGameResultFilterRequest->getPage());
         $pagerfanta->setMaxPerPage($teamGameResultFilterRequest->getLimit());
 
-        $teamCheckBySport = $teamRepository->findOneBy(['sport' => $currentSportProvider->getSport()]);
-
         return $this->render('team/result-season-stats.html.twig', [
-            'team' => $teamCheckBySport === null ? null : $team,
+            'team' => $currentSportProvider->getSport() === $team->getSport() ? $team : null,
             'seasons' => $seasonRepository->findActiveSortedBy('startYear'),
             'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC'),
             'resultSeasonStats' => $pagerfanta,

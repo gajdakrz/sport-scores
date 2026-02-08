@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Dto\EventFilterRequest;
+use App\Dto\Filter\EventFilterDto;
 use App\Entity\Event;
 use App\Entity\User;
 use App\Form\EventType;
@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,7 +30,7 @@ final class EventController extends AbstractController
 {
     #[Route('', name: 'event_index', methods: ['GET'])]
     public function index(
-        #[MapQueryString] EventFilterRequest $eventFilterRequest,
+        #[MapQueryString] EventFilterDto $eventFilterRequest,
         EventRepository $eventRepository,
         CompetitionRepository $competitionRepository,
         CurrentSportProvider $currentSportProvider,
@@ -100,20 +101,30 @@ final class EventController extends AbstractController
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-            return $this->redirectToRoute('event_index');
+        if ($form->isSubmitted() === false) {
+            $competition = $event->getCompetition();
+            $sport = $competition?->getSport();
+
+            return $this->render('event/_modal.html.twig', [
+                'form' => $form->createView(),
+                'event' => $event,
+                'initialSport' => $sport,
+                'initialCompetition' => $competition,
+            ]);
         }
 
-        $competition = $event->getCompetition();
-        $sport = $competition?->getSport();
+        if ($form->isValid()) {
+            $em->flush();
+        } else {
+            $errors = $form->getErrors(true);
 
-        return $this->render('event/_modal.html.twig', [
-            'form' => $form->createView(),
-            'event' => $event,
-            'initialSport' => $sport,
-            'initialCompetition' => $competition,
-        ]);
+            /** @var FormError $error */
+            foreach ($errors as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+        }
+
+        return $this->redirectToRoute('event_index');
     }
 
     #[Route('/{id}', name: 'event_delete', methods: ['POST'])]

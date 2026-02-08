@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+{% block title %}Bracket SVG{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="mb-4">
+            Tournament Bracket (SVG)
+            {% if highlightTeam %}
+                for team: {{ highlightTeam.name }}
+            {% endif %}
+        </h1>
+        <div>
+            <div class="mb-3 row">
+                <label for="sportName" class="col-sm-2 col-form-label">Sport</label>
+                <div class="col-sm-10">
+                    <input type="text" readonly class="form-control-plaintext fw-bold"
+                           id="sportName" value="{{ competition.sport.name }}">
+                </div>
+                <label for="teamName" class="col-sm-2 col-form-label">Team</label>
+                <div class="col-sm-10">
+                    <input type="text" readonly class="form-control-plaintext fw-bold"
+                           id="teamName" value="{{ highlightTeam.name ?? '' }}">
+                </div>
+                <label for="seasonName" class="col-sm-2 col-form-label">Season</label>
+                <div class="col-sm-10">
+                    <input type="text" readonly class="form-control-plaintext fw-bold"
+                           id="seasonName" value="{{ season.mergedStartEndYear }}">
+                </div>
+                <label for="competitionName" class="col-sm-2 col-form-label">Competition</label>
+                <div class="col-sm-10">
+                    <input type="text" readonly class="form-control-plaintext fw-bold"
+                           id="competitionName" value="{{ competition.name }}">
+                </div>
+            </div>
+        </div>
+        <div id="bracket-container"></div>
+    </div>
+    <script>
+        const bracketData = {{ bracket|json_encode|raw }};
+        const highlightTeam = {{ highlightTeam ? highlightTeam.name|json_encode|raw : 'null' }};
+    </script>
+    <script src="{{ asset('bracket/svg.js') }}"></script>
+{% endblock %}

@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use App\Entity\Competition;
 use App\Entity\Sport;
 use App\Enum\Gender;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -31,6 +34,10 @@ class CompetitionType extends AbstractType
                 'class' => Gender::class,
                 'choice_label' => fn(Gender $enum) => $enum->label(),
                 'placeholder' => 'Select type',
+            ])
+            ->add('isBracket', CheckboxType::class, [
+                'label' => 'Is bracket',
+                'required' => false,
             ])
             ->add('name', TextType::class, [
                 'label' => 'Competition name',

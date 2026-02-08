@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Dto\RegistrationUserRequest;
+use App\Dto\Request\RegistrationUserRequest;
 use App\Entity\User;
 use App\Exception\HttpConflictException;
-use App\Exception\CustomBadRequestException;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;

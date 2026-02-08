@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Dto\GameResultFilterRequest;
-use App\Dto\TeamDetailFilterRequest;
-use App\Dto\TeamGameResultFilterRequest;
+use App\Dto\Filter\GameResultFilterDto;
+use App\Dto\Filter\TeamDetailFilterDto;
+use App\Dto\Filter\TeamGameResultFilterDto;
 use App\Entity\Competition;
 use App\Entity\Game;
 use App\Entity\GameResult;
@@ -90,7 +90,7 @@ class GameResultRepository extends ServiceEntityRepository
     }
 
     public function activeByTeamAndSeasonAndCompetitionBuilder(
-        TeamDetailFilterRequest $filter,
+        TeamDetailFilterDto $filter,
         Team $team,
         ?Season $season = null,
         ?Competition $competition = null,
@@ -128,14 +128,14 @@ class GameResultRepository extends ServiceEntityRepository
 
     public function groupedResultsBySeasonAndCompetitionBuilder(
         Team $team,
-        TeamGameResultFilterRequest $filter,
+        TeamGameResultFilterDto $filter,
         string $orderBy = 's.startYear',
         string $direction = 'DESC',
         ?Sport $sport = null,
     ): QueryBuilder {
         $qb = $this->createQueryBuilder('gr')
             ->select(
-                'NEW App\Dto\TeamGameResultSeasonStat(s, c, ' .
+                'NEW App\Dto\Response\TeamGameStatResponseDto(s, c, ' .
                 'count(gr.id), ' .
                 'SUM(CASE WHEN gr.matchScore > opponent.matchScore THEN 1 ELSE 0 END), ' .
                 'SUM(CASE WHEN gr.matchScore < opponent.matchScore THEN 1 ELSE 0 END), ' .
@@ -173,14 +173,14 @@ class GameResultRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param GameResultFilterRequest $filter
+     * @param GameResultFilterDto $filter
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
      * @return QueryBuilder
      */
     public function createActiveByFilterBuilder(
-        GameResultFilterRequest $filter,
+        GameResultFilterDto $filter,
         string $orderBy = 'createdAt',
         string $direction = 'DESC',
         ?Sport $sport = null,

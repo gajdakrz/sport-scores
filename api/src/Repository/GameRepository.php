@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Dto\GameFilterRequest;
+use App\Dto\Filter\GameFilterDto;
 use App\Entity\Game;
 use App\Entity\Sport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -60,14 +60,14 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param GameFilterRequest $filter
+     * @param GameFilterDto $filter
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
      * @return QueryBuilder
      */
     public function createActiveByFilterBuilder(
-        GameFilterRequest $filter,
+        GameFilterDto $filter,
         string $orderBy = 'date',
         string $direction = 'DESC',
         ?Sport $sport = null,
