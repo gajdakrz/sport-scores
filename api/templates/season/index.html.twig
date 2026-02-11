@@ -61,5 +61,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('season/index.js') }}"></script>
+    {{ encore_entry_script_tags('season') }}
 {% endblock %}

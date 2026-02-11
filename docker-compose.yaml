@@ -32,3 +32,14 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  node:
+    container_name: sport-scores-node
+    image: node:20
+    working_dir: /var/www/html
+    volumes:
+      - './api/:/var/www/html'
+    tty: true
+    stdin_open: true
+    # Automatyczna kompilacja przy starcie
+    command: sh -c "npm install && npm run watch"

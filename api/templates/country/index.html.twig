@@ -61,5 +61,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('country/index.js') }}"></script>
+    {{ encore_entry_script_tags('country') }}
 {% endblock %}

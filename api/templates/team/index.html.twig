@@ -120,5 +120,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('team/index.js') }}"></script>
+    {{ encore_entry_script_tags('team') }}
 {% endblock %}

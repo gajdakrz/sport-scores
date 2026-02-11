@@ -1,0 +1,31 @@
+{
+    "name": "sport-scores",
+    "version": "1.0.0",
+    "description": "SportScores Symfony 7 project with TypeScript",
+    "scripts": {
+        "dev-server": "encore dev-server",
+        "dev": "encore dev",
+        "watch": "encore dev --watch",
+        "build": "encore production --progress",
+        "lint": "eslint assets",
+        "lint:fix": "eslint assets --fix",
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@symfony/webpack-encore": "^5.0.1",
+        "@types/bootstrap": "^5.2.10",
+        "@types/node": "^20.19.33",
+        "eslint": "^9.39.2",
+        "globals": "^17.3.0",
+        "prettier": "^3.8.1",
+        "ts-loader": "^9.5.4",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.55.0",
+        "webpack": "^5.90.0",
+        "webpack-cli": "^5.1.4"
+    },
+    "dependencies": {
+        "bootstrap": "^5.3.8"
+    }
+}

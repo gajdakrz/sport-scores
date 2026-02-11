@@ -109,5 +109,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('team/result-season-stats.js') }}"></script>
+    {{ encore_entry_script_tags('teamStats') }}
 {% endblock %}

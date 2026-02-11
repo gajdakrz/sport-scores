@@ -39,5 +39,5 @@
         const bracketDto = {{ bracket|json_encode|raw }};
         const highlightTeam = {{ highlightTeam ? highlightTeam.name|json_encode|raw : 'null' }};
     </script>
-    <script src="{{ asset('bracket/svg.js') }}"></script>
+    {{ encore_entry_script_tags('bracket') }}
 {% endblock %}

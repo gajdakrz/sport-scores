@@ -64,5 +64,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('sport/index.js') }}"></script>
+    {{ encore_entry_script_tags('sport') }}
 {% endblock %}
