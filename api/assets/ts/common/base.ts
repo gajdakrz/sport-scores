@@ -1,7 +1,15 @@
 import '../../styles/app.css';
 
-declare const flatpickr: any;
-declare const bootstrap: any;
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.css";
+
+import * as bootstrap from "bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Modal } from 'bootstrap';
+
+export interface BootstrapModalEvent extends Event {
+    relatedTarget?: HTMLElement | null;
+}
 
 export interface ModalFeatureConfig {
     containerId: string;
@@ -11,7 +19,7 @@ export interface ModalFeatureConfig {
     onLoaded?: () => void;
 }
 
-export interface DeleteModalConfig {
+interface DeleteModalConfig {
     modalId?: string;
 }
 
@@ -28,7 +36,7 @@ export class AppBase {
             return;
         }
 
-        let currentModal: any = null;
+        let currentModal: Modal | null = null;
 
         function openModal(html: string): void {
             if (!container) return;
@@ -96,12 +104,17 @@ export class AppBase {
 
     static initDeleteModal({ modalId = 'confirmDeleteModal' }: DeleteModalConfig = {}): void {
         const deleteModal = document.getElementById(modalId);
-        if (!deleteModal) return;
+        if (!deleteModal) {
+            return;
+        }
 
         deleteModal.addEventListener('show.bs.modal', (event: Event) => {
-            const customEvent = event as any;
-            const button = customEvent.relatedTarget as HTMLElement;
-            if (!button) return;
+            const customEvent = event as BootstrapModalEvent;
+            const button = customEvent.relatedTarget;
+
+            if (!button) {
+                return;
+            }
 
             const deleteUrl = button.getAttribute('data-delete-url');
             const itemName = button.getAttribute('data-item-name');

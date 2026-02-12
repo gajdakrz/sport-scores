@@ -41,5 +41,5 @@ services:
       - './api/:/var/www/html'
     tty: true
     stdin_open: true
-    # Automatyczna kompilacja przy starcie
-    command: sh -c "npm install && npm run watch"
+    # Instalacja zależności z legacy-peer-deps i utrzymanie kontenera w działaniu
+    command: sh -c "npm install --legacy-peer-deps && tail -f /dev/null"

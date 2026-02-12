@@ -7,15 +7,17 @@
         "dev": "encore dev",
         "watch": "encore dev --watch",
         "build": "encore production --progress",
-        "lint": "eslint assets",
-        "lint:fix": "eslint assets --fix",
+        "lint": "eslint \"assets/ts/**/*.ts\"",
+        "lint:fix": "eslint \"assets/ts/**/*.ts\" --fix",
         "typecheck": "tsc --noEmit"
     },
     "devDependencies": {
-        "@eslint/js": "^10.0.1",
         "@symfony/webpack-encore": "^5.0.1",
         "@types/bootstrap": "^5.2.10",
         "@types/node": "^20.19.33",
+        "@typescript-eslint/eslint-plugin": "^8.55.0",
+        "@typescript-eslint/parser": "^8.55.0",
+        "@typescript-eslint/utils": "8.55.0",
         "eslint": "^9.39.2",
         "globals": "^17.3.0",
         "prettier": "^3.8.1",
@@ -26,6 +28,7 @@
         "webpack-cli": "^5.1.4"
     },
     "dependencies": {
-        "bootstrap": "^5.3.8"
+        "bootstrap": "^5.3.8",
+        "flatpickr": "^4.6.13"
     }
 }
