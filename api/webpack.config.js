@@ -29,6 +29,8 @@ Encore
     .addEntry('competition', './assets/ts/competition/main.ts')
     .addEntry('competitionModalInitializer', './assets/ts/competition/modalInitializer.ts')
     .addEntry('bracket', './assets/ts/bracket/svg.ts')
+    .addEntry('memberPosition', './assets/ts/memberPosition/main.ts')
+    .addEntry('memberPositionModalInitializer', './assets/ts/memberPosition/modalInitializer.ts')
 
     .splitEntryChunks()
     .enableSingleRuntimeChunk()
