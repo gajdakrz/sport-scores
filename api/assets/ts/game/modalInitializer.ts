@@ -134,15 +134,15 @@ function initGameResultsCollection(): void {
                 return col;
             };
 
-            row.appendChild(createCol('col-md-5', fields[0]));
-            row.appendChild(createCol('col-md-3', fields[1]));
-            row.appendChild(createCol('col-md-3', fields[2]));
+            row.appendChild(createCol('col-md-6', fields[0]));
+            row.appendChild(createCol('col-md-2', fields[1]));
+            row.appendChild(createCol('col-md-2', fields[2]));
 
             const buttonCol = document.createElement('div');
-            buttonCol.classList.add('col-md-1', 'd-flex', 'align-items-center', 'pb-3');
+            buttonCol.classList.add('col-md-2', 'd-flex', 'align-items-center', 'pb-3');
             buttonCol.innerHTML = `
-                <button type="button" class="btn btn-danger btn-sm remove-result w-100" title="Remove">
-                    <i class="bi bi-trash"></i>
+                <button type="button" class="btn btn-danger btn-sm remove-result">
+                    <i class="bi bi-plus-circle"></i>Remove
                 </button>
             `;
 

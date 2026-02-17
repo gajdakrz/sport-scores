@@ -125,7 +125,6 @@ class Competition extends AbstractAuditableEntity
     {
         if ($this->events->contains($event)) {
             $event->setIsActive(false);
-            $event->setModifiedAt($this->now);
             $event->setModifiedBy($user);
         }
 

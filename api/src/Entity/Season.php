@@ -110,7 +110,6 @@ class Season extends AbstractAuditableEntity
     {
         if ($this->games->contains($game)) {
             $game->setIsActive(false);
-            $game->setModifiedAt($this->now);
             $game->setModifiedBy($user);
         }
 
@@ -146,7 +145,6 @@ class Season extends AbstractAuditableEntity
     {
         if ($this->teamMembers->contains($teamMember)) {
             $teamMember->setIsActive(false);
-            $teamMember->setModifiedAt($this->now);
             $teamMember->setModifiedBy($user);
         }
 

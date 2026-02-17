@@ -106,7 +106,6 @@ class MemberPosition extends AbstractAuditableEntity
     {
         if ($this->teamMembers->contains($teamMember)) {
             $teamMember->setIsActive(false);
-            $teamMember->setModifiedAt($this->now);
             $teamMember->setModifiedBy($user);
         }
 

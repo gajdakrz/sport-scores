@@ -92,7 +92,6 @@ class Sport extends AbstractAuditableEntity
     {
         if ($this->competitions->contains($competition)) {
             $competition->setIsActive(false);
-            $competition->setModifiedAt($this->now);
             $competition->setModifiedBy($user);
         }
 
@@ -128,7 +127,6 @@ class Sport extends AbstractAuditableEntity
     {
         if ($this->memberPositions->contains($memberPosition)) {
             $memberPosition->setIsActive(false);
-            $memberPosition->setModifiedAt($this->now);
             $memberPosition->setModifiedBy($user);
         }
 

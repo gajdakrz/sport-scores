@@ -12,8 +12,6 @@ use DateTimeImmutable;
 #[ORM\HasLifecycleCallbacks]
 abstract class AbstractEntity
 {
-    protected DateTimeImmutable $now;
-
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => 1])]
     protected bool $isActive = true;
 
@@ -25,8 +23,7 @@ abstract class AbstractEntity
 
     public function __construct()
     {
-        $this->now = new DateTimeImmutable();
-        $this->createdAt = $this->modifiedAt = $this->now;
+        $this->createdAt = $this->modifiedAt = new DateTimeImmutable();
     }
 
     public function isActive(): bool

@@ -55,7 +55,7 @@ class Game extends AbstractAuditableEntity
     {
         parent::__construct();
         $this->gameResults = new ArrayCollection();
-        $this->date = $this->now;
+        $this->date = $this->createdAt;
     }
 
     public function getId(): ?int
@@ -145,7 +145,6 @@ class Game extends AbstractAuditableEntity
     {
         if ($this->gameResults->contains($gameResult)) {
             $gameResult->setIsActive(false);
-            $gameResult->setModifiedAt($this->now);
             $gameResult->setModifiedBy($user);
         }
 

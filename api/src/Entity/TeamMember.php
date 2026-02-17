@@ -55,7 +55,7 @@ class TeamMember extends AbstractAuditableEntity
     public function __construct()
     {
         parent::__construct();
-        $this->startDate = $this->now;
+        $this->startDate = $this->createdAt;
     }
 
     public function getId(): ?int

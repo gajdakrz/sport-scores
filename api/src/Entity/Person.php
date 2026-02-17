@@ -156,7 +156,6 @@ class Person extends AbstractAuditableEntity
     {
         if ($this->teamMembers->contains($teamMember)) {
             $teamMember->setIsActive(false);
-            $teamMember->setModifiedAt($this->now);
             $teamMember->setModifiedBy($user);
         }
 
@@ -192,7 +191,6 @@ class Person extends AbstractAuditableEntity
     {
         if ($this->gameResults->contains($gameResult)) {
             $gameResult->setIsActive(false);
-            $gameResult->setModifiedAt($this->now);
             $gameResult->setModifiedBy($user);
         }
 

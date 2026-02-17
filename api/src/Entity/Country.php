@@ -92,7 +92,6 @@ class Country extends AbstractAuditableEntity
     {
         if ($this->persons->contains($person)) {
             $person->setIsActive(false);
-            $person->setModifiedAt($this->now);
             $person->setModifiedBy($user);
         }
 
@@ -128,7 +127,6 @@ class Country extends AbstractAuditableEntity
     {
         if ($this->teams->contains($team)) {
             $team->setIsActive(false);
-            $team->setModifiedAt($this->now);
             $team->setModifiedBy($user);
         }
 

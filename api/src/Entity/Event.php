@@ -109,7 +109,6 @@ class Event extends AbstractAuditableEntity
     {
         if ($this->games->contains($game)) {
             $game->setIsActive(false);
-            $game->setModifiedAt($this->now);
             $game->setModifiedBy($user);
         }
 
