@@ -11,7 +11,6 @@ use App\Form\EventType;
 use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
 use App\Service\CurrentSportProvider;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
@@ -95,9 +94,7 @@ final class EventController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $now = new DateTimeImmutable();
         $event->setModifiedBy($user);
-        $event->setModifiedAt($now);
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
@@ -134,9 +131,7 @@ final class EventController extends AbstractController
         $user = $this->getUser();
 
         if ($this->isCsrfTokenValid('delete' . $event->getId(), (string) $request->request->get('_token'))) {
-            $now = new DateTimeImmutable();
             $event->setModifiedBy($user);
-            $event->setModifiedAt($now);
             $event->setIsActive(false);
             $em->flush();
         }

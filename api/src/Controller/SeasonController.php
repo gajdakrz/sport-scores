@@ -8,7 +8,6 @@ use App\Entity\Season;
 use App\Entity\User;
 use App\Form\SeasonType;
 use App\Repository\SeasonRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -68,9 +67,7 @@ final class SeasonController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $now = new DateTimeImmutable();
         $season->setModifiedBy($user);
-        $season->setModifiedAt($now);
         $form = $this->createForm(SeasonType::class, $season);
         $form->handleRequest($request);
 
@@ -102,9 +99,7 @@ final class SeasonController extends AbstractController
         $user = $this->getUser();
 
         if ($this->isCsrfTokenValid('delete' . $season->getId(), (string) $request->request->get('_token'))) {
-            $now = new DateTimeImmutable();
             $season->setModifiedBy($user);
-            $season->setModifiedAt($now);
             $season->setIsActive(false);
             $em->flush();
         }

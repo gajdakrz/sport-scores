@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Form\CompetitionType;
 use App\Repository\CompetitionRepository;
 use App\Service\CurrentSportProvider;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -78,9 +77,7 @@ final class CompetitionController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $now = new DateTimeImmutable();
         $competition->setModifiedBy($user);
-        $competition->setModifiedAt($now);
         $form = $this->createForm(CompetitionType::class, $competition);
         $form->handleRequest($request);
 
@@ -102,9 +99,7 @@ final class CompetitionController extends AbstractController
         $user = $this->getUser();
 
         if ($this->isCsrfTokenValid('delete' . $competition->getId(), (string) $request->request->get('_token'))) {
-            $now = new DateTimeImmutable();
             $competition->setModifiedBy($user);
-            $competition->setModifiedAt($now);
             $competition->setIsActive(false);
             $em->flush();
         }

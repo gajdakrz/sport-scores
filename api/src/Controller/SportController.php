@@ -8,7 +8,6 @@ use App\Entity\Sport;
 use App\Entity\User;
 use App\Form\SportType;
 use App\Repository\SportRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -57,9 +56,7 @@ final class SportController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $now = new DateTimeImmutable();
         $sport->setModifiedBy($user);
-        $sport->setModifiedAt($now);
         $form = $this->createForm(SportType::class, $sport);
         $form->handleRequest($request);
 
@@ -81,9 +78,7 @@ final class SportController extends AbstractController
         $user = $this->getUser();
 
         if ($this->isCsrfTokenValid('delete' . $sport->getId(), (string) $request->request->get('_token'))) {
-            $now = new DateTimeImmutable();
             $sport->setModifiedBy($user);
-            $sport->setModifiedAt($now);
             $sport->setIsActive(false);
             $em->flush();
         }

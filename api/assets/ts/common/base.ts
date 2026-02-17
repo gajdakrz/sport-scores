@@ -2,10 +2,13 @@ import '../../styles/app.css';
 
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.css";
+import { Polish } from "flatpickr/dist/l10n/pl.js";
 
-import * as bootstrap from "bootstrap";
+flatpickr.localize(Polish);
+
+import 'bootstrap';
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal } from 'bootstrap';
+import {Modal, Alert} from "bootstrap";
 
 export interface BootstrapModalEvent extends Event {
     relatedTarget?: HTMLElement | null;
@@ -61,7 +64,7 @@ export class AppBase {
             const modalEl = document.getElementById(modalId);
             if (!modalEl) return;
 
-            currentModal = new bootstrap.Modal(modalEl, { focus: true });
+            currentModal = new Modal(modalEl, { focus: true });
 
             modalEl.addEventListener('hide.bs.modal', () => {
                 if (document.activeElement && modalEl.contains(document.activeElement as Node)) {
@@ -151,7 +154,7 @@ export class AppBase {
     static initAutoHideAlerts({ delay = 5000 }: AutoHideAlertsConfig = {}): void {
         document.querySelectorAll('.alert').forEach(alert => {
             setTimeout(() => {
-                const bsAlert = new bootstrap.Alert(alert);
+                const bsAlert = new Alert(alert);
                 bsAlert.close();
             }, delay);
         });

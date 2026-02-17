@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
 
 #[ORM\MappedSuperclass]
+#[ORM\HasLifecycleCallbacks]
 abstract class AbstractEntity
 {
     protected DateTimeImmutable $now;
@@ -62,5 +63,12 @@ abstract class AbstractEntity
         $this->modifiedAt = $modifiedAt;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function updateModifiedAt(): void
+    {
+        $this->modifiedAt= new DateTimeImmutable();
     }
 }

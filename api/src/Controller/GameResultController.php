@@ -12,7 +12,6 @@ use App\Form\GameResultType;
 use App\Repository\GameResultRepository;
 use App\Repository\TeamRepository;
 use App\Service\CurrentSportProvider;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
@@ -105,9 +104,7 @@ final class GameResultController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $now = new DateTimeImmutable();
         $gameResult->setModifiedBy($user);
-        $gameResult->setModifiedAt($now);
         $form = $this->createForm(GameResultType::class, $gameResult);
         $form->handleRequest($request);
 
@@ -141,9 +138,7 @@ final class GameResultController extends AbstractController
         if (
             $this->isCsrfTokenValid('delete' . $gameResult->getId(), (string) $request->request->get('_token'))
         ) {
-            $now = new DateTimeImmutable();
             $gameResult->setModifiedBy($user);
-            $gameResult->setModifiedAt($now);
             $gameResult->setIsActive(false);
             $em->flush();
         }

@@ -8,7 +8,6 @@ use App\Entity\Country;
 use App\Entity\User;
 use App\Form\CountryType;
 use App\Repository\CountryRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -57,9 +56,7 @@ final class CountryController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $now = new DateTimeImmutable();
         $country->setModifiedBy($user);
-        $country->setModifiedAt($now);
         $form = $this->createForm(CountryType::class, $country);
         $form->handleRequest($request);
 
@@ -81,9 +78,7 @@ final class CountryController extends AbstractController
         $user = $this->getUser();
 
         if ($this->isCsrfTokenValid('delete' . $country->getId(), (string) $request->request->get('_token'))) {
-            $now = new DateTimeImmutable();
             $country->setModifiedBy($user);
-            $country->setModifiedAt($now);
             $country->setIsActive(false);
             $em->flush();
         }

@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Form\MemberPositionType;
 use App\Repository\MemberPositionRepository;
 use App\Service\CurrentSportProvider;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -77,9 +76,7 @@ final class MemberPositionController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $now = new DateTimeImmutable();
         $memberPosition->setModifiedBy($user);
-        $memberPosition->setModifiedAt($now);
         $form = $this->createForm(MemberPositionType::class, $memberPosition);
         $form->handleRequest($request);
 
@@ -106,9 +103,7 @@ final class MemberPositionController extends AbstractController
                 (string) $request->request->get('_token')
             )
         ) {
-            $now = new DateTimeImmutable();
             $memberPosition->setModifiedBy($user);
-            $memberPosition->setModifiedAt($now);
             $memberPosition->setIsActive(false);
             $em->flush();
         }
