@@ -66,6 +66,6 @@ abstract class AbstractEntity
     #[ORM\PreUpdate]
     public function updateModifiedAt(): void
     {
-        $this->modifiedAt= new DateTimeImmutable();
+        $this->modifiedAt = new DateTimeImmutable();
     }
 }

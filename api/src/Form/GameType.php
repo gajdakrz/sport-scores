@@ -80,7 +80,10 @@ final class GameType extends AbstractType
                 'label' => 'Game date',
                 'widget' => 'single_text',
                 'required' => true,
-                'attr' => ['class' => 'form-control flatpickr'],
+                'attr' => [
+                    'class' => 'form-control flatpickr',
+                    'data-default-date' => 'today',
+                ],
             ])
             ->add('gameResults', CollectionType::class, [
                 'entry_type' => GameResultType::class,

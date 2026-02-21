@@ -28,11 +28,11 @@ class Person extends AbstractAuditableEntity
 
     #[ORM\ManyToOne(targetEntity: Country::class, inversedBy: 'persons')]
     #[ORM\JoinColumn(
-        name: 'country_id',
+        name: 'origin_country_id',
         referencedColumnName: 'id',
         nullable: false
     )]
-    private ?Country $country = null;
+    private ?Country $originCountry = null;
 
     #[ORM\Column(enumType: Gender::class)]
     private Gender $gender;
@@ -103,14 +103,14 @@ class Person extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getCountry(): ?Country
+    public function getOriginCountry(): ?Country
     {
-        return $this->country;
+        return $this->originCountry;
     }
 
-    public function setCountry(Country $country): static
+    public function setOriginCountry(Country $originCountry): static
     {
-        $this->country = $country;
+        $this->originCountry = $originCountry;
 
         return $this;
     }

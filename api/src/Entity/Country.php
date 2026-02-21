@@ -75,7 +75,7 @@ class Country extends AbstractAuditableEntity
     {
         if (!$this->persons->contains($person)) {
             $this->persons->add($person);
-            $person->setCountry($this);
+            $person->setOriginCountry($this);
         }
 
         return $this;

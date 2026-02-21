@@ -5,25 +5,26 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Country;
+use App\Entity\Person;
 use App\Entity\Sport;
-use App\Entity\Team;
-use App\Enum\TeamType as TeamTypeEnum;
+use App\Enum\Gender;
 use App\Repository\CountryRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-final class TeamType extends AbstractType
+class PersonType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        /** @var ?Team $team */
-        $team = $builder->getData();
+        /** @var ?Person $person */
+        $person = $builder->getData();
         /** @var ?Sport $sport */
-        $sport = $options['current_sport'] ?? $team?->getSport();
+        $sport = $options['current_sport'] ?? $person?->getSport();
 
         $builder
             ->add('sport', TextType::class, [
@@ -31,25 +32,34 @@ final class TeamType extends AbstractType
                 'disabled' => true,
                 'data' => $sport?->getName(),
             ])
-            ->add('country', EntityType::class, [
-                'label' => 'Country',
+            ->add('firstName', TextType::class, [
+                'label' => 'First name',
+            ])
+            ->add('lastName', TextType::class, [
+                'label' => 'Last name',
+            ])
+            ->add('gender', EnumType::class, [
+                'label' => 'Gender',
+                'class' => Gender::class,
+                'choice_label' => fn(Gender $enum) => $enum->label(),
+                'placeholder' => 'Select type',
+            ])
+            ->add('birthDate', DateType::class, [
+                'label' => 'Birth date',
+                'widget' => 'single_text',
+                'required' => false,
+                'attr' => ['class' => 'form-control flatpickr'],
+            ])
+            ->add('originCountry', EntityType::class, [
+                'label' => 'Origin country',
                 'class' => Country::class,
                 'choice_label' => 'name',
-                'placeholder' => 'Select country',
+                'placeholder' => 'Select origin country',
                 'query_builder' =>
                     fn(CountryRepository $countryRepository) =>$countryRepository->createActiveQueryBuilder(
                         'name',
                         'ASC'
                     ),
-            ])
-            ->add('teamType', EnumType::class, [
-                'label' => 'Team type',
-                'class' => TeamTypeEnum::class,
-                'choice_label' => fn(TeamTypeEnum $enum) => $enum->label(),
-                'placeholder' => 'Select type',
-            ])
-            ->add('name', TextType::class, [
-                'label' => 'Team name',
             ])
         ;
     }
@@ -57,7 +67,7 @@ final class TeamType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Team::class,
+            'data_class' => Person::class,
             'current_sport' => null,
         ]);
 

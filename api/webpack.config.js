@@ -31,6 +31,8 @@ Encore
     .addEntry('bracket', './assets/ts/bracket/svg.ts')
     .addEntry('memberPosition', './assets/ts/memberPosition/main.ts')
     .addEntry('memberPositionModalInitializer', './assets/ts/memberPosition/modalInitializer.ts')
+    .addEntry('person', './assets/ts/person/main.ts')
+    .addEntry('personModalInitializer', './assets/ts/person/modalInitializer.ts')
 
     .splitEntryChunks()
     .enableSingleRuntimeChunk()

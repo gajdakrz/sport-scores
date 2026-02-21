@@ -53,11 +53,14 @@ export class AppBase {
             container.innerHTML = html;
 
             container.querySelectorAll<HTMLInputElement>('.flatpickr').forEach(input => {
+                const defaultAttr = input.dataset.defaultDate;
                 flatpickr(input, {
                     dateFormat: "Y-m-d",
                     locale: "pl",
-                    defaultDate: input.value || "today",
                     allowInput: true,
+                    ...(defaultAttr
+                        ? { defaultDate: input.value || defaultAttr }
+                        : {})
                 });
             });
 
