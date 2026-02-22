@@ -37,6 +37,17 @@
                 </select>
             </div>
             <div class="col-md-3">
+                <label for="gender" class="form-label">Gender</label>
+                <select name="gender" id="gender" class="form-select">
+                    <option value="">All</option>
+                    {% for gender in genders %}
+                        <option value="{{ gender.value }}" {% if gender.value == app.request.get('gender') %}selected{% endif %}>
+                            {{ gender.label() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label for="competitionId" class="form-label">Competition</label>
                 <select name="competitionId" id="competitionId" class="form-select">
                     <option value="">All</option>
@@ -116,10 +127,10 @@
         </table>
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
+                {% set queryParams = app.request.query.all|filter((v, k) => k != 'page') %}
                 {{ pagerfanta(games, null, {
                     'routeName': app.request.attributes.get('_route'),
-                    'routeParams': app.request.attributes.get('_route_params'),
-                    'queryParams': app.request.query.all
+                    'routeParams': app.request.attributes.get('_route_params')|merge(queryParams)
                 }) }}
             </ul>
         </nav>

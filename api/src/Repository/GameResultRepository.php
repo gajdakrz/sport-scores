@@ -14,14 +14,13 @@ use App\Entity\Season;
 use App\Entity\Sport;
 use App\Entity\Team;
 use App\Enum\MatchResultStatus;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<GameResult>
+ * @extends AbstractRepository<GameResult>
  */
-class GameResultRepository extends ServiceEntityRepository
+class GameResultRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -121,7 +120,6 @@ class GameResultRepository extends ServiceEntityRepository
             $qb->andWhere('e.competition = :competition')
                 ->setParameter('competition', $competition);
         }
-        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
         return $qb;
     }
@@ -200,20 +198,9 @@ class GameResultRepository extends ServiceEntityRepository
             ->setParameter('isActive', true)
             ->orderBy('gameResult.' . $orderBy, $direction);
 
-        if ($sport !== null) {
-            $qb->andWhere('competition.sport = :sport')
-                ->setParameter('sport', $sport);
-        }
-
-        if ($filter->getDate()) {
-            $qb->andWhere('game.date = :date')
-                ->setParameter('date', $filter->getDate());
-        }
-
-        if ($filter->getTeamId()) {
-            $qb->andWhere('gameResult.team = :teamId')
-                ->setParameter('teamId', $filter->getTeamId());
-        }
+        $this->applyFilter($qb, 'competition.sport', $sport);
+        $this->applyFilter($qb, 'game.date', $filter->getDate());
+        $this->applyFilter($qb, 'gameResult.team', $filter->getTeamId());
 
         if ($filter->getMatchResultStatus()) {
             switch ($filter->getMatchResultStatus()) {
@@ -232,7 +219,6 @@ class GameResultRepository extends ServiceEntityRepository
                     break;
             }
         }
-        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
         return $qb;
     }

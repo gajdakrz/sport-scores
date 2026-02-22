@@ -55,6 +55,7 @@ class PersonType extends AbstractType
                 'class' => Country::class,
                 'choice_label' => 'name',
                 'placeholder' => 'Select origin country',
+                'required' => false,
                 'query_builder' =>
                     fn(CountryRepository $countryRepository) =>$countryRepository->createActiveQueryBuilder(
                         'name',

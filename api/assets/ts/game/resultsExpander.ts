@@ -3,15 +3,18 @@ export function initResultsExpander(): void {
         btn.addEventListener('click', async () => {
             const tr = btn.closest('tr') as HTMLTableRowElement | null;
             const gameId = btn.dataset.id;
-            const existing = document.querySelector('.game-results-row');
+            const existing = document.querySelector<HTMLElement>('.game-results-row');
 
             if (!tr || !gameId) {
                 return;
             }
 
             if (existing) {
+                const previousSibling = existing.previousElementSibling;
                 existing.remove();
-                if (existing.previousElementSibling === tr) return;
+                if (previousSibling === tr) {
+                    return;
+                }
             }
 
             try {
@@ -25,7 +28,6 @@ export function initResultsExpander(): void {
                 const row = document.createElement('tr');
                 row.classList.add('game-results-row');
                 row.innerHTML = `<td colspan="8">${html}</td>`;
-
                 tr.insertAdjacentElement('afterend', row);
             } catch (err) {
                 console.error(err);

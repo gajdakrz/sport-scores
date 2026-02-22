@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Sport;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Sport>
+ * @extends AbstractRepository<Sport>
  */
-class SportRepository extends ServiceEntityRepository
+class SportRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -30,7 +30,7 @@ class Person extends AbstractAuditableEntity
     #[ORM\JoinColumn(
         name: 'origin_country_id',
         referencedColumnName: 'id',
-        nullable: false
+        nullable: true
     )]
     private ?Country $originCountry = null;
 

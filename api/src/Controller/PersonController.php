@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Dto\Filter\PersonFilterDto;
 use App\Entity\Person;
 use App\Entity\User;
+use App\Enum\Gender;
 use App\Form\PersonType;
+use App\Repository\CountryRepository;
 use App\Repository\PersonRepository;
 use App\Service\CurrentSportProvider;
 use Doctrine\ORM\EntityManagerInterface;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
+use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -22,15 +28,27 @@ final class PersonController extends AbstractController
 {
     #[Route('', name: 'person_index', methods: ['GET'])]
     public function index(
+        #[MapQueryString] PersonFilterDto $personFilterRequest,
         PersonRepository $personRepository,
+        CountryRepository $countryRepository,
         CurrentSportProvider $currentSportProvider
     ): Response {
+
+        $currentSport = $currentSportProvider->getSport();
+        $queryBuilder = $personRepository->createActiveByFilterBuilder(
+            filter: $personFilterRequest,
+            sport: $currentSport
+        );
+
+        $pagerfanta = new Pagerfanta(new QueryAdapter($queryBuilder));
+        $pagerfanta
+            ->setCurrentPage($personFilterRequest->getPage())
+            ->setMaxPerPage($personFilterRequest->getLimit());
+
         return $this->render('person/index.html.twig', [
-            'persons' => $personRepository->findActiveSortedBy(
-                'id',
-                'ASC',
-                $currentSportProvider->getSport()
-            ),
+            'persons' => $pagerfanta,
+            'genders' => Gender::cases(),
+            'countries' => $countryRepository->findActiveSortedBy('name', 'ASC'),
         ]);
     }
 

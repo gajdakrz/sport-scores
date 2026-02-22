@@ -7,14 +7,13 @@ namespace App\Repository;
 use App\Dto\Filter\TeamFilterDto;
 use App\Entity\Sport;
 use App\Entity\Team;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Team>
+ * @extends AbstractRepository<Team>
  */
-class TeamRepository extends ServiceEntityRepository
+class TeamRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -74,27 +73,10 @@ class TeamRepository extends ServiceEntityRepository
             ->setParameter('isActive', true)
             ->orderBy('team.' . $orderBy, $direction);
 
-        if ($sport !== null) {
-            $qb->andWhere('team.sport = :sport')
-                ->setParameter('sport', $sport);
-        }
-
-        if ($filter->getName()) {
-            $qb->andWhere($qb->expr()->like('LOWER(team.name)', 'LOWER(:name)'))
-                ->setParameter('name', '%' . $filter->getName() . '%');
-        }
-
-        if ($filter->getCountryId()) {
-            $qb->andWhere('team.country = :countryId')
-                ->setParameter('countryId', $filter->getCountryId());
-        }
-
-        if ($filter->getTeamType()) {
-            $qb->andWhere('team.teamType = :teamType')
-                ->setParameter('teamType', $filter->getTeamType());
-        }
-
-        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
+        $this->applyFilter($qb, 'team.sport', $sport);
+        $this->applyFilter($qb, 'team.country', $filter->getCountryId());
+        $this->applyFilter($qb, 'team.teamType', $filter->getTeamType());
+        $this->applyLikeFilter($qb, 'team.name', $filter->getName());
 
         return $qb;
     }

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Dto\Filter\GameFilterDto;
 use App\Entity\Game;
 use App\Entity\User;
+use App\Enum\Gender;
 use App\Form\GameType;
 use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
@@ -55,6 +56,7 @@ final class GameController extends AbstractController
             'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC', $currentSport),
             'events' => $eventRepository->findActiveSortedBy('name', 'ASC'),
             'seasons' => $seasonRepository->findActiveSortedBy('startYear'),
+            'genders' => Gender::cases(),
         ]);
     }
 

@@ -6,14 +6,13 @@ namespace App\Repository;
 
 use App\Entity\Competition;
 use App\Entity\Sport;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Competition>
+ * @extends AbstractRepository<Competition>
  */
-class CompetitionRepository extends ServiceEntityRepository
+class CompetitionRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

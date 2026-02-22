@@ -7,14 +7,13 @@ namespace App\Repository;
 use App\Dto\Filter\EventFilterDto;
 use App\Entity\Event;
 use App\Entity\Sport;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Event>
+ * @extends AbstractRepository<Event>
  */
-class EventRepository extends ServiceEntityRepository
+class EventRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -77,22 +76,9 @@ class EventRepository extends ServiceEntityRepository
             ->setParameter('isActive', true)
             ->orderBy('event.' . $orderBy, $direction);
 
-        if ($sport !== null) {
-            $qb->andWhere('competition.sport = :sport')
-                ->setParameter('sport', $sport);
-        }
-
-        if ($filter->getName()) {
-            $qb->andWhere($qb->expr()->like('LOWER(event.name)', 'LOWER(:name)'))
-                ->setParameter('name', '%' . $filter->getName() . '%');
-        }
-
-        if ($filter->getCompetitionId()) {
-            $qb->andWhere('event.competition = :competitionId')
-                ->setParameter('competitionId', $filter->getCompetitionId());
-        }
-
-        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
+        $this->applyFilter($qb, 'competition.sport', $sport);
+        $this->applyFilter($qb, 'event.competition', $filter->getCompetitionId());
+        $this->applyLikeFilter($qb, 'event.name', $filter->getName());
 
         return $qb;
     }

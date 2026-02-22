@@ -4,16 +4,62 @@
 
 {% block body %}
     {% set columnCount = 9 %}
-
     <div class="container mt-5">
-
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">Persons</h1>
             <button type="button" class="btn btn-primary" id="newPersonBtn" data-url="{{ path('person_new') }}">
                 Create New
             </button>
         </div>
-
+        {# --- FILTER FORM --- #}
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="firstName" class="form-label">First Name</label>
+                <input
+                    type="text"
+                    name="firstName"
+                    id="firstName"
+                    class="form-control"
+                    value="{{ app.request.get('firstName') ?: '' }}"
+                    placeholder="All">
+            </div>
+            <div class="col-md-3">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input
+                    type="text"
+                    name="lastName"
+                    id="lastName"
+                    class="form-control"
+                    value="{{ app.request.get('lastName') ?: '' }}"
+                    placeholder="All">
+            </div>
+            <div class="col-md-3">
+                <label for="gender" class="form-label">Gender</label>
+                <select name="gender" id="gender" class="form-select">
+                    <option value="">All</option>
+                    {% for gender in genders %}
+                        <option value="{{ gender.value }}" {% if gender.value == app.request.get('gender') %}selected{% endif %}>
+                            {{ gender.label() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="originCountryId" class="form-label">Competition</label>
+                <select name="originCountryId" id="originCountryId" class="form-select">
+                    <option value="">All</option>
+                    {% for country in countries %}
+                        <option value="{{ country.id }}" {% if country.id == app.request.get('originCountryId') %}selected{% endif %}>
+                            {{ country.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 align-self-end">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+        </form>
+        {# --- END FILTER FORM --- #}
         <table class="table table-striped table-hover align-middle" id="personTable">
             <thead class="table-dark">
             <tr>
@@ -35,8 +81,8 @@
                     <td>{{ person.firstName }}</td>
                     <td>{{ person.lastName }}</td>
                     <td>{{ person.gender.value|capitalize }}</td>
-                    <td>{{ person.birthDate|date(DATE_FORMAT) }}</td>
-                    <td>{{ person.originCountry.name }}</td>
+                    <td>{{ person.birthDate ? person.birthDate|date(DATE_FORMAT) : '' }}</td>
+                    <td>{{ person.originCountry.name ?? ''}}</td>
                     <td>{{ person.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ person.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
@@ -66,8 +112,16 @@
             {% endfor %}
             </tbody>
         </table>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% set queryParams = app.request.query.all|filter((v, k) => k != 'page') %}
+                {{ pagerfanta(persons, null, {
+                    'routeName': app.request.attributes.get('_route'),
+                    'routeParams': app.request.attributes.get('_route_params')|merge(queryParams)
+                }) }}
+            </ul>
+        </nav>
     </div>
-
     {# modal partial #}
     <div id="personModalContainer"></div>
 {% endblock %}

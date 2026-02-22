@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Season;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Season>
+ * @extends AbstractRepository<Season>
  */
-class SeasonRepository extends ServiceEntityRepository
+class SeasonRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

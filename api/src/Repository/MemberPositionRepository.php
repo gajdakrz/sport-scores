@@ -4,14 +4,13 @@ namespace App\Repository;
 
 use App\Entity\MemberPosition;
 use App\Entity\Sport;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<MemberPosition>
+ * @extends AbstractRepository<MemberPosition>
  */
-class MemberPositionRepository extends ServiceEntityRepository
+class MemberPositionRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

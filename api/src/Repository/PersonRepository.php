@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Dto\Filter\PersonFilterDto;
 use App\Entity\Person;
 use App\Entity\Sport;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Person>
+ * @extends AbstractRepository<Person>
  */
-class PersonRepository extends ServiceEntityRepository
+class PersonRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -53,5 +53,32 @@ class PersonRepository extends ServiceEntityRepository
         return $this->createActiveQueryBuilder($orderBy, $direction, $sport)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param PersonFilterDto $filter
+     * @param string $orderBy
+     * @param string $direction
+     * @param ?Sport $sport
+     * @return QueryBuilder
+     */
+    public function createActiveByFilterBuilder(
+        PersonFilterDto $filter,
+        string $orderBy = 'createdAt',
+        string $direction = 'DESC',
+        ?Sport $sport = null,
+    ): QueryBuilder {
+        $qb = $this->createQueryBuilder('person')
+            ->andWhere('person.isActive = :isActive')
+            ->setParameter('isActive', true)
+            ->orderBy('person.' . $orderBy, $direction);
+
+        $this->applyFilter($qb, 'person.sport', $sport);
+        $this->applyFilter($qb, 'person.birthDate', $filter->getBirthDate());
+        $this->applyFilter($qb, 'person.originCountry', $filter->getOriginCountryId());
+        $this->applyLikeFilter($qb, 'person.firstName', $filter->getFirstName());
+        $this->applyLikeFilter($qb, 'person.lastName', $filter->getLastName());
+
+        return $qb;
     }
 }

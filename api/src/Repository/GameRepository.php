@@ -7,14 +7,13 @@ namespace App\Repository;
 use App\Dto\Filter\GameFilterDto;
 use App\Entity\Game;
 use App\Entity\Sport;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Game>
+ * @extends AbstractRepository<Game>
  */
-class GameRepository extends ServiceEntityRepository
+class GameRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -75,37 +74,19 @@ class GameRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('game')
             ->join('game.event', 'event')
             ->join('event.competition', 'competition')
-            ->join('game.season', 'season')
-            ->addSelect('event', 'competition', 'season')
             ->where('game.isActive = true')
             ->orderBy('game.' . $orderBy, $direction);
 
-        if ($sport) {
-            $qb->andWhere('competition.sport = :sport')
-                ->setParameter('sport', $sport);
-        }
+        $this->applyFilter($qb, 'competition.sport', $sport);
+        $this->applyFilter($qb, 'game.date', $filter->getDate());
+        $this->applyFilter($qb, 'game.event', $filter->getEventId());
+        $this->applyFilter($qb, 'event.competition', $filter->getCompetitionId());
+        $this->applyFilter($qb, 'competition.gender', $filter->getGender()?->value);
 
-        if ($filter->getCompetitionId()) {
-            $qb->andWhere('competition.id = :competitionId')
-                ->setParameter('competitionId', $filter->getCompetitionId());
+        if ($filter->getSeasonId() !== null) {
+            $qb->join('game.season', 'season');
+            $this->applyFilter($qb, 'game.season', $filter->getSeasonId());
         }
-
-        if ($filter->getEventId()) {
-            $qb->andWhere('event.id = :eventId')
-                ->setParameter('eventId', $filter->getEventId());
-        }
-
-        if ($filter->getSeasonId()) {
-            $qb->andWhere('season.id = :seasonId')
-                ->setParameter('seasonId', $filter->getSeasonId());
-        }
-
-        if ($filter->getDate()) {
-            $qb->andWhere('game.date = :date')
-                ->setParameter('date', $filter->getDate());
-        }
-
-        $qb->setFirstResult($filter->getOffset())->setMaxResults($filter->getLimit());
 
         return $qb;
     }

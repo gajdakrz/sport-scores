@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Country;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Country>
+ * @extends AbstractRepository<Country>
  */
-class CountryRepository extends ServiceEntityRepository
+class CountryRepository extends AbstractRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
