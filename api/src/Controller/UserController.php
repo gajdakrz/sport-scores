@@ -38,6 +38,7 @@ class UserController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $registrationService->register($dto);
             $this->addFlash('success', 'Account created.!');
+
             return $this->redirectToRoute('app_login');
         }
 

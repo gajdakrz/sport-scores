@@ -37,7 +37,7 @@ final class GameResultController extends AbstractController
         $currentSport = $currentSportProvider->getSport();
         $queryBuilder = $gameResultRepository->createActiveByFilterBuilder(
             filter: $gameResultFilterRequest,
-            sport: $currentSportProvider->getSport(),
+            sport: $currentSport,
         );
 
         $pagerfanta = new Pagerfanta(new QueryAdapter($queryBuilder));

@@ -44,6 +44,12 @@ class Team extends AbstractAuditableEntity
     #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'team', orphanRemoval: true)]
     private Collection $gameResults;
 
+    /**
+     * @var Collection<int, Person>
+     */
+    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'person', orphanRemoval: true)]
+    private Collection $persons;
+
     #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'teams')]
     #[ORM\JoinColumn(
         name: 'sport_id',
@@ -55,8 +61,9 @@ class Team extends AbstractAuditableEntity
     public function __construct()
     {
         parent::__construct();
-        $this->teamMembers = new ArrayCollection();
+        $this->persons = new ArrayCollection();
         $this->gameResults = new ArrayCollection();
+        $this->teamMembers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -172,6 +179,41 @@ class Team extends AbstractAuditableEntity
         if ($this->gameResults->contains($gameResult)) {
             $gameResult->setIsActive(false);
             $gameResult->setModifiedBy($user);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Person>
+     */
+    public function getPersons(): Collection
+    {
+        return $this->persons;
+    }
+
+    public function addPersons(Person $person): static
+    {
+        if (!$this->persons->contains($person)) {
+            $this->persons->add($person);
+            $person->setCurrentTeam($this);
+        }
+
+        return $this;
+    }
+
+    public function removePerson(Person $person): static
+    {
+        $this->persons->removeElement($person);
+
+        return $this;
+    }
+
+    public function deactivatePerson(Person $person, User $user): static
+    {
+        if ($this->persons->contains($person)) {
+            $person->setIsActive(false);
+            $person->setModifiedBy($user);
         }
 
         return $this;

@@ -42,6 +42,7 @@ final class CountryController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($country);
             $em->flush();
+
             return $this->redirectToRoute('country_index');
         }
 
@@ -62,6 +63,7 @@ final class CountryController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+
             return $this->redirectToRoute('country_index');
         }
 

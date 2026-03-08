@@ -17,6 +17,8 @@ Encore
     .addEntry('team', './assets/ts/team/main.ts')
     .addEntry('teamModalInitializer', './assets/ts/team/modalInitializer.ts')
     .addEntry('teamStats', './assets/ts/team/resultSeasonStats.ts')
+    .addEntry('teamMember', './assets/ts/teamMember/main.ts')
+    .addEntry('teamMemberModalInitializer', './assets/ts/teamMember/modalInitializer.ts')
     .addEntry('gameResult', './assets/ts/gameResult/main.ts')
     .addEntry('gameResultModalInitializer', './assets/ts/gameResult/modalInitializer.ts')
     .addEntry('sport', './assets/ts/sport/main.ts')

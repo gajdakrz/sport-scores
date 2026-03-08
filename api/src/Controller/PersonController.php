@@ -8,14 +8,17 @@ use App\Dto\Filter\PersonFilterDto;
 use App\Entity\Person;
 use App\Entity\User;
 use App\Enum\Gender;
+use App\Enum\TeamFilter;
 use App\Form\PersonType;
 use App\Repository\CountryRepository;
 use App\Repository\PersonRepository;
 use App\Service\CurrentSportProvider;
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
@@ -100,6 +103,7 @@ final class PersonController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+
             return $this->redirectToRoute('person_index');
         }
 
@@ -126,5 +130,36 @@ final class PersonController extends AbstractController
             $em->flush();
         }
         return $this->redirectToRoute('person_index');
+    }
+
+    #[Route('/person-by-current-team/{teamId}/{teamFilter}', name: 'person_by_current_team', methods: ['GET'])]
+    public function findByTeam(
+        PersonRepository $personRepository,
+        CurrentSportProvider $currentSportProvider,
+        int $teamId,
+        string $teamFilter
+    ): JsonResponse {
+        $filterEnum = TeamFilter::tryFrom($teamFilter);
+
+        if ($filterEnum === null) {
+            throw new InvalidArgumentException('Invalid team filter');
+        }
+        $persons = $personRepository->findActiveSortedBy(
+            sport: $currentSportProvider->getSport(),
+            currentTeamId: $teamId,
+            teamFilter: $filterEnum
+        );
+
+        $result = [];
+        foreach ($persons as $person) {
+            $result[] = [
+                'id' => $person->getId(),
+                'firstName' => $person->getFirstName(),
+                'lastName' => $person->getLastName(),
+                'currentTeamName' => $person->getCurrentTeam()?->getName(),
+            ];
+        }
+
+        return $this->json($result);
     }
 }

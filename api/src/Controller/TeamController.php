@@ -86,6 +86,7 @@ final class TeamController extends AbstractController
             $team->setSport($currentSport);
             $em->persist($team);
             $em->flush();
+
             return $this->redirectToRoute('team_index');
         }
 
@@ -106,6 +107,7 @@ final class TeamController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+
             return $this->redirectToRoute('team_index');
         }
 
@@ -163,14 +165,14 @@ final class TeamController extends AbstractController
         ];
 
         if ($request->isXmlHttpRequest()) {
-            return $this->render('team/_modal_season-details-table.html.twig', $result);
+            return $this->render('team/_modal_season_details_table.html.twig', $result);
         }
 
-        return $this->render('team/_modal_season-details.html.twig', $result);
+        return $this->render('team/_modal_season_details.html.twig', $result);
     }
 
-    #[Route('/{id}/result-season-stats', name: 'team_game_result_season_stats', methods: ['GET'])]
-    public function resultSeasonStats(
+    #[Route('/{id}/result-season-index', name: 'team_game_result_season_index', methods: ['GET'])]
+    public function resultSeasonIndex(
         #[MapQueryString] TeamGameResultFilterDto $teamGameResultFilterRequest,
         Team $team,
         GameResultRepository $gameResultRepository,
@@ -191,7 +193,7 @@ final class TeamController extends AbstractController
         $pagerfanta->setCurrentPage($teamGameResultFilterRequest->getPage());
         $pagerfanta->setMaxPerPage($teamGameResultFilterRequest->getLimit());
 
-        return $this->render('team/result-season-stats.html.twig', [
+        return $this->render('team/result_season_index.html.twig', [
             'team' => $currentSportProvider->getSport() === $team->getSport() ? $team : null,
             'seasons' => $seasonRepository->findActiveSortedBy('startYear'),
             'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC'),

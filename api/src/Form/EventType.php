@@ -18,9 +18,15 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Routing\RouterInterface;
 
 final class EventType extends AbstractType
 {
+    public function __construct(
+        private readonly RouterInterface $router
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var ?Event $event */
@@ -51,6 +57,11 @@ final class EventType extends AbstractType
                         'data-is-bracket' => $competition->isBracket() ? 'true' : 'false',
                     ];
                 },
+                'attr' => [
+                    'data-url' => $this->router->generate('event_by_competition', [
+                        'competitionId' => 'COMPETITION_ID'
+                    ]),
+                ],
             ])
             ->add('orderIndex', IntegerType::class, [
                 'label' => 'Order index',

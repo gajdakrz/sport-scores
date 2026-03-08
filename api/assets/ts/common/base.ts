@@ -34,21 +34,32 @@ export class AppBase {
 
     static initModalFeature({ containerId, modalId, newBtnId, newUrl, onLoaded }: ModalFeatureConfig): void {
         const container = document.getElementById(containerId);
-
-        if (!container) {
-            return;
-        }
+        if (!container) return;
 
         let currentModal: Modal | null = null;
+        let isLoading = false;
 
         function openModal(html: string): void {
             if (!container) return;
 
             if (currentModal) {
+                const prevModalEl = container.querySelector(`#${modalId}`);
+                prevModalEl?.addEventListener('hidden.bs.modal', () => {
+                    currentModal?.dispose();
+                    currentModal = null;
+                    container.innerHTML = '';
+                    renderModal(html);
+                }, { once: true });
+
                 currentModal.hide();
-                currentModal.dispose();
-                container.innerHTML = '';
+                return; // ← ważne: nie wykonuj renderModal teraz
             }
+
+            renderModal(html);
+        }
+
+        function renderModal(html: string): void {
+            if (!container) return;
 
             container.innerHTML = html;
 
@@ -58,14 +69,58 @@ export class AppBase {
                     dateFormat: "Y-m-d",
                     locale: "pl",
                     allowInput: true,
-                    ...(defaultAttr
-                        ? { defaultDate: input.value || defaultAttr }
-                        : {})
+                    ...(defaultAttr ? { defaultDate: input.value || defaultAttr } : {})
                 });
             });
 
             const modalEl = document.getElementById(modalId);
             if (!modalEl) return;
+
+            const form = container.querySelector<HTMLFormElement>('form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const res = await fetch(form.action, {
+                        method: form.method || 'POST',
+                        body: new FormData(form),
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    const contentType = res.headers.get('Content-Type') ?? '';
+
+                    if (contentType.includes('application/json')) {
+                        // Kontrolery zwracające JsonResponse (np. team_member)
+                        const json = await res.json();
+                        if (json.success) {
+                            const modalEl = document.getElementById(modalId);
+                            modalEl?.addEventListener('hidden.bs.modal', () => {
+                                window.location.reload();
+                            }, { once: true });
+                            currentModal?.hide();
+                        } else {
+                            const errorDiv = container.querySelector('.modal-body');
+                            if (errorDiv) {
+                                const alert = document.createElement('div');
+                                alert.className = 'alert alert-danger';
+                                alert.textContent = json.error;
+                                errorDiv.prepend(alert);
+                            }
+                        }
+                    } else if (res.redirected) {
+                        // Kontrolery zwracające redirectToRoute (np. person_edit) — sukces
+                        const modalEl = document.getElementById(modalId);
+                        modalEl?.addEventListener('hidden.bs.modal', () => {
+                            window.location.reload();
+                        }, { once: true });
+                        currentModal?.hide();
+                    } else {
+                        // Błędy walidacji — Symfony zwróciło formularz z błędami
+                        const responseHtml = await res.text();
+                        openModal(responseHtml);
+                    }
+                }, { once: true });
+            }
 
             currentModal = new Modal(modalEl, { focus: true });
 
@@ -73,11 +128,12 @@ export class AppBase {
                 if (document.activeElement && modalEl.contains(document.activeElement as Node)) {
                     (document.activeElement as HTMLElement).blur();
                 }
-            });
+            }, { once: true });
 
             modalEl.addEventListener('hidden.bs.modal', () => {
                 container.innerHTML = '';
                 currentModal = null;
+                isLoading = false;
             }, { once: true });
 
             if (typeof onLoaded === 'function') {
@@ -90,19 +146,25 @@ export class AppBase {
         const newBtn = document.getElementById(newBtnId);
         if (newBtn) {
             newBtn.addEventListener('click', () => {
+                if (isLoading || currentModal) return; // ← Bug 3: guard
+                isLoading = true;
                 fetch(newUrl)
                     .then(res => res.text())
-                    .then(openModal);
+                    .then(openModal)
+                    .catch(() => { isLoading = false; });
             });
         }
 
         document.querySelectorAll<HTMLElement>('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                if (isLoading || currentModal) return; // ← Bug 3: guard
                 const url = btn.dataset.url;
                 if (url) {
+                    isLoading = true;
                     fetch(url)
                         .then(res => res.text())
-                        .then(openModal);
+                        .then(openModal)
+                        .catch(() => { isLoading = false; });
                 }
             });
         });

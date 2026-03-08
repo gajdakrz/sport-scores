@@ -68,12 +68,9 @@ final class GameType extends AbstractType
                 'class' => Event::class,
                 'choice_label' => 'name',
                 'placeholder' => 'Select event',
-                'query_builder' =>
-                    fn(EventRepository $eventRepository) => $eventRepository->createActiveQueryBuilder(
-                        'name',
-                        'ASC',
-                        $sport
-                    ),
+                'choices' => $game && $game->getId()
+                    ? [$game->getEvent()]
+                    : [],
                 'required' => true,
             ])
             ->add('date', DateType::class, [
@@ -109,6 +106,27 @@ final class GameType extends AbstractType
                 $competition = $data->getEvent()?->getCompetition();
                 if ($competition) {
                     $form->get('competition')->setData($competition);
+                }
+            })
+            ->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
+                /** @var array<string, mixed> $data */
+                $data = $event->getData();
+                $form = $event->getForm();
+
+                $competitionId = $data['competition'] ?? null;
+
+                if ($competitionId) {
+                    $form->add('event', EntityType::class, [
+                        'class' => Event::class,
+                        'choice_label' => 'name',
+                        'placeholder' => 'Select event',
+                        'required' => true,
+                        'query_builder' => function (EventRepository $eventRepository) use ($competitionId) {
+                            return $eventRepository->createQueryBuilder('e')
+                                ->where('e.competition = :competitionId')
+                                ->setParameter('competitionId', $competitionId);
+                        },
+                    ]);
                 }
             })
         ;

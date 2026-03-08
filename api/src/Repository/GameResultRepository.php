@@ -127,45 +127,34 @@ class GameResultRepository extends AbstractRepository
     public function groupedResultsBySeasonAndCompetitionBuilder(
         Team $team,
         TeamGameResultFilterDto $filter,
-        string $orderBy = 's.startYear',
+        string $orderBy = 'season.startYear',
         string $direction = 'DESC',
         ?Sport $sport = null,
     ): QueryBuilder {
-        $qb = $this->createQueryBuilder('gr')
+        $qb = $this->createQueryBuilder('gameResult')
             ->select(
-                'NEW App\Dto\Response\TeamGameStatResponseDto(s, c, ' .
-                'count(gr.id), ' .
-                'SUM(CASE WHEN gr.matchScore > opponent.matchScore THEN 1 ELSE 0 END), ' .
-                'SUM(CASE WHEN gr.matchScore < opponent.matchScore THEN 1 ELSE 0 END), ' .
-                'SUM(CASE WHEN gr.matchScore = opponent.matchScore THEN 1 ELSE 0 END), ' .
-                'SUM(CASE WHEN gr.matchScore IS NULL OR opponent.matchScore IS NULL THEN 1 ELSE 0 END))'
+                'NEW App\Dto\Response\TeamGameStatResponseDto(season, competition, ' .
+                'count(gameResult.id), ' .
+                'SUM(CASE WHEN gameResult.matchScore > opponent.matchScore THEN 1 ELSE 0 END), ' .
+                'SUM(CASE WHEN gameResult.matchScore < opponent.matchScore THEN 1 ELSE 0 END), ' .
+                'SUM(CASE WHEN gameResult.matchScore = opponent.matchScore THEN 1 ELSE 0 END), ' .
+                'SUM(CASE WHEN gameResult.matchScore IS NULL OR opponent.matchScore IS NULL THEN 1 ELSE 0 END))'
             )
-            ->join('gr.team', 't')
-            ->join('gr.game', 'g')
-            ->join('g.season', 's')
-            ->join('g.event', 'e')
-            ->join('e.competition', 'c')
-            ->join('g.gameResults', 'opponent', 'WITH', 'opponent.id != gr.id')
-            ->andWhere('gr.team = :team')
-            ->andWhere('gr.isActive = true')
+            ->join('gameResult.team', 'team')
+            ->join('gameResult.game', 'game')
+            ->join('game.season', 'season')
+            ->join('game.event', 'event')
+            ->join('game.gameResults', 'opponent', 'WITH', 'opponent.id != gameResult.id')
+            ->join('event.competition', 'competition')
+            ->andWhere('gameResult.team = :team')
+            ->andWhere('gameResult.isActive = true')
             ->setParameter('team', $team)
-            ->groupBy('s.id, c.id')
+            ->groupBy('season.id, competition.id')
             ->orderBy($orderBy, $direction);
 
-        if ($filter->getSeasonId() !== null) {
-            $qb->andWhere('g.season = :seasonId')
-                ->setParameter('seasonId', $filter->getSeasonId());
-        }
-
-        if ($filter->getCompetitionId() !== null) {
-            $qb->andWhere('e.competition = :competitionId')
-                ->setParameter('competitionId', $filter->getCompetitionId());
-        }
-
-        if ($sport !== null) {
-            $qb->andWhere('c.sport = :sport')
-                ->setParameter('sport', $sport);
-        }
+        $this->applyFilter($qb, 'competition.sport', $sport);
+        $this->applyFilter($qb, 'game.season', $filter->getSeasonId());
+        $this->applyFilter($qb, 'event.competition', $filter->getCompetitionId());
 
         return $qb;
     }

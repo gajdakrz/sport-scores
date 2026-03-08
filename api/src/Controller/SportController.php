@@ -42,6 +42,7 @@ final class SportController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($sport);
             $em->flush();
+
             return $this->redirectToRoute('sport_index');
         }
 
@@ -62,6 +63,7 @@ final class SportController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+
             return $this->redirectToRoute('sport_index');
         }
 

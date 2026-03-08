@@ -128,7 +128,7 @@ class Season extends AbstractAuditableEntity
     {
         if (!$this->teamMembers->contains($teamMember)) {
             $this->teamMembers->add($teamMember);
-            $teamMember->setSeason($this);
+            $teamMember->setStartSeason($this);
         }
 
         return $this;

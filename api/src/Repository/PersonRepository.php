@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Dto\Filter\PersonFilterDto;
 use App\Entity\Person;
 use App\Entity\Sport;
+use App\Enum\TeamFilter;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -24,6 +25,8 @@ class PersonRepository extends AbstractRepository
         string $orderBy = 'createdAt',
         string $direction = 'DESC',
         ?Sport $sport = null,
+        ?int $currentTeamId = null,
+        TeamFilter $teamFilter = TeamFilter::ALL,
     ): QueryBuilder {
         $qb = $this->createQueryBuilder('person')
             ->andWhere('person.isActive = :isActive')
@@ -33,6 +36,21 @@ class PersonRepository extends AbstractRepository
         if ($sport !== null) {
             $qb->andWhere('person.sport = :sport')
                 ->setParameter('sport', $sport);
+        }
+
+        if ($currentTeamId !== null && $teamFilter !== TeamFilter::ALL) {
+            switch ($teamFilter) {
+                case TeamFilter::INCLUDED:
+                    $qb->andWhere('person.currentTeam = :currentTeam')
+                        ->setParameter('currentTeam', $currentTeamId);
+                    break;
+                case TeamFilter::EXCLUDED:
+                    $qb->andWhere('person.currentTeam != :currentTeam')
+                        ->setParameter('currentTeam', $currentTeamId);
+                    break;
+                default:
+                    break;
+            }
         }
 
         return $qb;
@@ -47,10 +65,12 @@ class PersonRepository extends AbstractRepository
         string $orderBy = 'createdAt',
         string $direction = 'DESC',
         ?Sport $sport = null,
+        ?int $currentTeamId = null,
+        TeamFilter $teamFilter = TeamFilter::ALL,
     ): array {
 
         /** @var Person[] */
-        return $this->createActiveQueryBuilder($orderBy, $direction, $sport)
+        return $this->createActiveQueryBuilder($orderBy, $direction, $sport, $currentTeamId, $teamFilter)
             ->getQuery()
             ->getResult();
     }

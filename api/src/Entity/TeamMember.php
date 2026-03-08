@@ -17,14 +17,7 @@ class TeamMember extends AbstractAuditableEntity
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['default' => 'CURRENT_DATE'])]
-    private DateTimeImmutable $startDate;
-
-
-    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
-    private ?DateTimeImmutable $endDate = null;
-
-    #[ORM\ManyToOne(inversedBy: 'teamCompetitors')]
+    #[ORM\ManyToOne(inversedBy: 'teamMembers')]
     #[ORM\JoinColumn(
         name: 'team_id',
         referencedColumnName: 'id',
@@ -32,7 +25,7 @@ class TeamMember extends AbstractAuditableEntity
     )]
     private ?Team $team = null;
 
-    #[ORM\ManyToOne(inversedBy: 'teamCompetitors')]
+    #[ORM\ManyToOne(inversedBy: 'teamMembers')]
     #[ORM\JoinColumn(
         name: 'person_id',
         referencedColumnName: 'id',
@@ -40,23 +33,20 @@ class TeamMember extends AbstractAuditableEntity
     )]
     private ?Person $person = null;
 
-    #[ORM\ManyToOne(targetEntity: Season::class, inversedBy: 'games')]
+    #[ORM\ManyToOne(targetEntity: Season::class, inversedBy: 'teamMembers')]
     #[ORM\JoinColumn(
-        name: 'season_id',
+        name: 'start_season_id',
         referencedColumnName: 'id',
         nullable: false
     )]
-    private ?Season $season = null;
+    private ?Season $startSeason = null;
 
     #[ORM\ManyToOne(inversedBy: 'teamMembers')]
     #[ORM\JoinColumn(nullable: true)]
     private ?MemberPosition $memberPosition = null;
 
-    public function __construct()
-    {
-        parent::__construct();
-        $this->startDate = $this->createdAt;
-    }
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => 1])]
+    protected bool $isCurrentMember = true;
 
     public function getId(): ?int
     {
@@ -66,30 +56,6 @@ class TeamMember extends AbstractAuditableEntity
     public function setId(int $id): static
     {
         $this->id = $id;
-
-        return $this;
-    }
-
-    public function getStartDate(): DateTimeImmutable
-    {
-        return $this->startDate;
-    }
-
-    public function setStartDate(DateTimeImmutable $startDate): static
-    {
-        $this->startDate = $startDate;
-
-        return $this;
-    }
-
-    public function getEndDate(): ?DateTimeImmutable
-    {
-        return $this->endDate;
-    }
-
-    public function setEndDate(?DateTimeImmutable $endDate): static
-    {
-        $this->endDate = $endDate;
 
         return $this;
     }
@@ -118,14 +84,14 @@ class TeamMember extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getSeason(): ?Season
+    public function getStartSeason(): ?Season
     {
-        return $this->season;
+        return $this->startSeason;
     }
 
-    public function setSeason(?Season $season): static
+    public function setStartSeason(?Season $startSeason): static
     {
-        $this->season = $season;
+        $this->startSeason = $startSeason;
 
         return $this;
     }
@@ -138,6 +104,18 @@ class TeamMember extends AbstractAuditableEntity
     public function setMemberPosition(?MemberPosition $memberPosition): static
     {
         $this->memberPosition = $memberPosition;
+
+        return $this;
+    }
+
+    public function isCurrentMember(): bool
+    {
+        return $this->isCurrentMember;
+    }
+
+    public function setIsCurrentMember(bool $isCurrentMember): static
+    {
+        $this->isCurrentMember = $isCurrentMember;
 
         return $this;
     }

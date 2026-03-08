@@ -83,6 +83,7 @@ final class CompetitionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+
             return $this->redirectToRoute('competition_index');
         }
 

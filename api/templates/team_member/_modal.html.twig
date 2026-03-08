@@ -1,14 +1,21 @@
-<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+<div class="modal fade"
+     id="teamMemberModal"
+     tabindex="-1"
+     aria-labelledby="teamMemberModalLabel"
+     aria-hidden="true"
+     data-initial-team="{{ initialTeam ? initialTeam.id : '' }}"
+     data-initial-person="{{ initialPerson ? initialPerson.id : '' }}"
+     data-team-member-id="{{ teamMember.id ? teamMember.id : '' }}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="eventModalLabel">
-                    {{ event.id ? 'Edit Event Id: ' ~ event.id : 'Create Event' }}
+                <h5 class="modal-title" id="teamMemberModalLabel">
+                    {{ teamMember.id ? 'Edit Team Member Id: ' ~ teamMember.id : 'Create Team Member' }}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             {{ form_start(form, {
-                'action': event.id ? path('event_edit', {'id': event.id}) : path('event_new')
+                'action': teamMember.id ? path('team_member_edit', {'id': teamMember.id}) : path('team_member_new')
             }) }}
             <div class="modal-body">
                 {{ form_widget(form) }}

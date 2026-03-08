@@ -60,6 +60,14 @@ class Person extends AbstractAuditableEntity
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $birthDate = null;
 
+    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'persons')]
+    #[ORM\JoinColumn(
+        name: 'current_team_id',
+        referencedColumnName: 'id',
+        nullable: true
+    )]
+    private ?Team $currentTeam = null;
+
     public function __construct()
     {
         parent::__construct();
@@ -214,8 +222,22 @@ class Person extends AbstractAuditableEntity
         return $this->birthDate;
     }
 
-    public function setBirthDate(?DateTimeImmutable $birthDate): void
+    public function setBirthDate(?DateTimeImmutable $birthDate): static
     {
         $this->birthDate = $birthDate;
+
+        return $this;
+    }
+
+    public function getCurrentTeam(): ?Team
+    {
+        return $this->currentTeam;
+    }
+
+    public function setCurrentTeam(?Team $currentTeam): static
+    {
+        $this->currentTeam = $currentTeam;
+
+        return $this;
     }
 }

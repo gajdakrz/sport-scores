@@ -69,6 +69,7 @@
                 <th>Gender</th>
                 <th>Birth Date</th>
                 <th>Origin Country</th>
+                <th>Current Team</th>
                 <th>Created At</th>
                 <th>Modified At</th>
                 <th class="text-end">Actions</th>
@@ -83,6 +84,7 @@
                     <td>{{ person.gender.value|capitalize }}</td>
                     <td>{{ person.birthDate ? person.birthDate|date(DATE_FORMAT) : '' }}</td>
                     <td>{{ person.originCountry.name ?? ''}}</td>
+                    <td>{{ person.currentTeam.name ?? ''}}</td>
                     <td>{{ person.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ person.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">

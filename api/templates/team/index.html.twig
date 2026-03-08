@@ -88,12 +88,20 @@
                             Delete
                         </button>
                         <a
-                            href="{{ path('team_game_result_season_stats', { id: team.id }) }}"
+                            href="{{ path('team_game_result_season_index', { id: team.id }) }}"
                             class="btn btn-sm btn-outline-info"
                             target="_blank"
                             rel="noopener"
                         >
                             Results
+                        </a>
+                        <a
+                            href="{{ path('team_member_index', { teamId: team.id, isCurrentMember: 1 }) }}"
+                            class="btn btn-sm btn-outline-success"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Members
                         </a>
                     </td>
                 </tr>

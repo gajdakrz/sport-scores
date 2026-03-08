@@ -1,0 +1,149 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Team members{% endblock %}
+
+{% block body %}
+    {% set columnCount = 8 %}
+
+    <div class="container mt-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Team Members</h1>
+            <button type="button" class="btn btn-primary" id="newTeamMemberBtn" data-url="{{ path('team_member_new') }}">
+                Create New
+            </button>
+        </div>
+        {# --- FILTER FORM --- #}
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="teamId" class="form-label">Team</label>
+                <select name="teamId" id="teamId" class="form-select">
+                    <option value="">All</option>
+                    {% for team in teams %}
+                        <option value="{{ team.id }}" {% if team.id == app.request.get('teamId') %}selected{% endif %}>
+                            {{ team.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="startSeasonId" class="form-label">Start Season</label>
+                <select name="startSeasonId" id="startSeasonId" class="form-select">
+                    <option value="">All</option>
+                    {% for season in seasons %}
+                        <option value="{{ season.id }}" {% if season.id == app.request.get('startSeasonId') %}selected{% endif %}>
+                            {{ season.mergedStartEndYear }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="firstName" class="form-label">First Name</label>
+                <input
+                    type="text"
+                    name="firstName"
+                    id="firstName"
+                    class="form-control"
+                    value="{{ app.request.get('firstName') ?: '' }}"
+                    placeholder="All">
+            </div>
+            <div class="col-md-3">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input
+                    type="text"
+                    name="lastName"
+                    id="lastName"
+                    class="form-control"
+                    value="{{ app.request.get('lastName') ?: '' }}"
+                    placeholder="All">
+            </div>
+            <div class="col-md-3">
+                <label for="isCurrentMember" class="form-label">Current Member</label>
+                <select name="isCurrentMember" id="isCurrentMember" class="form-select">
+                    <option value="">All</option>
+                    <option value="1" {% if app.request.get('isCurrentMember') == '1' %}selected{% endif %}>Yes</option>
+                    <option value="0" {% if app.request.get('isCurrentMember') == '0' %}selected{% endif %}>No</option>
+                </select>
+            </div>
+            <div class="col-md-2 align-self-end">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+        </form>
+        {# --- END FILTER FORM --- #}
+        <table id="teamMemberTable" class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Team</th>
+                <th>Start Season</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Position</th>
+                <th>Is current</th>
+                <th>Current Team</th>
+                <th>Created At</th>
+                <th>Modified At</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for teamMember in teamMembers %}
+                <tr>
+                    <td>{{ teamMember.id }}</td>
+                    <td>{{ teamMember.team.name ?? '' }}</td>
+                    <td>{{ teamMember.startSeason.mergedStartEndYear ?? '' }}</td>
+                    <td>{{ teamMember.person.firstName ?? '' }}</td>
+                    <td>{{ teamMember.person.lastName ?? '' }}</td>
+                    <td>{{ teamMember.memberPosition.name ?? '' }}</td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input type="checkbox" class="form-check-input"
+                                   aria-label="Is current"
+                                {{ teamMember.iscurrentMember ? 'checked' : '' }}
+                                   disabled>
+                        </div>
+                    </td>
+                    <td>{{ teamMember.person.currentTeam.name ?? '' }}</td>
+                    <td>{{ teamMember.createdAt|date(DATETIME_FORMAT) }}</td>
+                    <td>{{ teamMember.modifiedAt|date(DATETIME_FORMAT) }}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('team_member_edit', {'id': teamMember.id}) }}">
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-delete-url="{{ path('team_member_delete', {'id': teamMember.id}) }}"
+                            data-item-name="{{ teamMember.id }}"
+                            data-token="{{ csrf_token('delete' ~ teamMember.id) }}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="{{ columnCount }}" class="text-center text-muted">No team members found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% set queryParams = app.request.query.all|filter((v, k) => k != 'page') %}
+                {{ pagerfanta(teamMembers, null, {
+                    'routeName': app.request.attributes.get('_route'),
+                    'routeParams': app.request.attributes.get('_route_params')|merge(queryParams)
+                }) }}
+            </ul>
+        </nav>
+    </div>
+
+    {# modal partial #}
+    <div id="teamMemberModalContainer"></div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('teamMember') }}
+{% endblock %}

@@ -82,6 +82,7 @@ final class MemberPositionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+
             return $this->redirectToRoute('member_position_index');
         }
 

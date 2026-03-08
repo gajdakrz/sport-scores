@@ -78,6 +78,7 @@ final class EventController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($event);
             $em->flush();
+
             return $this->redirectToRoute('event_index');
         }
 
@@ -139,10 +140,23 @@ final class EventController extends AbstractController
     }
 
     #[Route('/by-competition/{competitionId}', name: 'event_by_competition', methods: ['GET'])]
-    public function byCompetition(EventRepository $eventRepository, int $competitionId): JsonResponse
-    {
-        $events = $eventRepository->findBy(['competition' => $competitionId]);
+    public function findByCompetition(
+        EventRepository $eventRepository,
+        CurrentSportProvider $currentSportProvider,
+        int $competitionId
+    ): JsonResponse {
         $result = [];
+
+        $competition = $eventRepository->find($competitionId);
+
+        if (
+            $competition !== null
+            && $competition->getCompetition() !== null
+            && $currentSportProvider->getSport() !== $competition->getCompetition()->getSport()
+        ) {
+            return $this->json($result);
+        }
+        $events = $eventRepository->findBy(['competition' => $competitionId]);
         foreach ($events as $event) {
             $result[] = [
                 'id' => $event->getId(),
