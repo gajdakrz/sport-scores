@@ -82,8 +82,9 @@ final class PersonController extends AbstractController
             $person->setSport($currentSport);
             $em->persist($person);
             $em->flush();
+            $this->addFlash('success', 'Person created.');
 
-            return $this->redirectToRoute('person_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('person/_modal.html.twig', [
@@ -103,8 +104,9 @@ final class PersonController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+            $this->addFlash('success', 'Person updated.');
 
-            return $this->redirectToRoute('person_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('person/_modal.html.twig', [
@@ -129,7 +131,9 @@ final class PersonController extends AbstractController
             $person->setIsActive(false);
             $em->flush();
         }
-        return $this->redirectToRoute('person_index');
+        $this->addFlash('success', 'Person deleted.');
+
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/person-by-current-team/{teamId}/{teamFilter}', name: 'person_by_current_team', methods: ['GET'])]

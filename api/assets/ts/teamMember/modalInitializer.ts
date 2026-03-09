@@ -1,17 +1,19 @@
-import { AppBase } from '../common/base';
+import { AppBase, ModalFeatureConfig } from '../common/base';
 
 export class ModalInitializer {
     private teamChangeHandler: ((this: HTMLSelectElement) => Promise<void>) | null = null;
     private isCurrentChangeHandler: ((event: Event) => Promise<void>) | null = null;
 
+    private readonly config: ModalFeatureConfig = {
+        containerId: 'teamMemberModalContainer',
+        modalId: 'teamMemberModal',
+        newBtnId: 'newTeamMemberBtn',
+        newUrl: '/team-members/new',
+        onLoaded: () => this.initTeamMemberFormListeners()
+    };
+
     public init(): void {
-        AppBase.initModalFeature({
-            containerId: 'teamMemberModalContainer',
-            modalId: 'teamMemberModal',
-            newBtnId: 'newTeamMemberBtn',
-            newUrl: '/team-members/new',
-            onLoaded: this.initTeamMemberFormListeners
-        });
+        AppBase.initModalFeature(this.config);
     }
 
     private initTeamMemberFormListeners = (): void => {

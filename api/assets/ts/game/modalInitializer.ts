@@ -1,16 +1,18 @@
-import { AppBase } from '../common/base';
+import {AppBase, ModalFeatureConfig} from '../common/base';
 
 export class ModalInitializer {
     private competitionChangeHandler: ((this: HTMLSelectElement) => Promise<void>) | null = null;
 
+    private readonly config: ModalFeatureConfig = {
+        containerId: 'gameModalContainer',
+        modalId: 'gameModal',
+        newBtnId: 'newGameBtn',
+        newUrl: '/games/new',
+        onLoaded: () => this.initGameFormListeners()
+    };
+
     public init(): void {
-        AppBase.initModalFeature({
-            containerId: 'gameModalContainer',
-            modalId: 'gameModal',
-            newBtnId: 'newGameBtn',
-            newUrl: '/games/new',
-            onLoaded: this.initGameFormListeners
-        });
+        AppBase.initModalFeature(this.config);
     }
 
     private initGameFormListeners = (): void => {

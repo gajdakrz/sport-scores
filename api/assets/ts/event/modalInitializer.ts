@@ -6,34 +6,34 @@ export class ModalInitializer {
         modalId: 'eventModal',
         newBtnId: 'newEventBtn',
         newUrl: '/events/new',
-        onLoaded: initEventFormListeners
+        onLoaded: () => this.initEventFormListeners
     };
 
     public init(): void {
         AppBase.initModalFeature(this.config);
     }
-}
 
-function initEventFormListeners(): void {
-    const competitionSelect = document.getElementById('event_competition') as HTMLSelectElement | null;
-    const orderIndex = document.getElementById('event_orderIndex') as HTMLInputElement | null;
+    private initEventFormListeners(): void {
+        const competitionSelect = document.getElementById('event_competition') as HTMLSelectElement | null;
+        const orderIndex = document.getElementById('event_orderIndex') as HTMLInputElement | null;
 
-    if (!competitionSelect || !orderIndex) {
-        console.error('One or more elements not found!');
-        return;
-    }
-
-    competitionSelect.addEventListener('change', function (this: HTMLSelectElement) {
-        if (!this.value) {
+        if (!competitionSelect || !orderIndex) {
+            console.error('One or more elements not found!');
             return;
         }
 
-        const selectedOption = this.options[this.selectedIndex] as HTMLOptionElement;
+        competitionSelect.addEventListener('change', function (this: HTMLSelectElement) {
+            if (!this.value) {
+                return;
+            }
 
-        orderIndex.disabled = selectedOption.dataset.isBracket === 'false';
+            const selectedOption = this.options[this.selectedIndex] as HTMLOptionElement;
 
-        if (orderIndex.disabled) {
-            orderIndex.value = '';
-        }
-    });
+            orderIndex.disabled = selectedOption.dataset.isBracket === 'false';
+
+            if (orderIndex.disabled) {
+                orderIndex.value = '';
+            }
+        });
+    }
 }

@@ -21,6 +21,7 @@ use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
@@ -104,8 +105,9 @@ final class GameController extends AbstractController
                 $this->addFlash('danger', $error->getMessage());
             }
         }
+        $this->addFlash('success', 'Game created.');
 
-        return $this->redirectToRoute('game_index');
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/{id}/edit', name: 'game_edit', methods: ['GET', 'POST'])]
@@ -146,8 +148,9 @@ final class GameController extends AbstractController
                 $this->addFlash('danger', $error->getMessage());
             }
         }
+        $this->addFlash('success', 'Game updated.');
 
-        return $this->redirectToRoute('game_index');
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/{id}', name: 'game_delete', methods: ['POST'])]
@@ -169,8 +172,9 @@ final class GameController extends AbstractController
 
             $em->flush();
         }
+        $this->addFlash('success', 'Game deleted.');
 
-        return $this->redirectToRoute('game_index');
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/{id}/results', name: 'game_results', methods: ['GET'])]

@@ -78,8 +78,9 @@ final class EventController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($event);
             $em->flush();
+            $this->addFlash('success', 'Event created.');
 
-            return $this->redirectToRoute('event_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('event/_modal.html.twig', [
@@ -121,8 +122,9 @@ final class EventController extends AbstractController
                 $this->addFlash('danger', $error->getMessage());
             }
         }
+        $this->addFlash('success', 'Event updated.');
 
-        return $this->redirectToRoute('event_index');
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/{id}', name: 'event_delete', methods: ['POST'])]
@@ -136,7 +138,9 @@ final class EventController extends AbstractController
             $event->setIsActive(false);
             $em->flush();
         }
-        return $this->redirectToRoute('event_index');
+        $this->addFlash('success', 'Event deleted.');
+
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/by-competition/{competitionId}', name: 'event_by_competition', methods: ['GET'])]

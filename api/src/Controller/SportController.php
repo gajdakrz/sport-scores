@@ -10,6 +10,7 @@ use App\Form\SportType;
 use App\Repository\SportRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -42,8 +43,9 @@ final class SportController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($sport);
             $em->flush();
+            $this->addFlash('success', 'Sport created.');
 
-            return $this->redirectToRoute('sport_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('sport/_modal.html.twig', [
@@ -63,8 +65,9 @@ final class SportController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+            $this->addFlash('success', 'Sport updated.');
 
-            return $this->redirectToRoute('sport_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('sport/_modal.html.twig', [
@@ -84,7 +87,9 @@ final class SportController extends AbstractController
             $sport->setIsActive(false);
             $em->flush();
         }
-        return $this->redirectToRoute('sport_index');
+        $this->addFlash('success', 'Sport deleted.');
+
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/set/{id}', name: 'sport_set', methods: ['POST'])]

@@ -25,6 +25,7 @@ use Pagerfanta\Adapter\ArrayAdapter;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
@@ -74,6 +75,7 @@ final class TeamController extends AbstractController
 
         if (!$currentSport) {
             $this->addFlash('danger', 'Sport not selected');
+
             return $this->redirectToRoute('team_index');
         }
 
@@ -86,8 +88,9 @@ final class TeamController extends AbstractController
             $team->setSport($currentSport);
             $em->persist($team);
             $em->flush();
+            $this->addFlash('success', 'Team created.');
 
-            return $this->redirectToRoute('team_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('team/_modal.html.twig', [
@@ -107,8 +110,9 @@ final class TeamController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+            $this->addFlash('success', 'Team updated.');
 
-            return $this->redirectToRoute('team_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('team/_modal.html.twig', [
@@ -128,6 +132,8 @@ final class TeamController extends AbstractController
             $team->setIsActive(false);
             $em->flush();
         }
+        $this->addFlash('success', 'Team deleted.');
+
         return $this->redirectToRoute('team_index');
     }
 

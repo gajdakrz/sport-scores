@@ -11,6 +11,7 @@ use App\Repository\MemberPositionRepository;
 use App\Service\CurrentSportProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -61,8 +62,9 @@ final class MemberPositionController extends AbstractController
             $memberPosition->setSport($currentSport);
             $em->persist($memberPosition);
             $em->flush();
+            $this->addFlash('success', 'Member position created.');
 
-            return $this->redirectToRoute('member_position_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('member_position/_modal.html.twig', [
@@ -82,8 +84,9 @@ final class MemberPositionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+            $this->addFlash('success', 'Member position updated.');
 
-            return $this->redirectToRoute('member_position_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('member_position/_modal.html.twig', [
@@ -108,6 +111,8 @@ final class MemberPositionController extends AbstractController
             $memberPosition->setIsActive(false);
             $em->flush();
         }
-        return $this->redirectToRoute('member_position_index');
+        $this->addFlash('success', 'Member position deleted.');
+
+        return new JsonResponse(['success' => true]);
     }
 }

@@ -10,6 +10,7 @@ use App\Form\CountryType;
 use App\Repository\CountryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -42,8 +43,9 @@ final class CountryController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($country);
             $em->flush();
+            $this->addFlash('success', 'Country created.');
 
-            return $this->redirectToRoute('country_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('country/_modal.html.twig', [
@@ -63,8 +65,9 @@ final class CountryController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+            $this->addFlash('success', 'Country updated.');
 
-            return $this->redirectToRoute('country_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('country/_modal.html.twig', [
@@ -84,6 +87,8 @@ final class CountryController extends AbstractController
             $country->setIsActive(false);
             $em->flush();
         }
-        return $this->redirectToRoute('country_index');
+        $this->addFlash('success', 'Country deleted.');
+
+        return new JsonResponse(['success' => true]);
     }
 }

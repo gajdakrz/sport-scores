@@ -62,8 +62,9 @@ final class CompetitionController extends AbstractController
             $competition->setSport($currentSport);
             $em->persist($competition);
             $em->flush();
+            $this->addFlash('success', 'Competition created.');
 
-            return $this->redirectToRoute('competition_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('competition/_modal.html.twig', [
@@ -83,8 +84,9 @@ final class CompetitionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+            $this->addFlash('success', 'Competition updated.');
 
-            return $this->redirectToRoute('competition_index');
+            return new JsonResponse(['success' => true]);
         }
 
         return $this->render('competition/_modal.html.twig', [
@@ -104,7 +106,9 @@ final class CompetitionController extends AbstractController
             $competition->setIsActive(false);
             $em->flush();
         }
-        return $this->redirectToRoute('competition_index');
+        $this->addFlash('success', 'Competition deleted.');
+
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/by-sport/{sportId}', name: 'competition_by_sport', methods: ['GET'])]

@@ -21,12 +21,14 @@ class TeamMemberService
     /**
      * @throws RuntimeException jeśli current member już istnieje dla tego teamu
      */
-    public function createTeamMember(TeamMember $teamMember): void
+    public function saveTeamMember(TeamMember $teamMember): void
     {
         $this->em->wrapInTransaction(function () use ($teamMember): void {
             $this->handleCurrentMember($teamMember);
-            $this->em->persist($teamMember);
-            // flush jest wykonywany automatycznie przez wrapInTransaction
+
+            if ($teamMember->getId() === null) {
+                $this->em->persist($teamMember);
+            }
         });
     }
 
@@ -45,18 +47,19 @@ class TeamMemberService
         }
 
         if (
-            $currentTeamMember->getId() !== $teamMember->getId()
+            $currentTeamMember !== $teamMember
             && $currentTeamMember->getTeam() === $teamMember->getTeam()
             && $currentTeamMember->getStartSeason() === $teamMember->getStartSeason()
         ) {
-            $errors[] = [
+            $errors = [[
                 'message' => 'Current member already exists for this team in this start season',
                 'field' => '',
-            ];
+            ]];
+
             throw new CustomBadRequestException($errors);
         }
 
-        if ($currentTeamMember->getId() !== $teamMember->getId()) {
+        if ($currentTeamMember !== $teamMember) {
             $this->deactivateOldTeamMember($currentTeamMember);
         }
         $this->setCurrentTeamInPerson($teamMember);

@@ -11,6 +11,7 @@ use App\Repository\SeasonRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -58,8 +59,9 @@ final class SeasonController extends AbstractController
                 $this->addFlash('danger', $error->getMessage());
             }
         }
+        $this->addFlash('success', 'Season created.');
 
-        return $this->redirectToRoute('season_index');
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/{id}/edit', name: 'season_edit', methods: ['GET', 'POST'])]
@@ -89,7 +91,9 @@ final class SeasonController extends AbstractController
             }
         }
 
-        return $this->redirectToRoute('season_index');
+        $this->addFlash('success', 'Season updated.');
+
+        return new JsonResponse(['success' => true]);
     }
 
     #[Route('/{id}', name: 'season_delete', methods: ['POST'])]
@@ -103,6 +107,8 @@ final class SeasonController extends AbstractController
             $season->setIsActive(false);
             $em->flush();
         }
-        return $this->redirectToRoute('season_index');
+        $this->addFlash('success', 'Season deleted.');
+
+        return new JsonResponse(['success' => true]);
     }
 }

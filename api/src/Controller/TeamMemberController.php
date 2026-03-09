@@ -85,7 +85,7 @@ final class TeamMemberController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $this->teamMemberService->createTeamMember($teamMember);
+                $this->teamMemberService->saveTeamMember($teamMember);
                 $this->addFlash('success', 'Team member created.');
                 return $this->redirectToRoute('team_member_index');
             } catch (CustomBadRequestException $e) {
@@ -112,8 +112,9 @@ final class TeamMemberController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $this->teamMemberService->createTeamMember($teamMember);
+                $this->teamMemberService->saveTeamMember($teamMember);
                 $this->addFlash('success', 'Team member updated.');
+
                 return new JsonResponse(['success' => true]);
             } catch (CustomBadRequestException $e) {
                 $errors = $e->getErrors();
@@ -146,6 +147,8 @@ final class TeamMemberController extends AbstractController
             $teamMember->setIsActive(false);
             $em->flush();
         }
-        return $this->redirectToRoute('team_member_index');
+        $this->addFlash('success', 'Team member deleted.');
+
+        return new JsonResponse(['success' => true]);
     }
 }

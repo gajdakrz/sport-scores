@@ -75,15 +75,18 @@
         </div>
     </nav>
     <div class="container py-5">
+        {% block body %}{% endblock %}
+    </div>
+    <div class="flash-container">
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ label }} alert-dismissible fade show shadow" role="alert">
+                    {{ message }}
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
         {% endfor %}
-        {% block body %}{% endblock %}
     </div>
     {% include '_modal_confirm.html.twig' %}
     {% block javascripts %}
