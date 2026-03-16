@@ -97,34 +97,26 @@ final class EventController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $event->setModifiedBy($user);
+
+        $competition = $event->getCompetition();
+        $sport = $competition?->getSport();
+
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() === false) {
-            $competition = $event->getCompetition();
-            $sport = $competition?->getSport();
-
-            return $this->render('event/_modal.html.twig', [
-                'form' => $form->createView(),
-                'event' => $event,
-                'initialSport' => $sport,
-                'initialCompetition' => $competition,
-            ]);
-        }
-
-        if ($form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-        } else {
-            $errors = $form->getErrors(true);
+            $this->addFlash('success', 'Event updated.');
 
-            /** @var FormError $error */
-            foreach ($errors as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+            return new JsonResponse(['success' => true]);
         }
-        $this->addFlash('success', 'Event updated.');
 
-        return new JsonResponse(['success' => true]);
+        return $this->render('event/_modal.html.twig', [
+            'form' => $form->createView(),
+            'event' => $event,
+            'initialSport' => $sport,
+            'initialCompetition' => $competition,
+        ]);
     }
 
     #[Route('/{id}', name: 'event_delete', methods: ['POST'])]

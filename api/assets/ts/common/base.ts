@@ -95,7 +95,7 @@ export class AppBase {
                         if (json.success) {
                             const modalEl = document.getElementById(modalId);
                             modalEl?.addEventListener('hidden.bs.modal', () => {
-                                window.location.reload();
+                                window.location.href = json.redirect ?? window.location.href;
                             }, { once: true });
                             currentModal?.hide();
                         } else {

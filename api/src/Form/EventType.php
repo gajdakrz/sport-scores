@@ -23,7 +23,8 @@ use Symfony\Component\Routing\RouterInterface;
 final class EventType extends AbstractType
 {
     public function __construct(
-        private readonly RouterInterface $router
+        private readonly RouterInterface $router,
+        private readonly CompetitionRepository $competitionRepository
     ) {
     }
 
@@ -45,13 +46,11 @@ final class EventType extends AbstractType
                 'class' => Competition::class,
                 'choice_label' => 'name',
                 'placeholder' => 'Select competition',
-                'query_builder' =>
-                    fn(CompetitionRepository $competitionRepository) => $competitionRepository
-                        ->createActiveQueryBuilder(
+                'query_builder' => $this->competitionRepository->createActiveQueryBuilder(
                             'name',
                             'ASC',
                             $sport,
-                        ),
+                ),
                 'choice_attr' => function (Competition $competition) {
                     return [
                         'data-is-bracket' => $competition->isBracket() ? 'true' : 'false',
@@ -106,6 +105,34 @@ final class EventType extends AbstractType
                     'disabled' => $competition->isBracket() === false,
                 ]);
             })
+            ->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $formEvent) {
+                $data = $formEvent->getData();
+                $form = $formEvent->getForm();
+
+                if (!is_array($data)) {
+                    return;
+                }
+
+                if ($form->get('orderIndex')->getConfig()->getOption('disabled') === false) {
+                    return;
+                }
+
+                $competitionId = $data['competition'] ?? null;
+                if ($competitionId === null) {
+                    return;
+                }
+
+                $competition = $this->competitionRepository->find($competitionId);
+                if ($competition?->isBracket()) {
+                    $form->add('orderIndex', IntegerType::class, [
+                        'label' => 'Order index',
+                        'attr' => ['min' => 1],
+                        'required' => false,
+                        'empty_data' => null,
+                        'disabled' => false,
+                    ]);
+                }
+            })
             ->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
                 /** @var ?Event $data */
                 $data = $event->getData();
@@ -121,18 +148,17 @@ final class EventType extends AbstractType
                     return;
                 }
 
-                if ($competition->isBracket() === false && $data->getOrderIndex() !== null) {
+                $orderIndex = is_int($raw = $form->get('orderIndex')->getData()) ? $raw : null;
+
+                if ($competition->isBracket() === false && $orderIndex !== null) {
                     $form->get('orderIndex')->addError(
-                        new FormError(
-                            'Order index is not required for non bracket competition: ' . $competition->getName()
-                        )
+                        new FormError('Order index is not required for non bracket competition: ' . $competition->getName())
                     );
 
                     return;
                 }
 
-                $orderIndex = $data->getOrderIndex();
-                $this->validOrderIndex($orderIndex, $form, $competition);
+                $this->validOrderIndex($event, $competition, $orderIndex);
             })
         ;
     }
@@ -147,8 +173,11 @@ final class EventType extends AbstractType
         $resolver->setAllowedTypes('current_sport', [Sport::class, 'null']);
     }
 
-    private function validOrderIndex(?int $orderIndex, FormInterface $form, Competition $competition): void
+    private function validOrderIndex(FormEvent $event, Competition $competition, ?int $orderIndex): void
     {
+        /** @var Event $data */
+        $data = $event->getData();
+        $form = $event->getForm();
         $errorMessage = '';
 
         switch (true) {
@@ -162,8 +191,9 @@ final class EventType extends AbstractType
 
             default:
                 $events = $competition->getEvents();
+
                 foreach ($events as $event) {
-                    if ($event->getOrderIndex() === $orderIndex) {
+                    if ($event->getOrderIndex() === $data->getOrderIndex() && $event->getId() !== $data->getId()) {
                         $errorMessage =
                             'Order index must be unique for events in bracket competition: ' . $competition->getName();
                         break;

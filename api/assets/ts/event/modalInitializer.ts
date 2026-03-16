@@ -6,7 +6,7 @@ export class ModalInitializer {
         modalId: 'eventModal',
         newBtnId: 'newEventBtn',
         newUrl: '/events/new',
-        onLoaded: () => this.initEventFormListeners
+        onLoaded: () => this.initEventFormListeners()
     };
 
     public init(): void {
