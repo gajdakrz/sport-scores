@@ -36,7 +36,7 @@
         <div id="bracket-container"></div>
     </div>
     <script>
-        const bracketDto = {{ bracket|json_encode|raw }};
+        const bracketDto = {{ bracketJson|raw }};
         const highlightTeam = {{ highlightTeam ? highlightTeam.name|json_encode|raw : 'null' }};
     </script>
     {{ encore_entry_script_tags('bracket') }}

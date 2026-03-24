@@ -46,7 +46,7 @@ class BracketBuilder
                 }
 
                 $stageDto->addGame(
-                    new GameDto($gameId, $teams)
+                    new GameDto($gameId, $teams, $game->getDate())
                 );
             }
 

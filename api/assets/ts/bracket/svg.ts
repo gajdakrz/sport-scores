@@ -7,6 +7,7 @@ interface TeamResultDto {
 interface GameDto {
     id: number;
     teams: TeamResultDto[];
+    date: string
 }
 
 interface StageDto {
@@ -24,7 +25,7 @@ declare const highlightTeam: string | undefined;
 // SVG Constants
 const SVG_NS = "http://www.w3.org/2000/svg";
 const BOX_WIDTH = 250;
-const BOX_HEIGHT = 60;
+const BOX_HEIGHT = 80;
 const H_GAP = 120;
 const V_GAP = 30;
 const PADDING = 40;
@@ -114,9 +115,13 @@ function drawGame(svg: SVGSVGElement, x: number, y: number, gameDto: GameDto): v
 
     group.appendChild(createGameBox(x, y, highlighted));
 
+    group.appendChild(
+        createGameDateText(x, y, gameDto.date)
+    );
+
     gameDto.teams.forEach((teamResultDto, index) => {
         const isTeamHighlighted = teamResultDto.teamName === highlightTeam;
-        const textY = y + 20 + index * 24;
+        const textY = y + 39 + index * 24;
 
         group.appendChild(
             createTeamText(x, textY, teamResultDto, isTeamHighlighted)
@@ -260,6 +265,23 @@ function renderBracket(bracketDto: BracketDto): void {
     }
 }
 
+function createGameDateText(
+    x: number,
+    y: number,
+    dateString: string
+): SVGTextElement {
+    const text = createSvgElement("text", {
+        x: x + 10,
+        y: y + 15,
+        fill: "#000",
+        "font-size": "12",
+        "font-weight": "bold"
+    });
+
+    text.textContent = dateString;
+
+    return text;
+}
 if (typeof bracketDto !== "undefined") {
     renderBracket(bracketDto);
 }

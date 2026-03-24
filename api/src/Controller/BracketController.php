@@ -13,12 +13,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/brackets')]
 
 final class BracketController extends AbstractController
 {
+    /**
+     * @throws ExceptionInterface
+     */
     #[Route(
         '/competitions/{competition}/seasons/{season}/teams/{team}',
         name: 'build_bracket',
@@ -31,6 +36,7 @@ final class BracketController extends AbstractController
         ?Team $team,
         BracketBuilder $builder,
         CurrentSportProvider $currentSportProvider,
+        SerializerInterface $serializer
     ): Response {
         $currentSport = $currentSportProvider->getSport();
 
@@ -46,8 +52,16 @@ final class BracketController extends AbstractController
 
         $bracketDto = $builder->build($competition, $season);
 
+        $bracketJson = $serializer->serialize(
+            $bracketDto,
+            'json',
+            [
+                'datetime_format' => 'Y-m-d'
+            ]
+        );
+
         return $this->render('bracket/show.html.twig', [
-            'bracket' => $bracketDto,
+            'bracketJson' => $bracketJson,
             'competition' => $competition,
             'season' => $season,
             'highlightTeam' => $team
