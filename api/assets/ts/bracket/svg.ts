@@ -155,10 +155,18 @@ function calculateGamePosition(
     stageIndex: number,
     gameIndex: number,
     totalGames: number,
-    svgHeight: number
+    svgHeight: number,
+    stageDto: StageDto
 ): { x: number; y: number } {
     const x = stageIndex * (BOX_WIDTH + H_GAP) + PADDING;
-    const offset = (svgHeight - totalGames * (BOX_HEIGHT + V_GAP)) / 2;
+
+    let offset = (svgHeight - totalGames * (BOX_HEIGHT + V_GAP)) / 2;
+
+    // zmniejsz odstęp jeśli poprzednia gra to te same drużyny i ta sama data
+    if (gameIndex > 0 && areSameTeams(stageDto.games[gameIndex], stageDto.games[gameIndex - 1])) {
+        offset -= V_GAP + 2; // zmniejszenie odstępu między nimi
+    }
+
     const y = offset + gameIndex * (BOX_HEIGHT + V_GAP);
 
     return { x, y };
@@ -166,6 +174,11 @@ function calculateGamePosition(
 
 function shouldHighlightLine(currentGame: GameDto, previousGame: GameDto): boolean {
     return containsHighlightedTeam(currentGame) && containsHighlightedTeam(previousGame);
+}
+
+function teamsOverlap(gameA: GameDto, gameB: GameDto): boolean {
+    const teamsA = new Set(gameA.teams.map(t => t.teamName));
+    return gameB.teams.some(t => teamsA.has(t.teamName));
 }
 
 function drawConnectionLines(
@@ -178,35 +191,47 @@ function drawConnectionLines(
 ): void {
     if (stageIndex === 0) return;
 
-    const prevStage = gamePositions[stageIndex - 1];
-    const from1 = prevStage[gameIndex * 2];
-    const from2 = prevStage[gameIndex * 2 + 1];
-
-    if (!from1 || !from2) return;
-
+    const prevStageGames = stages[stageIndex - 1].games;
+    const prevPositions = gamePositions[stageIndex - 1];
     const currentGame = stages[stageIndex].games[gameIndex];
-    const prevGame1 = stages[stageIndex - 1].games[gameIndex * 2];
-    const prevGame2 = stages[stageIndex - 1].games[gameIndex * 2 + 1];
+    const currentMidY = currentPosition.y + BOX_HEIGHT / 2;
+    const processed = new Set<number>();
 
-    const lineY = currentPosition.y + BOX_HEIGHT / 2;
+    prevStageGames.forEach((prevGame, i) => {
+        if (processed.has(i)) return;
 
-    drawLine(
-        svg,
-        from1.x + BOX_WIDTH,
-        from1.y + BOX_HEIGHT / 2,
-        currentPosition.x,
-        lineY,
-        shouldHighlightLine(currentGame, prevGame1)
-    );
+        // ← kluczowa zmiana: tylko gry dzielące drużynę z bieżącą
+        if (!teamsOverlap(prevGame, currentGame)) return;
 
-    drawLine(
-        svg,
-        from2.x + BOX_WIDTH,
-        from2.y + BOX_HEIGHT / 2,
-        currentPosition.x,
-        lineY,
-        shouldHighlightLine(currentGame, prevGame2)
-    );
+        // znajdź grupę "sklejonych" meczów (te same drużyny + ta sama data)
+        const group = prevStageGames
+            .map((g, idx) => ({ game: g, pos: prevPositions[idx], idx }))
+            .filter(({ game }) => areSameTeams(game, prevGame));
+
+        group.forEach(({ idx }) => processed.add(idx));
+
+        const highlighted =
+            group.some(p => containsHighlightedTeam(p.game)) &&
+            containsHighlightedTeam(currentGame);
+
+        if (group.length > 1) {
+            // jedna linia ze środka grupy sklejonych ramek
+            const minY = Math.min(...group.map(p => p.pos.y));
+            const maxY = Math.max(...group.map(p => p.pos.y));
+            const midY = minY + (maxY - minY + BOX_HEIGHT) / 2;
+
+            drawLine(svg, group[0].pos.x + BOX_WIDTH, midY, currentPosition.x, currentMidY, highlighted);
+        } else {
+            drawLine(
+                svg,
+                prevPositions[i].x + BOX_WIDTH,
+                prevPositions[i].y + BOX_HEIGHT / 2,
+                currentPosition.x,
+                currentMidY,
+                shouldHighlightLine(currentGame, prevGame)
+            );
+        }
+    });
 }
 
 function drawStageTitle(svg: SVGSVGElement, stageName: string, stageIndex: number): void {
@@ -240,7 +265,8 @@ function renderBracket(bracketDto: BracketDto): void {
                 stageIndex,
                 gameIndex,
                 stageDto.games.length,
-                svgHeight
+                svgHeight,
+                stageDto
             );
 
             drawGame(svg, position.x, position.y, gameDto);
@@ -282,6 +308,16 @@ function createGameDateText(
 
     return text;
 }
+
+function areSameTeams(gameA: GameDto, gameB: GameDto): boolean {
+    if (!gameA || !gameB) return false;
+
+    const teamsA = gameA.teams.map(t => t.teamName).sort().join(',');
+    const teamsB = gameB.teams.map(t => t.teamName).sort().join(',');
+
+    return teamsA === teamsB && gameA.date === gameB.date;
+}
+
 if (typeof bracketDto !== "undefined") {
     renderBracket(bracketDto);
 }

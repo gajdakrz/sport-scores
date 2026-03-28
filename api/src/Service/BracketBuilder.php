@@ -9,6 +9,7 @@ use App\Dto\Bracket\StageDto;
 use App\Dto\Bracket\GameDto;
 use App\Dto\Bracket\TeamResultDto;
 use App\Entity\Competition;
+use App\Entity\Event;
 use App\Entity\Game;
 use App\Entity\Season;
 
@@ -32,28 +33,60 @@ class BracketBuilder
 
             $stageDto = new StageDto($eventName);
 
-            foreach ($event->getGames() as $game) {
-                $gameId = $game->getId();
-
-                if ($game->getSeason() !== $season || $gameId === null) {
-                    continue;
-                }
-
-                $teams = $this->buildTeamResults($game);
-
-                if ($teams === []) {
-                    continue;
-                }
-
-                $stageDto->addGame(
-                    new GameDto($gameId, $teams, $game->getDate())
-                );
+            $games = $this->buildStageGames($event, $season);
+            foreach ($games as $gameDto) {
+                $stageDto->addGame($gameDto);
             }
 
             $bracket->addStage($stageDto);
         }
 
         return $bracket;
+    }
+
+    /**
+     * @return GameDto[]
+     */
+    private function buildStageGames(Event $event, Season $season): array
+    {
+        /** @var Game[] $games */
+        $games = $event->getGames()->toArray();
+
+        // Sortowanie po dacie DESC, potem po ID zespołów ASC
+        usort($games, function (Game $a, Game $b) {
+            // Porównanie dat
+            $dateComparison = $b->getDate() <=> $a->getDate(); // DESC
+            if ($dateComparison !== 0) {
+                return $dateComparison;
+            }
+
+            // Pobranie ID zespołów
+            $teamIdsA = array_map(fn($gr) => $gr->getTeam()?->getId() ?? 0, $a->getGameResults()->toArray());
+            $teamIdsB = array_map(fn($gr) => $gr->getTeam()?->getId() ?? 0, $b->getGameResults()->toArray());
+
+            sort($teamIdsA);
+            sort($teamIdsB);
+
+            return $teamIdsA <=> $teamIdsB;
+        });
+
+        $stageGames = [];
+
+        foreach ($games as $game) {
+            if ($game->getSeason() !== $season || $game->getId() === null) {
+                continue;
+            }
+
+            $teams = $this->buildTeamResults($game);
+
+            if (empty($teams)) {
+                continue;
+            }
+
+            $stageGames[] = new GameDto($game->getId(), $teams, $game->getDate());
+        }
+
+        return $stageGames;
     }
 
     /**
