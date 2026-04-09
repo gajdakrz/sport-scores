@@ -40,7 +40,6 @@ class Season extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->games = new ArrayCollection();
         $this->teamMembers = new ArrayCollection();
     }

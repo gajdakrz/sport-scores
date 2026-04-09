@@ -70,7 +70,6 @@ class Person extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->teamMembers = new ArrayCollection();
         $this->gameResults = new ArrayCollection();
     }

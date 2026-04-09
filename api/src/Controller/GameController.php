@@ -19,7 +19,6 @@ use App\Service\GameResultHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +29,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/games')]
-final class GameController extends AbstractController
+final class GameController extends BaseController
 {
     #[Route('', name: 'game_index', methods: ['GET'])]
     public function index(
@@ -105,9 +104,8 @@ final class GameController extends AbstractController
                 $this->addFlash('danger', $error->getMessage());
             }
         }
-        $this->addFlash('success', 'Game created.');
 
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Game created.']);
     }
 
     #[Route('/{id}/edit', name: 'game_edit', methods: ['GET', 'POST'])]
@@ -148,33 +146,34 @@ final class GameController extends AbstractController
                 $this->addFlash('danger', $error->getMessage());
             }
         }
-        $this->addFlash('success', 'Game updated.');
 
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Game updated.']);
     }
 
     #[Route('/{id}', name: 'game_delete', methods: ['POST'])]
     public function delete(Request $request, Game $game, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $game->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $game->setModifiedBy($user);
+        $game->setIsActive(false);
 
-        if ($this->isCsrfTokenValid('delete' . $game->getId(), (string) $request->request->get('_token'))) {
-            $game->setModifiedBy($user);
-            $game->setIsActive(false);
-
-            foreach ($game->getGameResults() as $gameResult) {
-                if ($gameResult->isActive()) {
-                    $gameResult->setIsActive(false);
-                    $gameResult->setModifiedBy($user);
-                }
+        foreach ($game->getGameResults() as $gameResult) {
+            if ($gameResult->isActive()) {
+                $gameResult->setIsActive(false);
+                $gameResult->setModifiedBy($user);
             }
-
-            $em->flush();
         }
-        $this->addFlash('success', 'Game deleted.');
+        $em->flush();
 
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Game deleted.']);
     }
 
     #[Route('/{id}/results', name: 'game_results', methods: ['GET'])]

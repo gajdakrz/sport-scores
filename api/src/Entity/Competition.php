@@ -44,7 +44,6 @@ class Competition extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->events = new ArrayCollection();
     }
 

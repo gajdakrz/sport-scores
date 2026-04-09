@@ -10,7 +10,6 @@ use App\Form\MemberPositionType;
 use App\Repository\MemberPositionRepository;
 use App\Service\CurrentSportProvider;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/member-positions')]
-final class MemberPositionController extends AbstractController
+final class MemberPositionController extends BaseController
 {
     #[Route('', name: 'member_position_index', methods: ['GET'])]
     public function index(
@@ -50,6 +49,7 @@ final class MemberPositionController extends AbstractController
 
         if (!$currentSport) {
             $this->addFlash('danger', 'Sport not selected');
+
             return $this->redirectToRoute('member_position_index');
         }
 
@@ -62,9 +62,8 @@ final class MemberPositionController extends AbstractController
             $memberPosition->setSport($currentSport);
             $em->persist($memberPosition);
             $em->flush();
-            $this->addFlash('success', 'Member position created.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Member position created.']);
         }
 
         return $this->render('member_position/_modal.html.twig', [
@@ -84,9 +83,8 @@ final class MemberPositionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Member position updated.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Member position updated.']);
         }
 
         return $this->render('member_position/_modal.html.twig', [
@@ -98,21 +96,19 @@ final class MemberPositionController extends AbstractController
     #[Route('/{id}', name: 'member_position_delete', methods: ['POST'])]
     public function delete(Request $request, MemberPosition $memberPosition, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $memberPosition->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $memberPosition->setModifiedBy($user);
+        $memberPosition->setIsActive(false);
+        $em->flush();
 
-        if (
-            $this->isCsrfTokenValid(
-                'delete' . $memberPosition->getId(),
-                (string) $request->request->get('_token')
-            )
-        ) {
-            $memberPosition->setModifiedBy($user);
-            $memberPosition->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Member position deleted.');
-
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Member position deleted.']);
     }
 }

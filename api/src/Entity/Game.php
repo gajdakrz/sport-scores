@@ -53,9 +53,8 @@ class Game extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->gameResults = new ArrayCollection();
-        $this->date = $this->createdAt;
+        $this->date = new DateTimeImmutable();
     }
 
     public function getId(): ?int

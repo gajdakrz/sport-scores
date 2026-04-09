@@ -58,7 +58,10 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $client->submit($form, $formData);
 
-        $this->assertResponseRedirects('/member-positions');
+        $this->assertResponseIsSuccessful();
+        $this->assertJson($client->getResponse()->getContent());
+        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertTrue($data['success']);
 
         /** @var MemberPositionRepository $repository */
         $repository = MemberPositionControllerTest::getContainer()->get(MemberPositionRepository::class);
@@ -119,7 +122,10 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $client->submit($form, $formData);
 
-        $this->assertResponseRedirects('/member-positions');
+        $this->assertResponseIsSuccessful();
+        $this->assertJson($client->getResponse()->getContent());
+        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertTrue($data['success']);
 
         /** @var EntityManagerInterface $em */
         $em = MemberPositionControllerTest::getContainer()->get(EntityManagerInterface::class);
@@ -131,7 +137,6 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $this->assertNotNull($updatedPosition);
         $this->assertEquals('Updated Position Name', $updatedPosition->getName());
-
         $this->assertNotEquals($originalName, $updatedPosition->getName());
     }
 
@@ -154,7 +159,10 @@ final class MemberPositionControllerTest extends WebTestCase
             '_token' => $csrfToken
         ]);
 
-        $this->assertResponseRedirects('/member-positions');
+        $this->assertResponseIsSuccessful();
+        $this->assertJson($client->getResponse()->getContent());
+        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertTrue($data['success']);
 
         /** @var EntityManagerInterface $em */
         $em = MemberPositionControllerTest::getContainer()->get(EntityManagerInterface::class);
@@ -179,7 +187,11 @@ final class MemberPositionControllerTest extends WebTestCase
             '_token' => 'invalid_token'
         ]);
 
-        $this->assertResponseRedirects('/member-positions');
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertJson($client->getResponse()->getContent());
+        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertFalse($data['success']);
+        $this->assertEquals('Invalid CSRF token', $data['error']);
 
         /** @var EntityManagerInterface $em */
         $em = MemberPositionControllerTest::getContainer()->get(EntityManagerInterface::class);

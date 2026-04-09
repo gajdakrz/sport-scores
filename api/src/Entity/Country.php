@@ -34,7 +34,6 @@ class Country extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->persons = new ArrayCollection();
         $this->teams = new ArrayCollection();
     }

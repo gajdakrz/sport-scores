@@ -24,7 +24,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,7 +33,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/teams')]
-final class TeamController extends AbstractController
+final class TeamController extends BaseController
 {
     #[Route('', name: 'team_index', methods: ['GET'])]
     public function index(
@@ -88,9 +87,8 @@ final class TeamController extends AbstractController
             $team->setSport($currentSport);
             $em->persist($team);
             $em->flush();
-            $this->addFlash('success', 'Team created.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Team created.']);
         }
 
         return $this->render('team/_modal.html.twig', [
@@ -110,9 +108,8 @@ final class TeamController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Team updated.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Team updated.']);
         }
 
         return $this->render('team/_modal.html.twig', [
@@ -124,17 +121,20 @@ final class TeamController extends AbstractController
     #[Route('/{id}', name: 'team_delete', methods: ['POST'])]
     public function delete(Request $request, Team $team, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $team->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $team->setModifiedBy($user);
+        $team->setIsActive(false);
+        $em->flush();
 
-        if ($this->isCsrfTokenValid('delete' . $team->getId(), (string) $request->request->get('_token'))) {
-            $team->setModifiedBy($user);
-            $team->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Team deleted.');
-
-        return $this->redirectToRoute('team_index');
+        return new JsonResponse(['success' => true, 'message' => 'Team deleted.']);
     }
 
     #[Route(

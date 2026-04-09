@@ -9,6 +9,8 @@ export class ModalInitializer {
     };
 
     public init(): void {
+        AppBase.initPendingFlash();
         AppBase.initModalFeature(this.config);
+        AppBase.initDeleteModal();
     }
 }

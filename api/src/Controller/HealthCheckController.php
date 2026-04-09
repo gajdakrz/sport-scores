@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag('actuator')]
-class HealthCheckController extends AbstractController
+class HealthCheckController extends BaseController
 {
     #[OA\Get(
         operationId: "getHealthStatus",

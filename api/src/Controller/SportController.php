@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Form\SportType;
 use App\Repository\SportRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/sports')]
-final class SportController extends AbstractController
+final class SportController extends BaseController
 {
     #[Route('', name: 'sport_index', methods: ['GET'])]
     public function index(SportRepository $sportRepository): Response
@@ -43,9 +42,8 @@ final class SportController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($sport);
             $em->flush();
-            $this->addFlash('success', 'Sport created.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Sport created.']);
         }
 
         return $this->render('sport/_modal.html.twig', [
@@ -65,9 +63,8 @@ final class SportController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Sport updated.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Sport updated.']);
         }
 
         return $this->render('sport/_modal.html.twig', [
@@ -79,17 +76,20 @@ final class SportController extends AbstractController
     #[Route('/{id}', name: 'sport_delete', methods: ['POST'])]
     public function delete(Request $request, Sport $sport, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $sport->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $sport->setModifiedBy($user);
+        $sport->setIsActive(false);
+        $em->flush();
 
-        if ($this->isCsrfTokenValid('delete' . $sport->getId(), (string) $request->request->get('_token'))) {
-            $sport->setModifiedBy($user);
-            $sport->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Sport deleted.');
-
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Sport deleted.']);
     }
 
     #[Route('/set/{id}', name: 'sport_set', methods: ['POST'])]

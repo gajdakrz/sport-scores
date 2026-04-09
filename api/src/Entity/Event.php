@@ -40,7 +40,6 @@ class Event extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->games = new ArrayCollection();
     }
 

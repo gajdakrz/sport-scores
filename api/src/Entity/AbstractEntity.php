@@ -21,11 +21,6 @@ abstract class AbstractEntity
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
     protected DateTimeImmutable $modifiedAt;
 
-    public function __construct()
-    {
-        $this->createdAt = $this->modifiedAt = new DateTimeImmutable();
-    }
-
     public function isActive(): bool
     {
         return $this->isActive;
@@ -43,28 +38,19 @@ abstract class AbstractEntity
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
     public function getModifiedAt(): DateTimeImmutable
     {
         return $this->modifiedAt;
     }
 
-    public function setModifiedAt(DateTimeImmutable $modifiedAt): static
+    #[ORM\PrePersist]
+    public function setCreatedAtOnPersist(): void
     {
-        $this->modifiedAt = $modifiedAt;
-
-        return $this;
+        $this->createdAt = $this->modifiedAt = new DateTimeImmutable();
     }
 
-    #[ORM\PrePersist]
     #[ORM\PreUpdate]
-    public function updateModifiedAt(): void
+    public function setModifiedAtOnUpdate(): void
     {
         $this->modifiedAt = new DateTimeImmutable();
     }

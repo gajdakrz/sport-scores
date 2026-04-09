@@ -14,8 +14,6 @@ use App\Service\CurrentSportProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/events')]
-final class EventController extends AbstractController
+final class EventController extends BaseController
 {
     #[Route('', name: 'event_index', methods: ['GET'])]
     public function index(
@@ -78,9 +76,8 @@ final class EventController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($event);
             $em->flush();
-            $this->addFlash('success', 'Event created.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Event created.']);
         }
 
         return $this->render('event/_modal.html.twig', [
@@ -106,9 +103,8 @@ final class EventController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Event updated.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Event updated.']);
         }
 
         return $this->render('event/_modal.html.twig', [
@@ -122,17 +118,20 @@ final class EventController extends AbstractController
     #[Route('/{id}', name: 'event_delete', methods: ['POST'])]
     public function delete(Request $request, Event $event, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $event->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $event->setModifiedBy($user);
+        $event->setIsActive(false);
+        $em->flush();
 
-        if ($this->isCsrfTokenValid('delete' . $event->getId(), (string) $request->request->get('_token'))) {
-            $event->setModifiedBy($user);
-            $event->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Event deleted.');
-
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Event deleted.']);
     }
 
     #[Route('/by-competition/{competitionId}', name: 'event_by_competition', methods: ['GET'])]

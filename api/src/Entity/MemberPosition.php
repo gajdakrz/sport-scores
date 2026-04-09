@@ -34,7 +34,6 @@ class MemberPosition extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->teamMembers = new ArrayCollection();
     }
 

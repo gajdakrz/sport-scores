@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Form\SeasonType;
 use App\Repository\SeasonRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/seasons')]
-final class SeasonController extends AbstractController
+final class SeasonController extends BaseController
 {
     #[Route('', name: 'season_index', methods: ['GET'])]
     public function index(SeasonRepository $seasonRepository): Response
@@ -59,9 +58,8 @@ final class SeasonController extends AbstractController
                 $this->addFlash('danger', $error->getMessage());
             }
         }
-        $this->addFlash('success', 'Season created.');
 
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Season created.']);
     }
 
     #[Route('/{id}/edit', name: 'season_edit', methods: ['GET', 'POST'])]
@@ -91,24 +89,25 @@ final class SeasonController extends AbstractController
             }
         }
 
-        $this->addFlash('success', 'Season updated.');
-
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Season updated.']);
     }
 
     #[Route('/{id}', name: 'season_delete', methods: ['POST'])]
     public function delete(Request $request, Season $season, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $season->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $season->setModifiedBy($user);
+        $season->setIsActive(false);
+        $em->flush();
 
-        if ($this->isCsrfTokenValid('delete' . $season->getId(), (string) $request->request->get('_token'))) {
-            $season->setModifiedBy($user);
-            $season->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Season deleted.');
-
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Season deleted.']);
     }
 }

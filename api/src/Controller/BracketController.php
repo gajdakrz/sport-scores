@@ -9,7 +9,6 @@ use App\Entity\Season;
 use App\Entity\Team;
 use App\Service\BracketBuilder;
 use App\Service\CurrentSportProvider;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -19,7 +18,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/brackets')]
 
-final class BracketController extends AbstractController
+final class BracketController extends BaseController
 {
     /**
      * @throws ExceptionInterface

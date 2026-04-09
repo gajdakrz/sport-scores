@@ -30,6 +30,10 @@ export interface AutoHideAlertsConfig {
     delay?: number;
 }
 
+export type FlashType = 'success' | 'danger' | 'warning' | 'info';
+
+const FLASH_TIME_MS = 5000;
+
 export class AppBase {
 
     static initModalFeature({ containerId, modalId, newBtnId, newUrl, onLoaded }: ModalFeatureConfig): void {
@@ -52,7 +56,8 @@ export class AppBase {
                 }, { once: true });
 
                 currentModal.hide();
-                return; // ← ważne: nie wykonuj renderModal teraz
+
+                return;
             }
 
             renderModal(html);
@@ -90,32 +95,34 @@ export class AppBase {
                     const contentType = res.headers.get('Content-Type') ?? '';
 
                     if (contentType.includes('application/json')) {
-                        // Kontrolery zwracające JsonResponse (np. team_member)
                         const json = await res.json();
                         if (json.success) {
                             const modalEl = document.getElementById(modalId);
                             modalEl?.addEventListener('hidden.bs.modal', () => {
+                                AppBase.showFlashAfterReload('success', json.message ?? 'Saved successfully.');
                                 window.location.href = json.redirect ?? window.location.href;
                             }, { once: true });
                             currentModal?.hide();
                         } else {
                             const errorDiv = container.querySelector('.modal-body');
-                            if (errorDiv) {
-                                const alert = document.createElement('div');
-                                alert.className = 'alert alert-danger';
-                                alert.textContent = json.error;
-                                errorDiv.prepend(alert);
+                            if (errorDiv && json.errors) {
+                                errorDiv.querySelectorAll('.alert-danger').forEach(el => el.remove());
+
+                                json.errors.forEach((err: { message: string; field: string }) => {
+                                    const alert = document.createElement('div');
+                                    alert.className = 'alert alert-danger';
+                                    alert.textContent = err.message;
+                                    errorDiv.prepend(alert);
+                                });
                             }
                         }
                     } else if (res.redirected) {
-                        // Kontrolery zwracające redirectToRoute (np. person_edit) — sukces
                         const modalEl = document.getElementById(modalId);
                         modalEl?.addEventListener('hidden.bs.modal', () => {
                             window.location.reload();
                         }, { once: true });
                         currentModal?.hide();
                     } else {
-                        // Błędy walidacji — Symfony zwróciło formularz z błędami
                         const responseHtml = await res.text();
                         openModal(responseHtml);
                     }
@@ -146,7 +153,9 @@ export class AppBase {
         const newBtn = document.getElementById(newBtnId);
         if (newBtn) {
             newBtn.addEventListener('click', () => {
-                if (isLoading || currentModal) return; // ← Bug 3: guard
+                if (isLoading || currentModal) {
+                    return;
+                }
                 isLoading = true;
                 fetch(newUrl)
                     .then(res => res.text())
@@ -157,7 +166,9 @@ export class AppBase {
 
         document.querySelectorAll<HTMLElement>('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                if (isLoading || currentModal) return; // ← Bug 3: guard
+                if (isLoading || currentModal) {
+                    return;
+                }
                 const url = btn.dataset.url;
                 if (url) {
                     isLoading = true;
@@ -203,6 +214,64 @@ export class AppBase {
                 tokenInput.value = token;
             }
         });
+
+        const form = deleteModal.querySelector<HTMLFormElement>('#delete-form');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const json = await res.json();
+                const modalInstance = Modal.getInstance(deleteModal);
+
+                deleteModal.addEventListener('hidden.bs.modal', () => {
+                    if (json.success) {
+                        AppBase.showFlashAfterReload('success', json.message ?? 'Deleted successfully.');
+                    } else {
+                        AppBase.showFlashAfterReload('danger', json.error ?? 'An error occurred.');
+                    }
+                    window.location.reload();
+                }, { once: true });
+
+                modalInstance?.hide();
+            });
+        }
+    }
+
+    static showFlash(type: FlashType, message: string): void {
+        const container = document.querySelector('.flash-container');
+        if (!container) return;
+
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show shadow`;
+        alert.setAttribute('role', 'alert');
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        container.prepend(alert);
+
+        setTimeout(() => {
+            Alert.getOrCreateInstance(alert).close();
+        }, FLASH_TIME_MS);
+    }
+
+    static showFlashAfterReload(type: FlashType, message: string): void {
+        sessionStorage.setItem('flash', JSON.stringify({ type, message }));
+    }
+
+    static initPendingFlash(): void {
+        const raw = sessionStorage.getItem('flash');
+        if (!raw) return;
+        sessionStorage.removeItem('flash');
+        const { type, message } = JSON.parse(raw);
+        AppBase.showFlash(type as FlashType, message);
     }
 
     static initUniversalModalFocusHandler(): void {
@@ -216,7 +285,7 @@ export class AppBase {
         });
     }
 
-    static initAutoHideAlerts({ delay = 5000 }: AutoHideAlertsConfig = {}): void {
+    static initAutoHideAlerts({ delay = FLASH_TIME_MS }: AutoHideAlertsConfig = {}): void {
         document.querySelectorAll('.alert').forEach(alert => {
             setTimeout(() => {
                 const bsAlert = new Alert(alert);

@@ -17,7 +17,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +26,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/persons')]
-final class PersonController extends AbstractController
+final class PersonController extends BaseController
 {
     #[Route('', name: 'person_index', methods: ['GET'])]
     public function index(
@@ -82,9 +81,8 @@ final class PersonController extends AbstractController
             $person->setSport($currentSport);
             $em->persist($person);
             $em->flush();
-            $this->addFlash('success', 'Person created.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Person created.']);
         }
 
         return $this->render('person/_modal.html.twig', [
@@ -104,9 +102,8 @@ final class PersonController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Person updated.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Person updated.']);
         }
 
         return $this->render('person/_modal.html.twig', [
@@ -118,22 +115,20 @@ final class PersonController extends AbstractController
     #[Route('/{id}', name: 'person_delete', methods: ['POST'])]
     public function delete(Request $request, Person $person, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $person->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $person->setModifiedBy($user);
+        $person->setIsActive(false);
+        $em->flush();
 
-        if (
-            $this->isCsrfTokenValid(
-                'delete' . $person->getId(),
-                (string) $request->request->get('_token')
-            )
-        ) {
-            $person->setModifiedBy($user);
-            $person->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Person deleted.');
-
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Person deleted.']);
     }
 
     #[Route('/person-by-current-team/{teamId}/{teamFilter}', name: 'person_by_current_team', methods: ['GET'])]

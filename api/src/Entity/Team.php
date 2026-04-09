@@ -60,7 +60,6 @@ class Team extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->persons = new ArrayCollection();
         $this->gameResults = new ArrayCollection();
         $this->teamMembers = new ArrayCollection();

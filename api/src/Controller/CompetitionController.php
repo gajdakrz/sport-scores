@@ -10,7 +10,6 @@ use App\Form\CompetitionType;
 use App\Repository\CompetitionRepository;
 use App\Service\CurrentSportProvider;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/competitions')]
-final class CompetitionController extends AbstractController
+final class CompetitionController extends BaseController
 {
     #[Route('', name: 'competition_index', methods: ['GET'])]
     public function index(
@@ -62,9 +61,8 @@ final class CompetitionController extends AbstractController
             $competition->setSport($currentSport);
             $em->persist($competition);
             $em->flush();
-            $this->addFlash('success', 'Competition created.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Competition created.']);
         }
 
         return $this->render('competition/_modal.html.twig', [
@@ -84,9 +82,8 @@ final class CompetitionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Competition updated.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Competition updated.']);
         }
 
         return $this->render('competition/_modal.html.twig', [
@@ -98,17 +95,20 @@ final class CompetitionController extends AbstractController
     #[Route('/{id}', name: 'competition_delete', methods: ['POST'])]
     public function delete(Request $request, Competition $competition, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $competition->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $competition->setModifiedBy($user);
+        $competition->setIsActive(false);
+        $em->flush();
 
-        if ($this->isCsrfTokenValid('delete' . $competition->getId(), (string) $request->request->get('_token'))) {
-            $competition->setModifiedBy($user);
-            $competition->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Competition deleted.');
-
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Competition deleted.']);
     }
 
     #[Route('/by-sport/{sportId}', name: 'competition_by_sport', methods: ['GET'])]

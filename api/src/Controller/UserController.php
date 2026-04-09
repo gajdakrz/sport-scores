@@ -9,7 +9,6 @@ use App\Exception\CustomBadRequestException;
 use App\Form\RegistrationFormType;
 use App\Service\RegistrationUserService;
 use Nelmio\ApiDocBundle\Attribute\Model;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +19,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag('user')]
-class UserController extends AbstractController
+class UserController extends BaseController
 {
     public function __construct(
         private readonly SerializerInterface $serializer,
@@ -28,7 +27,7 @@ class UserController extends AbstractController
     ) {
     }
 
-    #[Route('/register', name: 'app_register', methods: ['GET','POST'])]
+    #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
     public function register(Request $request, RegistrationUserService $registrationService): Response
     {
         $dto = new RegistrationUserRequest();
@@ -37,7 +36,7 @@ class UserController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $registrationService->register($dto);
-            $this->addFlash('success', 'Account created.!');
+            $this->addFlash('success', 'Account created!');
 
             return $this->redirectToRoute('app_login');
         }
@@ -47,9 +46,6 @@ class UserController extends AbstractController
         ]);
     }
 
-    /**
-     * @throws ExceptionInterface
-     */
     #[OA\RequestBody(
         description: "Create notification",
         required: true,
@@ -99,36 +95,28 @@ class UserController extends AbstractController
         )
     )]
     #[Route('/api/v1/user', name: 'app_register_submit', methods: 'POST')]
-    public function submit(
-        Request $request,
-        RegistrationUserService $registrationService
-    ): JsonResponse {
-        $errors = [];
+    public function submit(Request $request, RegistrationUserService $registrationService): JsonResponse
+    {
         try {
             $dto = $this->serializer->deserialize(
                 $request->getContent(),
                 RegistrationUserRequest::class,
                 'json'
             );
-        } catch (ExceptionInterface $exceptionSerializer) {
-            $exceptionMessage = $exceptionSerializer->getMessage();
-            $errors[] = [
-                'message' => 'Wrong json: ' . $exceptionMessage,
-                'field' => '',
-            ];
-            throw new CustomBadRequestException($errors);
+        } catch (ExceptionInterface $e) {
+            throw new CustomBadRequestException([['message' => 'Wrong json: ' . $e->getMessage(), 'field' => '']]);
         }
 
         $violations = $this->validator->validate($dto);
 
         if (count($violations) > 0) {
+            $errors = [];
             foreach ($violations as $violation) {
                 $errors[] = [
-                    'field' => $violation->getPropertyPath(),
                     'message' => (string) $violation->getMessage(),
+                    'field' => $violation->getPropertyPath(),
                 ];
             }
-
             throw new CustomBadRequestException($errors);
         }
 

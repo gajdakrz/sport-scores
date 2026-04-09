@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Form\CountryType;
 use App\Repository\CountryRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/countries')]
-final class CountryController extends AbstractController
+final class CountryController extends BaseController
 {
     #[Route('', name: 'country_index', methods: ['GET'])]
     public function index(CountryRepository $countryRepository): Response
@@ -43,9 +42,8 @@ final class CountryController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($country);
             $em->flush();
-            $this->addFlash('success', 'Country created.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Country created.']);
         }
 
         return $this->render('country/_modal.html.twig', [
@@ -65,9 +63,8 @@ final class CountryController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Country updated.');
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(['success' => true, 'message' => 'Country updated.']);
         }
 
         return $this->render('country/_modal.html.twig', [
@@ -79,16 +76,19 @@ final class CountryController extends AbstractController
     #[Route('/{id}', name: 'country_delete', methods: ['POST'])]
     public function delete(Request $request, Country $country, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $country->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
+        $country->setModifiedBy($user);
+        $country->setIsActive(false);
+        $em->flush();
 
-        if ($this->isCsrfTokenValid('delete' . $country->getId(), (string) $request->request->get('_token'))) {
-            $country->setModifiedBy($user);
-            $country->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Country deleted.');
-
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Country deleted.']);
     }
 }

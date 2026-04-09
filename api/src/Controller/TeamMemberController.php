@@ -17,7 +17,6 @@ use App\Service\TeamMemberService;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
@@ -27,7 +26,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/team-members')]
-final class TeamMemberController extends AbstractController
+final class TeamMemberController extends BaseController
 {
     public function __construct(
         private readonly TeamMemberService $teamMemberService
@@ -84,13 +83,9 @@ final class TeamMemberController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $this->teamMemberService->saveTeamMember($teamMember);
-                $this->addFlash('success', 'Team member created.');
-                return $this->redirectToRoute('team_member_index');
-            } catch (CustomBadRequestException $e) {
-                $this->addFlash('danger', $e->getMessage());
-            }
+            $this->teamMemberService->saveTeamMember($teamMember);
+
+            return new JsonResponse(['success' => true, 'message' => 'Team member created.']);
         }
 
         return $this->render('team_member/_modal.html.twig', [
@@ -111,21 +106,9 @@ final class TeamMemberController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $this->teamMemberService->saveTeamMember($teamMember);
-                $this->addFlash('success', 'Team member updated.');
+            $this->teamMemberService->saveTeamMember($teamMember);
 
-                return new JsonResponse(['success' => true]);
-            } catch (CustomBadRequestException $e) {
-                $errors = $e->getErrors();
-                if ($errors !== []) {
-                    foreach ($errors as $error) {
-                        $this->addFlash('danger', $error['message']);
-                    }
-                }
-
-                return new JsonResponse(['success' => true]);
-            }
+            return new JsonResponse(['success' => true, 'message' => 'Team member updated.']);
         }
 
         return $this->render('team_member/_modal.html.twig', [
@@ -139,16 +122,20 @@ final class TeamMemberController extends AbstractController
     #[Route('/{id}', name: 'team_member_delete', methods: ['POST'])]
     public function delete(Request $request, TeamMember $teamMember, EntityManagerInterface $em): Response
     {
+        if ($response = $this->validateCsrfToken(
+            'delete' . $teamMember->getId(),
+            (string) $request->request->get('_token')
+        )) {
+            return $response;
+        }
+
         /** @var User $user */
         $user = $this->getUser();
 
-        if ($this->isCsrfTokenValid('delete' . $teamMember->getId(), (string)$request->request->get('_token'))) {
-            $teamMember->setModifiedBy($user);
-            $teamMember->setIsActive(false);
-            $em->flush();
-        }
-        $this->addFlash('success', 'Team member deleted.');
+        $teamMember->setModifiedBy($user);
+        $teamMember->setIsActive(false);
+        $em->flush();
 
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse(['success' => true, 'message' => 'Team member deleted.']);
     }
 }

@@ -34,7 +34,6 @@ class Sport extends AbstractAuditableEntity
 
     public function __construct()
     {
-        parent::__construct();
         $this->competitions = new ArrayCollection();
         $this->memberPositions = new ArrayCollection();
     }
