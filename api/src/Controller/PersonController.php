@@ -115,10 +115,12 @@ final class PersonController extends BaseController
     #[Route('/{id}', name: 'person_delete', methods: ['POST'])]
     public function delete(Request $request, Person $person, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $person->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $person->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

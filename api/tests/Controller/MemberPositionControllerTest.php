@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Entity\MemberPosition;
+use App\Entity\Sport;
 use App\Repository\MemberPositionRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class MemberPositionControllerTest extends WebTestCase
@@ -58,9 +60,8 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $client->submit($form, $formData);
 
-        $this->assertResponseIsSuccessful();
-        $this->assertJson($client->getResponse()->getContent());
-        $data = json_decode($client->getResponse()->getContent(), true);
+        $data = $this->assertJsonSuccessResponse($client);
+
         $this->assertTrue($data['success']);
 
         /** @var MemberPositionRepository $repository */
@@ -68,7 +69,7 @@ final class MemberPositionControllerTest extends WebTestCase
         $position = $repository->findOneBy(['name' => 'Test Position']);
 
         $this->assertNotNull($position);
-        $this->assertEquals($sport->getId(), $position->getSport()->getId());
+        $this->assertEquals($sport->getId(), $position->getSport()?->getId());
         $this->assertTrue($position->isActive());
     }
 
@@ -122,9 +123,7 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $client->submit($form, $formData);
 
-        $this->assertResponseIsSuccessful();
-        $this->assertJson($client->getResponse()->getContent());
-        $data = json_decode($client->getResponse()->getContent(), true);
+        $data = $this->assertJsonSuccessResponse($client);
         $this->assertTrue($data['success']);
 
         /** @var EntityManagerInterface $em */
@@ -156,12 +155,10 @@ final class MemberPositionControllerTest extends WebTestCase
         $csrfToken = $deleteButton->attr('data-token');
 
         $client->request('POST', sprintf('/member-positions/%d', $positionId), [
-            '_token' => $csrfToken
+            '_token' => $csrfToken,
         ]);
 
-        $this->assertResponseIsSuccessful();
-        $this->assertJson($client->getResponse()->getContent());
-        $data = json_decode($client->getResponse()->getContent(), true);
+        $data = $this->assertJsonSuccessResponse($client);
         $this->assertTrue($data['success']);
 
         /** @var EntityManagerInterface $em */
@@ -184,12 +181,12 @@ final class MemberPositionControllerTest extends WebTestCase
         $position = $this->createTestMemberPosition();
 
         $client->request('POST', sprintf('/member-positions/%d', $position->getId()), [
-            '_token' => 'invalid_token'
+            '_token' => 'invalid_token',
         ]);
 
         $this->assertResponseStatusCodeSame(403);
-        $this->assertJson($client->getResponse()->getContent());
-        $data = json_decode($client->getResponse()->getContent(), true);
+
+        $data = $this->assertJsonSuccessResponse($client);
         $this->assertFalse($data['success']);
         $this->assertEquals('Invalid CSRF token', $data['error']);
 
@@ -232,5 +229,21 @@ final class MemberPositionControllerTest extends WebTestCase
         $em->flush();
 
         return $position;
+    }
+
+    /**
+     * @param KernelBrowser $client
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

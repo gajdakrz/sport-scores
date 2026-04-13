@@ -76,10 +76,12 @@ final class SportController extends BaseController
     #[Route('/{id}', name: 'sport_delete', methods: ['POST'])]
     public function delete(Request $request, Sport $sport, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $sport->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $sport->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

@@ -95,10 +95,12 @@ final class SeasonController extends BaseController
     #[Route('/{id}', name: 'season_delete', methods: ['POST'])]
     public function delete(Request $request, Season $season, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $season->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $season->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

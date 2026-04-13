@@ -132,10 +132,12 @@ final class GameResultController extends BaseController
     #[Route('/{id}', name: 'game_result_delete', methods: ['POST'])]
     public function delete(Request $request, GameResult $gameResult, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $gameResult->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $gameResult->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

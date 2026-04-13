@@ -76,10 +76,12 @@ final class CountryController extends BaseController
     #[Route('/{id}', name: 'country_delete', methods: ['POST'])]
     public function delete(Request $request, Country $country, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $country->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $country->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

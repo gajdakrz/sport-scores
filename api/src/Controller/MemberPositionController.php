@@ -96,10 +96,12 @@ final class MemberPositionController extends BaseController
     #[Route('/{id}', name: 'member_position_delete', methods: ['POST'])]
     public function delete(Request $request, MemberPosition $memberPosition, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $memberPosition->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $memberPosition->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

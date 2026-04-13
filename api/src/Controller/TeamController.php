@@ -121,10 +121,12 @@ final class TeamController extends BaseController
     #[Route('/{id}', name: 'team_delete', methods: ['POST'])]
     public function delete(Request $request, Team $team, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $team->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $team->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

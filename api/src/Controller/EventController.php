@@ -118,10 +118,12 @@ final class EventController extends BaseController
     #[Route('/{id}', name: 'event_delete', methods: ['POST'])]
     public function delete(Request $request, Event $event, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $event->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $event->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

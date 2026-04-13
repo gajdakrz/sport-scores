@@ -95,10 +95,12 @@ final class CompetitionController extends BaseController
     #[Route('/{id}', name: 'competition_delete', methods: ['POST'])]
     public function delete(Request $request, Competition $competition, EntityManagerInterface $em): Response
     {
-        if ($response = $this->validateCsrfToken(
-            'delete' . $competition->getId(),
-            (string) $request->request->get('_token')
-        )) {
+        if (
+            $response = $this->validateCsrfToken(
+                'delete' . $competition->getId(),
+                (string) $request->request->get('_token')
+            )
+        ) {
             return $response;
         }
 

@@ -8,11 +8,11 @@ use App\Entity\Sport;
 use App\Repository\SportRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-class CurrentSportProvider
+readonly class CurrentSportProvider
 {
     public function __construct(
-        private readonly RequestStack $requestStack,
-        private readonly SportRepository $sportRepository
+        private RequestStack $requestStack,
+        private SportRepository $sportRepository
     ) {
     }
 

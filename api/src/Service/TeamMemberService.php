@@ -10,11 +10,11 @@ use App\Repository\TeamMemberRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 
-class TeamMemberService
+readonly class TeamMemberService
 {
     public function __construct(
-        private readonly TeamMemberRepository $teamMemberRepository,
-        private readonly EntityManagerInterface $em,
+        private TeamMemberRepository $teamMemberRepository,
+        private EntityManagerInterface $em,
     ) {
     }
 

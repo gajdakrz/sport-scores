@@ -22,4 +22,3 @@ abstract class BaseController extends AbstractController
         return null;
     }
 }
-

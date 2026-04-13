@@ -47,9 +47,9 @@ final class EventType extends AbstractType
                 'choice_label' => 'name',
                 'placeholder' => 'Select competition',
                 'query_builder' => $this->competitionRepository->createActiveQueryBuilder(
-                            'name',
-                            'ASC',
-                            $sport,
+                    'name',
+                    'ASC',
+                    $sport,
                 ),
                 'choice_attr' => function (Competition $competition) {
                     return [
@@ -152,7 +152,9 @@ final class EventType extends AbstractType
 
                 if ($competition->isBracket() === false && $orderIndex !== null) {
                     $form->get('orderIndex')->addError(
-                        new FormError('Order index is not required for non bracket competition: ' . $competition->getName())
+                        new FormError(
+                            'Order index is not required for non bracket competition: ' . $competition->getName()
+                        )
                     );
 
                     return;

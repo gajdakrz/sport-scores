@@ -8,18 +8,22 @@ use App\Dto\Request\RegistrationUserRequest;
 use App\Entity\User;
 use App\Exception\HttpConflictException;
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class RegistrationUserService
+readonly class RegistrationUserService
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
-        private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly UserRepository $userRepository,
+        private EntityManagerInterface $em,
+        private UserPasswordHasherInterface $passwordHasher,
+        private UserRepository $userRepository,
     ) {
     }
 
+    /**
+     * @throws Exception
+     */
     public function register(RegistrationUserRequest $dto): User
     {
         if (!is_null($this->userRepository->findOneByEmail($dto->getEmail()))) {
