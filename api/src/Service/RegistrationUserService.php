@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Dto\Request\RegistrationUserRequest;
 use App\Entity\User;
+use App\Enum\Role;
 use App\Exception\HttpConflictException;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Exception;
@@ -22,7 +23,7 @@ readonly class RegistrationUserService
     }
 
     /**
-     * @throws Exception
+     * @throws HttpConflictException|Exception
      */
     public function register(RegistrationUserRequest $dto): User
     {
@@ -30,20 +31,16 @@ readonly class RegistrationUserService
             throw new HttpConflictException('Email already exists.');
         }
 
-        $this->userRepository->isFirstAdmin();
-
-        if ($dto->getRole() === 'ROLE_USER' && $this->userRepository->isFirstAdmin() === false) {
+        if ($dto->getRole() === Role::USER && $this->userRepository->isAdminExists() === false) {
             throw new HttpConflictException('Admin should be registered first');
         }
 
-        $roles = [];
-        $roles[] = $dto->getRole();
         $user = new User();
         $user->setEmail($dto->email);
 
         $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->getPlainPassword());
         $user->setPassword($hashedPassword);
-        $user->setRoles($roles);
+        $user->setRoles([$dto->getRole()->value]);
 
         $this->em->persist($user);
         $this->em->flush();

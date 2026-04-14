@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Service;
 
 use App\Dto\Request\RegistrationUserRequest;
 use App\Entity\User;
+use App\Enum\Role;
 use App\Exception\HttpConflictException;
 use App\Repository\UserRepository;
 use App\Service\RegistrationUserService;
@@ -37,7 +38,7 @@ class RegistrationUserServiceTest extends TestCase
 
     public function testRegisterThrowsConflictWhenEmailAlreadyExists(): void
     {
-        $dto = $this->createDto('existing@example.com', 'ROLE_ADMIN', 'password123');
+        $dto = $this->createDto('existing@example.com', Role::ADMIN, 'password123');
 
         $this->userRepository
             ->method('findOneByEmail')
@@ -52,14 +53,14 @@ class RegistrationUserServiceTest extends TestCase
 
     public function testRegisterThrowsConflictWhenNoAdminRegisteredYetAndRoleIsUser(): void
     {
-        $dto = $this->createDto('user@example.com', 'ROLE_USER', 'password123');
+        $dto = $this->createDto('user@example.com', Role::USER, 'password123');
 
         $this->userRepository
             ->method('findOneByEmail')
             ->willReturn(null);
 
         $this->userRepository
-            ->method('isFirstAdmin')
+            ->method('isAdminExists')
             ->willReturn(false);
 
         $this->expectException(HttpConflictException::class);
@@ -73,14 +74,14 @@ class RegistrationUserServiceTest extends TestCase
      */
     public function testRegisterCreatesAdminSuccessfullyWhenNoAdminExists(): void
     {
-        $dto = $this->createDto('admin@example.com', 'ROLE_ADMIN', 'secret');
+        $dto = $this->createDto('admin@example.com', Role::ADMIN, 'secret');
 
         $this->userRepository
             ->method('findOneByEmail')
             ->willReturn(null);
 
         $this->userRepository
-            ->method('isFirstAdmin')
+            ->method('isAdminExists')
             ->willReturn(false);
 
         $this->passwordHasher
@@ -93,21 +94,21 @@ class RegistrationUserServiceTest extends TestCase
         $user = $this->service->register($dto);
 
         $this->assertEquals('admin@example.com', $user->getEmail());
-        $this->assertContains('ROLE_ADMIN', $user->getRoles());
-        $this->assertContains('ROLE_USER', $user->getRoles());
+        $this->assertContains(Role::ADMIN->value, $user->getRoles());
+        $this->assertContains(Role::USER->value, $user->getRoles());
         $this->assertEquals('hashed_secret', $user->getPassword());
     }
 
     public function testRegisterCreatesUserSuccessfullyWhenAdminAlreadyExists(): void
     {
-        $dto = $this->createDto('user@example.com', 'ROLE_USER', 'password123');
+        $dto = $this->createDto('user@example.com', Role::USER, 'password123');
 
         $this->userRepository
             ->method('findOneByEmail')
             ->willReturn(null);
 
         $this->userRepository
-            ->method('isFirstAdmin')
+            ->method('isAdminExists')
             ->willReturn(true);
 
         $this->passwordHasher
@@ -120,15 +121,15 @@ class RegistrationUserServiceTest extends TestCase
         $user = $this->service->register($dto);
 
         $this->assertEquals('user@example.com', $user->getEmail());
-        $this->assertContains('ROLE_USER', $user->getRoles());
+        $this->assertContains(Role::USER->value, $user->getRoles());
     }
 
     public function testRegisterHashesPasswordBeforeSaving(): void
     {
-        $dto = $this->createDto('user@example.com', 'ROLE_ADMIN', 'plaintext');
+        $dto = $this->createDto('user@example.com', Role::ADMIN, 'plaintext');
 
         $this->userRepository->method('findOneByEmail')->willReturn(null);
-        $this->userRepository->method('isFirstAdmin')->willReturn(true);
+        $this->userRepository->method('isAdminExists')->willReturn(true);
 
         $this->passwordHasher
             ->expects($this->once())
@@ -146,7 +147,7 @@ class RegistrationUserServiceTest extends TestCase
      */
     public function testRegisterDoesNotPersistWhenEmailAlreadyExists(): void
     {
-        $dto = $this->createDto('existing@example.com', 'ROLE_ADMIN', 'password');
+        $dto = $this->createDto('existing@example.com', Role::ADMIN, 'password');
 
         $this->userRepository->method('findOneByEmail')->willReturn(new User());
 
@@ -158,7 +159,7 @@ class RegistrationUserServiceTest extends TestCase
         $this->service->register($dto);
     }
 
-    private function createDto(string $email, string $role, string $plainPassword): RegistrationUserRequest
+    private function createDto(string $email, Role $role, string $plainPassword): RegistrationUserRequest
     {
         $dto = $this->createMock(RegistrationUserRequest::class);
         $dto->email = $email;

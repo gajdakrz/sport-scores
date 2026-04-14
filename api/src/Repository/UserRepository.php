@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Enum\Role;
 use Doctrine\DBAL\Exception;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -48,16 +49,15 @@ class UserRepository extends AbstractRepository implements PasswordUpgraderInter
     /**
      * @throws Exception
      */
-    public function isFirstAdmin(): bool
+    public function isAdminExists(): bool
     {
         $conn = $this->getEntityManager()->getConnection();
 
-        $sql = 'SELECT 1 FROM "user" u WHERE u.id = :id AND u.roles::jsonb @> :role LIMIT 1';
+        $sql = 'SELECT 1 FROM "user" u WHERE u.roles::jsonb @> :role LIMIT 1';
         $stmt = $conn->prepare($sql);
 
         $result = $stmt->executeQuery([
-            'id' => 1,
-            'role' => json_encode(['ROLE_ADMIN']),
+            'role' => json_encode([Role::ADMIN->value]),
         ]);
 
         return (bool)$result->fetchOne();

@@ -14,6 +14,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Enum\Role;
+use ValueError;
 
 #[AsCommand(
     name: 'app:create-user',
@@ -33,7 +35,7 @@ class CreateUserCommand extends Command
         $this
             ->addArgument('email', InputArgument::REQUIRED)
             ->addArgument('password', InputArgument::REQUIRED)
-            ->addArgument('role', InputArgument::OPTIONAL, 'User role', 'ROLE_USER');
+            ->addArgument('role', InputArgument::OPTIONAL, 'User role', Role::USER->value);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -49,13 +51,26 @@ class CreateUserCommand extends Command
         /**
          * @var string $role
          */
-        $role = $input->getArgument('role') ?? '';
+        $role = $input->getArgument('role');
         $io = new SymfonyStyle($input, $output);
+
+        try {
+            $roleEnum = Role::from($role);
+        } catch (ValueError) {
+            $io->error(sprintf(
+                'Invalid role "%s". Available: %s',
+                $role,
+                implode(', ', array_column(Role::cases(), 'value'))
+            ));
+
+            return Command::FAILURE;
+        }
+
         $dto = new RegistrationUserRequest();
         $dto
             ->setEmail($email)
             ->setPlainPassword($password)
-            ->setRole($role);
+            ->setRole($roleEnum);
 
         $violations = $this->validator->validate($dto);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto\Request;
 
+use App\Enum\Role;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class RegistrationUserRequest
@@ -21,8 +22,9 @@ class RegistrationUserRequest
     )]
     public string $plainPassword;
 
-    #[Assert\Choice(['ROLE_USER', 'ROLE_ADMIN'])]
-    public string $role = 'ROLE_USER';
+    #[Assert\NotNull]
+    #[Assert\Type(Role::class)]
+    public Role $role = Role::USER;
 
     public function getEmail(): string
     {
@@ -48,12 +50,12 @@ class RegistrationUserRequest
         return $this;
     }
 
-    public function getRole(): string
+    public function getRole(): Role
     {
         return $this->role;
     }
 
-    public function setRole(string $role): static
+    public function setRole(Role $role): static
     {
         $this->role = $role;
 
