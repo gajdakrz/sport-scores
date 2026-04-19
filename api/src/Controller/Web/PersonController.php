@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Dto\Filter\PersonFilterDto;
 use App\Entity\Person;
 use App\Entity\User;
@@ -65,30 +66,29 @@ final class PersonController extends BaseController
         $person = new Person();
         $person->setCreatedBy($user);
         $person->setModifiedBy($user);
-        $currentSport = $currentSportProvider->getSport();
-
-        if (!$currentSport) {
-            $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('person_index');
-        }
+        $currentSport = $currentSportProvider->requireSport();
 
         $form = $this->createForm(PersonType::class, $person, [
             'current_sport' => $currentSport,
         ]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $person->setSport($currentSport);
-            $em->persist($person);
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Person created.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('person/_modal.html.twig', [
+                'form' => $form->createView(),
+                'person' => $person,
+            ]);
         }
 
-        return $this->render('person/_modal.html.twig', [
-            'form' => $form->createView(),
-            'person' => $person,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $person->setSport($currentSport);
+        $em->persist($currentSport);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Person created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'person_edit', methods: ['GET', 'POST'])]
@@ -100,16 +100,20 @@ final class PersonController extends BaseController
         $form = $this->createForm(PersonType::class, $person);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Person updated.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('person/_modal.html.twig', [
+                'form' => $form->createView(),
+                'person' => $person,
+            ]);
         }
 
-        return $this->render('person/_modal.html.twig', [
-            'form' => $form->createView(),
-            'person' => $person,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Person updated.']);
     }
 
     #[Route('/{id}', name: 'person_delete', methods: ['POST'])]

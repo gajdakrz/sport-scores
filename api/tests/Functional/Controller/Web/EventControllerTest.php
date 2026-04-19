@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Controller;
+namespace App\Tests\Functional\Controller\Web;
 
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-final class GameResultControllerTest extends WebTestCase
+final class EventControllerTest extends WebTestCase
 {
     private const string USER_EMAIL_TEST = 'test@example.com';
 
@@ -19,7 +19,7 @@ final class GameResultControllerTest extends WebTestCase
         $user = $userRepository->findOneBy(['email' => self::USER_EMAIL_TEST]);
         $this->assertNotNull($user);
         $client->loginUser($user);
-        $client->request('GET', '/game-results');
+        $client->request('GET', '/events');
         $this->assertResponseIsSuccessful();
     }
 }

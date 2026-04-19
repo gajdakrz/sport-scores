@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Entity\Season;
 use App\Entity\User;
 use App\Form\SeasonType;
@@ -47,19 +48,14 @@ final class SeasonController extends BaseController
             ]);
         }
 
-        if ($form->isValid()) {
-            $em->persist($season);
-            $em->flush();
-        } else {
-            $errors = $form->getErrors(true);
-
-            /** @var FormError $error */
-            foreach ($errors as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
         }
 
-        return new JsonResponse(['success' => true, 'message' => 'Season created.']);
+        $em->persist($season);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Season created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'season_edit', methods: ['GET', 'POST'])]
@@ -78,16 +74,11 @@ final class SeasonController extends BaseController
             ]);
         }
 
-        if ($form->isValid()) {
-            $em->flush();
-        } else {
-            $errors = $form->getErrors(true);
-
-            /** @var FormError $error */
-            foreach ($errors as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
         }
+
+        $em->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Season updated.']);
     }

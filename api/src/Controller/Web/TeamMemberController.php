@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Dto\Filter\TeamMemberFilterDto;
 use App\Entity\TeamMember;
 use App\Entity\User;
-use App\Exception\CustomBadRequestException;
 use App\Form\TeamMemberType;
 use App\Repository\SeasonRepository;
 use App\Repository\TeamMemberRepository;
@@ -17,12 +17,12 @@ use App\Service\TeamMemberService;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/team-members')]
@@ -70,30 +70,30 @@ final class TeamMemberController extends BaseController
         $teamMember = new TeamMember();
         $teamMember->setCreatedBy($user);
         $teamMember->setModifiedBy($user);
-        $currentSport = $currentSportProvider->getSport();
-
-        if (!$currentSport) {
-            $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('team_member_index');
-        }
+        $currentSport = $currentSportProvider->requireSport();
 
         $form = $this->createForm(TeamMemberType::class, $teamMember, [
             'current_sport' => $currentSport,
         ]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->teamMemberService->saveTeamMember($teamMember);
 
-            return new JsonResponse(['success' => true, 'message' => 'Team member created.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('team_member/_modal.html.twig', [
+                'form' => $form->createView(),
+                'teamMember' => $teamMember,
+                'initialTeam' => null,
+                'initialPerson' => null,
+            ]);
         }
 
-        return $this->render('team_member/_modal.html.twig', [
-            'form' => $form->createView(),
-            'teamMember' => $teamMember,
-            'initialTeam' => null,
-            'initialPerson' => null,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $this->teamMemberService->saveTeamMember($teamMember);
+
+        return new JsonResponse(['success' => true, 'message' => 'Team member created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'team_member_edit', methods: ['GET', 'POST'])]
@@ -105,18 +105,22 @@ final class TeamMemberController extends BaseController
         $form = $this->createForm(TeamMemberType::class, $teamMember);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->teamMemberService->saveTeamMember($teamMember);
-
-            return new JsonResponse(['success' => true, 'message' => 'Team member updated.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('team_member/_modal.html.twig', [
+                'form' => $form->createView(),
+                'teamMember' => $teamMember,
+                'initialTeam' => $teamMember->getTeam(),
+                'initialPerson' => $teamMember->getPerson(),
+            ]);
         }
 
-        return $this->render('team_member/_modal.html.twig', [
-            'form' => $form->createView(),
-            'teamMember' => $teamMember,
-            'initialTeam' => $teamMember->getTeam(),
-            'initialPerson' => $teamMember->getPerson(),
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $this->teamMemberService->saveTeamMember($teamMember);
+
+        return new JsonResponse(['success' => true, 'message' => 'Team member updated.']);
     }
 
     #[Route('/{id}', name: 'team_member_delete', methods: ['POST'])]

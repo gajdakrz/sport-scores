@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Dto\Filter\GameResultFilterDto;
 use App\Entity\GameResult;
 use App\Entity\User;
@@ -63,12 +64,7 @@ final class GameResultController extends BaseController
         $gameResult = new GameResult();
         $gameResult->setCreatedBy($user);
         $gameResult->setModifiedBy($user);
-        $currentSport = $currentSportProvider->getSport();
-
-        if (!$currentSport) {
-            $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('game_result_index');
-        }
+        $currentSport = $currentSportProvider->requireSport();
 
         $form = $this->createForm(GameResultType::class, $gameResult, [
             'include_game' => true,
@@ -84,19 +80,14 @@ final class GameResultController extends BaseController
             ]);
         }
 
-        if ($form->isValid()) {
-            $em->persist($gameResult);
-            $em->flush();
-        } else {
-            $errors = $form->getErrors(true);
-
-            /** @var FormError $error */
-            foreach ($errors as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
         }
 
-        return new JsonResponse(['success' => true, 'message' => 'Game result created.']);
+        $em->persist($gameResult);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Game result created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'game_result_edit', methods: ['GET', 'POST'])]
@@ -115,16 +106,11 @@ final class GameResultController extends BaseController
             ]);
         }
 
-        if ($form->isValid()) {
-            $em->flush();
-        } else {
-            $errors = $form->getErrors(true);
-
-            /** @var FormError $error */
-            foreach ($errors as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
         }
+
+        $em->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Game result updated.']);
     }

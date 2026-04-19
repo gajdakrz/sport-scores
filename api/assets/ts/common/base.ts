@@ -157,9 +157,22 @@ export class AppBase {
                     return;
                 }
                 isLoading = true;
-                fetch(newUrl)
-                    .then(res => res.text())
-                    .then(openModal)
+                fetch(newUrl, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(async res => {
+                        const contentType = res.headers.get('Content-Type') ?? '';
+                        if (contentType.includes('application/json')) {
+                            const json = await res.json();
+                            if (!json.success) {
+                                AppBase.showFlash('danger', json.errors?.[0]?.message ?? 'Error');
+                            }
+                            isLoading = false;
+                            return;
+                        }
+                        return res.text();
+                    })
+                    .then(html => { if (html) openModal(html); })
                     .catch(() => { isLoading = false; });
             });
         }
@@ -172,7 +185,9 @@ export class AppBase {
                 const url = btn.dataset.url;
                 if (url) {
                     isLoading = true;
-                    fetch(url)
+                    fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
                         .then(res => res.text())
                         .then(openModal)
                         .catch(() => { isLoading = false; });

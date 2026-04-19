@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Entity\Competition;
 use App\Entity\User;
 use App\Form\CompetitionType;
@@ -45,30 +46,30 @@ final class CompetitionController extends BaseController
         $competition = new Competition();
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
-        $currentSport = $currentSportProvider->getSport();
-
-        if (!$currentSport) {
-            $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('competition_index');
-        }
+        $currentSport = $currentSportProvider->requireSport();
 
         $form = $this->createForm(CompetitionType::class, $competition, [
             'current_sport' => $currentSport,
         ]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $competition->setSport($currentSport);
-            $em->persist($competition);
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Competition created.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('competition/_modal.html.twig', [
+                'form' => $form->createView(),
+                'competition' => $competition,
+            ]);
         }
 
-        return $this->render('competition/_modal.html.twig', [
-            'form' => $form->createView(),
-            'competition' => $competition,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $competition->setSport($currentSport);
+        $em->persist($competition);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Competition created.'], Response::HTTP_CREATED);
+
     }
 
     #[Route('/{id}/edit', name: 'competition_edit', methods: ['GET', 'POST'])]
@@ -80,16 +81,21 @@ final class CompetitionController extends BaseController
         $form = $this->createForm(CompetitionType::class, $competition);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
 
-            return new JsonResponse(['success' => true, 'message' => 'Competition updated.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('competition/_modal.html.twig', [
+                'form' => $form->createView(),
+                'competition' => $competition,
+            ]);
         }
 
-        return $this->render('competition/_modal.html.twig', [
-            'form' => $form->createView(),
-            'competition' => $competition,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Competition updated.']);
     }
 
     #[Route('/{id}', name: 'competition_delete', methods: ['POST'])]

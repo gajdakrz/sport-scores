@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Entity\Sport;
 use App\Entity\User;
 use App\Form\SportType;
@@ -39,17 +40,21 @@ final class SportController extends BaseController
         $form = $this->createForm(SportType::class, $sport);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($sport);
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Sport created.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('sport/_modal.html.twig', [
+                'form' => $form->createView(),
+                'sport' => $sport,
+            ]);
         }
 
-        return $this->render('sport/_modal.html.twig', [
-            'form' => $form->createView(),
-            'sport' => $sport,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->persist($sport);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Sport created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'sport_edit', methods: ['GET', 'POST'])]
@@ -61,16 +66,20 @@ final class SportController extends BaseController
         $form = $this->createForm(SportType::class, $sport);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Sport updated.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('sport/_modal.html.twig', [
+                'form' => $form->createView(),
+                'sport' => $sport,
+            ]);
         }
 
-        return $this->render('sport/_modal.html.twig', [
-            'form' => $form->createView(),
-            'sport' => $sport,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Sport updated.']);
     }
 
     #[Route('/{id}', name: 'sport_delete', methods: ['POST'])]

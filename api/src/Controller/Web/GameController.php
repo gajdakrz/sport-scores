@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Dto\Filter\GameFilterDto;
 use App\Entity\Game;
 use App\Entity\User;
 use App\Enum\Gender;
+use App\Exception\CustomBadRequestException;
 use App\Form\GameType;
 use App\Repository\CompetitionRepository;
 use App\Repository\EventRepository;
@@ -72,12 +74,7 @@ final class GameController extends BaseController
         $game = new Game();
         $game->setCreatedBy($user);
         $game->setModifiedBy($user);
-        $currentSport = $currentSportProvider->getSport();
-
-        if (!$currentSport) {
-            $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('game_index');
-        }
+        $currentSport = $currentSportProvider->requireSport();
 
         $form = $this->createForm(GameType::class, $game, [
             'current_sport' => $currentSport,
@@ -94,18 +91,15 @@ final class GameController extends BaseController
             ]);
         }
 
-        if ($form->isValid()) {
-            $gameResultHandler->handle($game, $user);
-            $em->persist($game);
-            $em->flush();
-        } else {
-            /** @var FormError $error */
-            foreach ($form->getErrors(true) as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
         }
 
-        return new JsonResponse(['success' => true, 'message' => 'Game created.']);
+        $gameResultHandler->handle($game, $user);
+        $em->persist($game);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Game created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'game_edit', methods: ['GET', 'POST'])]
@@ -136,16 +130,13 @@ final class GameController extends BaseController
             ]);
         }
 
-        if ($form->isValid()) {
-            $gameResultHandler->handle($game, $user);
-            $em->persist($game);
-            $em->flush();
-        } else {
-            /** @var FormError $error */
-            foreach ($form->getErrors(true) as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
         }
+
+        $gameResultHandler->handle($game, $user);
+        $em->persist($game);
+        $em->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Game updated.']);
     }

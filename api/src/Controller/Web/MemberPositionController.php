@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Entity\MemberPosition;
 use App\Entity\User;
 use App\Form\MemberPositionType;
@@ -45,31 +46,29 @@ final class MemberPositionController extends BaseController
         $memberPosition = new MemberPosition();
         $memberPosition->setCreatedBy($user);
         $memberPosition->setModifiedBy($user);
-        $currentSport = $currentSportProvider->getSport();
-
-        if (!$currentSport) {
-            $this->addFlash('danger', 'Sport not selected');
-
-            return $this->redirectToRoute('member_position_index');
-        }
+        $currentSport = $currentSportProvider->requireSport();
 
         $form = $this->createForm(MemberPositionType::class, $memberPosition, [
             'current_sport' => $currentSport,
         ]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $memberPosition->setSport($currentSport);
-            $em->persist($memberPosition);
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Member position created.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('member_position/_modal.html.twig', [
+                'form' => $form->createView(),
+                'memberPosition' => $memberPosition,
+            ]);
         }
 
-        return $this->render('member_position/_modal.html.twig', [
-            'form' => $form->createView(),
-            'memberPosition' => $memberPosition,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $memberPosition->setSport($currentSport);
+        $em->persist($memberPosition);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Member position created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'member_position_edit', methods: ['GET', 'POST'])]
@@ -81,16 +80,20 @@ final class MemberPositionController extends BaseController
         $form = $this->createForm(MemberPositionType::class, $memberPosition);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Member position updated.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('member_position/_modal.html.twig', [
+                'form' => $form->createView(),
+                'memberPosition' => $memberPosition,
+            ]);
         }
 
-        return $this->render('member_position/_modal.html.twig', [
-            'form' => $form->createView(),
-            'memberPosition' => $memberPosition,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Member position updated.']);
     }
 
     #[Route('/{id}', name: 'member_position_delete', methods: ['POST'])]

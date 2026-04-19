@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Dto\Filter\EventFilterDto;
 use App\Entity\Event;
 use App\Entity\User;
@@ -59,13 +60,7 @@ final class EventController extends BaseController
         $event = new Event();
         $event->setCreatedBy($user);
         $event->setModifiedBy($user);
-
-        $currentSport = $currentSportProvider->getSport();
-
-        if (!$currentSport) {
-            $this->addFlash('danger', 'Sport not selected');
-            return $this->redirectToRoute('event_index');
-        }
+        $currentSport = $currentSportProvider->requireSport();
 
         $form = $this->createForm(EventType::class, $event, [
             'current_sport' => $currentSport,
@@ -73,19 +68,23 @@ final class EventController extends BaseController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($event);
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Event created.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('event/_modal.html.twig', [
+                'form' => $form->createView(),
+                'event' => $event,
+                'initialSport' => null,
+                'initialCompetition' => null,
+            ]);
         }
 
-        return $this->render('event/_modal.html.twig', [
-            'form' => $form->createView(),
-            'event' => $event,
-            'initialSport' => null,
-            'initialCompetition' => null,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->persist($event);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Event created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'event_edit', methods: ['GET', 'POST'])]
@@ -101,18 +100,22 @@ final class EventController extends BaseController
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Event updated.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('event/_modal.html.twig', [
+                'form' => $form->createView(),
+                'event' => $event,
+                'initialSport' => $sport,
+                'initialCompetition' => $competition,
+            ]);
         }
 
-        return $this->render('event/_modal.html.twig', [
-            'form' => $form->createView(),
-            'event' => $event,
-            'initialSport' => $sport,
-            'initialCompetition' => $competition,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Event updated.']);
     }
 
     #[Route('/{id}', name: 'event_delete', methods: ['POST'])]

@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Controller;
+namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\MemberPosition;
-use App\Entity\Sport;
 use App\Repository\MemberPositionRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
@@ -73,17 +72,20 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->assertTrue($position->isActive());
     }
 
-    public function testNewRedirectsWhenNoSportSelected(): void
+    public function testNewReturnsBadRequestWhenNoSportSelected(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
 
-        $client->request('GET', '/member-positions/new');
+        $client->request('GET', '/member-positions/new', [], [], [
+            'HTTP_X-Requested-With' => 'XMLHttpRequest',
+        ]);
 
-        $this->assertResponseRedirects('/member-positions');
-        $client->followRedirect();
+        $this->assertResponseStatusCodeSame(400);
 
-        $this->assertSelectorExists('.alert, .flash-message');
+        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('errors', $data);
+        $this->assertSame('Sport not selected', $data['errors'][0]['message']);
     }
 
     public function testEditDisplaysForm(): void

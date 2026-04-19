@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Dto\Filter\TeamDetailFilterDto;
 use App\Dto\Filter\TeamFilterDto;
 use App\Dto\Filter\TeamGameResultFilterDto;
@@ -70,31 +71,29 @@ final class TeamController extends BaseController
         $team = new Team();
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
-        $currentSport = $currentSportProvider->getSport();
-
-        if (!$currentSport) {
-            $this->addFlash('danger', 'Sport not selected');
-
-            return $this->redirectToRoute('team_index');
-        }
+        $currentSport = $currentSportProvider->requireSport();
 
         $form = $this->createForm(TeamType::class, $team, [
             'current_sport' => $currentSport,
         ]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $team->setSport($currentSport);
-            $em->persist($team);
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Team created.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('team/_modal.html.twig', [
+                'form' => $form->createView(),
+                'team' => $team,
+            ]);
         }
 
-        return $this->render('team/_modal.html.twig', [
-            'form' => $form->createView(),
-            'team' => $team,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $team->setSport($currentSport);
+        $em->persist($team);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Team created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'team_edit', methods: ['GET', 'POST'])]
@@ -106,16 +105,20 @@ final class TeamController extends BaseController
         $form = $this->createForm(TeamType::class, $team);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Team updated.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('team/_modal.html.twig', [
+                'form' => $form->createView(),
+                'team' => $team,
+            ]);
         }
 
-        return $this->render('team/_modal.html.twig', [
-            'form' => $form->createView(),
-            'team' => $team,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Team updated.']);
     }
 
     #[Route('/{id}', name: 'team_delete', methods: ['POST'])]

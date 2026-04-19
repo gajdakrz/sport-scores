@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Sport;
+use App\Exception\CustomBadRequestException;
 use App\Repository\SportRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -34,5 +35,17 @@ readonly class CurrentSportProvider
     public function getSportName(): ?string
     {
         return $this->getSport()?->getName();
+    }
+
+    public function requireSport(): Sport
+    {
+        $sport = $this->getSport();
+        if (!$sport) {
+            throw new CustomBadRequestException([
+                ['message' => 'Sport not selected', 'field' => '']
+            ]);
+        }
+
+        return $sport;
     }
 }

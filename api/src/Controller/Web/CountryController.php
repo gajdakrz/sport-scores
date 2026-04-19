@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Web;
 
+use App\Controller\BaseController;
 use App\Entity\Country;
 use App\Entity\User;
 use App\Form\CountryType;
@@ -39,17 +40,21 @@ final class CountryController extends BaseController
         $form = $this->createForm(CountryType::class, $country);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($country);
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Country created.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('country/_modal.html.twig', [
+                'form' => $form->createView(),
+                'country' => $country,
+            ]);
         }
 
-        return $this->render('country/_modal.html.twig', [
-            'form' => $form->createView(),
-            'country' => $country,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->persist($country);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Country created.'], Response::HTTP_CREATED);
     }
 
     #[Route('/{id}/edit', name: 'country_edit', methods: ['GET', 'POST'])]
@@ -61,16 +66,20 @@ final class CountryController extends BaseController
         $form = $this->createForm(CountryType::class, $country);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Country updated.']);
+        if (!$form->isSubmitted()) {
+            return $this->render('country/_modal.html.twig', [
+                'form' => $form->createView(),
+                'country' => $country,
+            ]);
         }
 
-        return $this->render('country/_modal.html.twig', [
-            'form' => $form->createView(),
-            'country' => $country,
-        ]);
+        if (!$form->isValid()) {
+            $this->throwFormErrors($form);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Country updated.']);
     }
 
     #[Route('/{id}', name: 'country_delete', methods: ['POST'])]
