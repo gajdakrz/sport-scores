@@ -8,6 +8,8 @@ use App\Entity\MemberPosition;
 use App\Repository\MemberPositionRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -15,7 +17,9 @@ final class MemberPositionControllerTest extends WebTestCase
 {
     use ControllerTestTrait;
 
-    public function testIndex(): void
+    #[Test]
+    #[TestDox('Index page is accessible for authenticated user')]
+    public function indexIsAccessibleForAuthenticatedUser(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
@@ -25,7 +29,9 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testNewDisplaysForm(): void
+    #[Test]
+    #[TestDox('New page displays the member position form')]
+    public function newPageDisplaysForm(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
@@ -37,7 +43,9 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->assertSelectorExists('form');
     }
 
-    public function testNewCreatesMemberPosition(): void
+    #[Test]
+    #[TestDox('Submitting the new form creates a member position in the database')]
+    public function submittingNewFormCreatesMemberPosition(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
@@ -60,7 +68,6 @@ final class MemberPositionControllerTest extends WebTestCase
         $client->submit($form, $formData);
 
         $data = $this->assertJsonSuccessResponse($client);
-
         $this->assertTrue($data['success']);
 
         /** @var MemberPositionRepository $repository */
@@ -72,7 +79,9 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->assertTrue($position->isActive());
     }
 
-    public function testNewReturnsBadRequestWhenNoSportSelected(): void
+    #[Test]
+    #[TestDox('New endpoint returns 400 with error message when no sport is selected')]
+    public function newReturnsBadRequestWhenNoSportSelected(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
@@ -83,12 +92,18 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(400);
 
-        $data = json_decode($client->getResponse()->getContent(), true);
+        $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
-        $this->assertSame('Sport not selected', $data['errors'][0]['message']);
+
+        $errors = $data['errors'];
+        $this->assertIsArray($errors);
+        $this->assertIsArray($errors[0]);
+        $this->assertSame('Sport not selected', $errors[0]['message']);
     }
 
-    public function testEditDisplaysForm(): void
+    #[Test]
+    #[TestDox('Edit page displays the member position form prefilled with existing data')]
+    public function editPageDisplaysForm(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
@@ -101,7 +116,9 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->assertSelectorExists('form');
     }
 
-    public function testEditUpdatesMemberPosition(): void
+    #[Test]
+    #[TestDox('Submitting the edit form updates the member position in the database')]
+    public function submittingEditFormUpdatesMemberPosition(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
@@ -141,7 +158,9 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->assertNotEquals($originalName, $updatedPosition->getName());
     }
 
-    public function testDeleteSoftMemberPosition(): void
+    #[Test]
+    #[TestDox('Delete request soft-deletes the member position by setting it as inactive')]
+    public function deleteSoftDeletesMemberPosition(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
@@ -175,7 +194,9 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->assertFalse($deletedPosition->isActive());
     }
 
-    public function testDeleteRequiresValidCsrfToken(): void
+    #[Test]
+    #[TestDox('Delete request with invalid CSRF token returns 403 and leaves position active')]
+    public function deleteWithInvalidCsrfTokenReturnsForbidden(): void
     {
         $client = MemberPositionControllerTest::createClient();
         $this->loginAsTestUser($client);
@@ -204,7 +225,9 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->assertTrue($stillActivePosition->isActive());
     }
 
-    public function testIndexRequiresAuthentication(): void
+    #[Test]
+    #[TestDox('Index page redirects unauthenticated users to the login page')]
+    public function indexRedirectsUnauthenticatedUsers(): void
     {
         $client = MemberPositionControllerTest::createClient();
 
@@ -212,6 +235,10 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $this->assertResponseRedirects();
     }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     private function createTestMemberPosition(): MemberPosition
     {
@@ -234,7 +261,6 @@ final class MemberPositionControllerTest extends WebTestCase
     }
 
     /**
-     * @param KernelBrowser $client
      * @return array<string, mixed>
      */
     private function assertJsonSuccessResponse(KernelBrowser $client): array
