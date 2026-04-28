@@ -59,6 +59,9 @@ class PersonRepository extends AbstractRepository
     /**
      * @param string $orderBy
      * @param string $direction
+     * @param ?Sport $sport
+     * @param ?int $currentTeamId
+     * @param TeamFilter $teamFilter
      * @return Person[]
      */
     public function findActiveSortedBy(

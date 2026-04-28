@@ -25,6 +25,10 @@ class SecurityController extends BaseController
         ]);
     }
 
+    /**
+     * This is Symfony convention
+     * @codeCoverageIgnore
+     */
     #[Route(path: '/logout', name: 'app_logout')]
     public function logout(): void
     {

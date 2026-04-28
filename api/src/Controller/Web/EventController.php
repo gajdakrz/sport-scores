@@ -142,17 +142,16 @@ final class EventController extends BaseController
     #[Route('/by-competition/{competitionId}', name: 'event_by_competition', methods: ['GET'])]
     public function findByCompetition(
         EventRepository $eventRepository,
+        CompetitionRepository $competitionRepository,
         CurrentSportProvider $currentSportProvider,
         int $competitionId
     ): JsonResponse {
         $result = [];
 
-        $competition = $eventRepository->find($competitionId);
+        $competition = $competitionRepository->find($competitionId);
 
         if (
-            $competition !== null
-            && $competition->getCompetition() !== null
-            && $currentSportProvider->getSport() !== $competition->getCompetition()->getSport()
+            $competition !== null && $currentSportProvider->getSport() !== $competition->getSport()
         ) {
             return $this->json($result);
         }

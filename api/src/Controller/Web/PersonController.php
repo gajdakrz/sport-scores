@@ -85,7 +85,7 @@ final class PersonController extends BaseController
         }
 
         $person->setSport($currentSport);
-        $em->persist($currentSport);
+        $em->persist($person);
         $em->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Person created.'], Response::HTTP_CREATED);

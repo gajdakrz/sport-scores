@@ -7,6 +7,7 @@ namespace App\Controller\Api;
 use App\Controller\BaseController;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[OA\Tag('actuator')]
@@ -33,6 +34,6 @@ class HealthCheckController extends BaseController
     #[Route('/api/v1/actuator/healthcheck', name: 'healthcheck', methods: 'GET')]
     public function health(): JsonResponse
     {
-        return $this->json(['status' => JsonResponse::$statusTexts[JsonResponse::HTTP_OK]]);
+        return $this->json(['status' => JsonResponse::$statusTexts[Response::HTTP_OK]]);
     }
 }
