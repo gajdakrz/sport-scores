@@ -12,6 +12,7 @@ use App\Exception\CustomBadRequestException;
 use App\Repository\TeamMemberRepository;
 use App\Service\TeamMemberService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,8 +34,9 @@ class TeamMemberServiceTest extends TestCase
         );
     }
 
+    #[Test]
     #[TestDox('Persists new TeamMember when ID is null')]
-    public function testSaveTeamMemberPersistsWhenIdIsNull(): void
+    public function saveTeamMemberPersistsWhenIdIsNull(): void
     {
         $teamMember = $this->createTeamMember(id: null, isCurrentMember: false);
 
@@ -51,8 +53,9 @@ class TeamMemberServiceTest extends TestCase
         $this->service->saveTeamMember($teamMember);
     }
 
+    #[Test]
     #[TestDox('Does not persist when TeamMember already has an ID')]
-    public function testSaveTeamMemberDoesNotPersistWhenIdIsSet(): void
+    public function saveTeamMemberDoesNotPersistWhenIdIsSet(): void
     {
         $teamMember = $this->createTeamMember(id: 5, isCurrentMember: false);
 
@@ -68,8 +71,9 @@ class TeamMemberServiceTest extends TestCase
         $this->service->saveTeamMember($teamMember);
     }
 
+    #[Test]
     #[TestDox('Skips current member handling when isCurrentMember is false')]
-    public function testSaveTeamMemberSkipsHandlingWhenNotCurrentMember(): void
+    public function saveTeamMemberSkipsHandlingWhenNotCurrentMember(): void
     {
         $teamMember = $this->createTeamMember(id: null, isCurrentMember: false);
 
@@ -84,8 +88,9 @@ class TeamMemberServiceTest extends TestCase
         $this->service->saveTeamMember($teamMember);
     }
 
+    #[Test]
     #[TestDox('Sets current team on person when no current member exists')]
-    public function testSaveTeamMemberSetsCurrentTeamWhenNoCurrentMemberExists(): void
+    public function saveTeamMemberSetsCurrentTeamWhenNoCurrentMemberExists(): void
     {
         $team = $this->createMock(Team::class);
         $person = $this->createMock(Person::class);
@@ -104,8 +109,9 @@ class TeamMemberServiceTest extends TestCase
         $this->service->saveTeamMember($teamMember);
     }
 
+    #[Test]
     #[TestDox('Sets current team when existing current member is the same object')]
-    public function testSaveTeamMemberSetsCurrentTeamWhenCurrentMemberIsSameObject(): void
+    public function saveTeamMemberSetsCurrentTeamWhenCurrentMemberIsSameObject(): void
     {
         $team = $this->createMock(Team::class);
         $person = $this->createMock(Person::class);
@@ -124,8 +130,9 @@ class TeamMemberServiceTest extends TestCase
         $this->service->saveTeamMember($teamMember);
     }
 
+    #[Test]
     #[TestDox('Throws CustomBadRequestException when current member exists for same team and season')]
-    public function testSaveTeamMemberThrowsWhenCurrentMemberExistsForSameTeamAndSeason(): void
+    public function saveTeamMemberThrowsWhenCurrentMemberExistsForSameTeamAndSeason(): void
     {
         $team = $this->createMock(Team::class);
         $season = $this->createMock(Season::class);
@@ -159,8 +166,9 @@ class TeamMemberServiceTest extends TestCase
         $this->service->saveTeamMember($newMember);
     }
 
+    #[Test]
     #[TestDox('Deactivates old current member and sets new one when team differs')]
-    public function testSaveTeamMemberDeactivatesOldCurrentMemberAndSetsNewOne(): void
+    public function saveTeamMemberDeactivatesOldCurrentMemberAndSetsNewOne(): void
     {
         $oldTeam = $this->createMock(Team::class);
         $newTeam = $this->createMock(Team::class);
@@ -184,6 +192,10 @@ class TeamMemberServiceTest extends TestCase
 
         $this->service->saveTeamMember($newMember);
     }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     private function createTeamMember(
         ?int $id,

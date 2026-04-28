@@ -12,6 +12,8 @@ use App\Repository\UserRepository;
 use App\Service\RegistrationUserService;
 use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -36,7 +38,9 @@ class RegistrationUserServiceTest extends TestCase
         );
     }
 
-    public function testRegisterThrowsConflictWhenEmailAlreadyExists(): void
+    #[Test]
+    #[TestDox('Throws conflict exception when email already exists')]
+    public function registerThrowsConflictWhenEmailAlreadyExists(): void
     {
         $dto = $this->createDto('existing@example.com', Role::ADMIN, 'password123');
 
@@ -51,7 +55,9 @@ class RegistrationUserServiceTest extends TestCase
         $this->service->register($dto);
     }
 
-    public function testRegisterThrowsConflictWhenNoAdminRegisteredYetAndRoleIsUser(): void
+    #[Test]
+    #[TestDox('Throws conflict exception when no admin registered yet and role is user')]
+    public function registerThrowsConflictWhenNoAdminRegisteredYetAndRoleIsUser(): void
     {
         $dto = $this->createDto('user@example.com', Role::USER, 'password123');
 
@@ -72,7 +78,9 @@ class RegistrationUserServiceTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testRegisterCreatesAdminSuccessfullyWhenNoAdminExists(): void
+    #[Test]
+    #[TestDox('Creates admin successfully when no admin exists yet')]
+    public function registerCreatesAdminSuccessfullyWhenNoAdminExists(): void
     {
         $dto = $this->createDto('admin@example.com', Role::ADMIN, 'secret');
 
@@ -99,7 +107,9 @@ class RegistrationUserServiceTest extends TestCase
         $this->assertEquals('hashed_secret', $user->getPassword());
     }
 
-    public function testRegisterCreatesUserSuccessfullyWhenAdminAlreadyExists(): void
+    #[Test]
+    #[TestDox('Creates user successfully when admin already exists')]
+    public function registerCreatesUserSuccessfullyWhenAdminAlreadyExists(): void
     {
         $dto = $this->createDto('user@example.com', Role::USER, 'password123');
 
@@ -124,7 +134,9 @@ class RegistrationUserServiceTest extends TestCase
         $this->assertContains(Role::USER->value, $user->getRoles());
     }
 
-    public function testRegisterHashesPasswordBeforeSaving(): void
+    #[Test]
+    #[TestDox('Hashes password before saving user')]
+    public function registerHashesPasswordBeforeSaving(): void
     {
         $dto = $this->createDto('user@example.com', Role::ADMIN, 'plaintext');
 
@@ -145,7 +157,9 @@ class RegistrationUserServiceTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testRegisterDoesNotPersistWhenEmailAlreadyExists(): void
+    #[Test]
+    #[TestDox('Does not persist user when email already exists')]
+    public function registerDoesNotPersistWhenEmailAlreadyExists(): void
     {
         $dto = $this->createDto('existing@example.com', Role::ADMIN, 'password');
 
@@ -158,6 +172,10 @@ class RegistrationUserServiceTest extends TestCase
 
         $this->service->register($dto);
     }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     private function createDto(string $email, Role $role, string $plainPassword): RegistrationUserRequest
     {

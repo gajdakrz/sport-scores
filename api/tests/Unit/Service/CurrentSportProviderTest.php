@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Entity\Sport;
 use App\Repository\SportRepository;
 use App\Service\CurrentSportProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -35,8 +36,9 @@ class CurrentSportProviderTest extends TestCase
         );
     }
 
+    #[Test]
     #[TestDox('Returns null when no sport ID in session')]
-    public function testGetSportReturnsNullWhenNoSportIdInSession(): void
+    public function getSportReturnsNullWhenNoSportIdInSession(): void
     {
         $this->session->method('get')->with('current_sport_id')->willReturn(null);
 
@@ -45,8 +47,9 @@ class CurrentSportProviderTest extends TestCase
         $this->assertNull($this->provider->getSport());
     }
 
+    #[Test]
     #[TestDox('Returns Sport when sport ID exists in session and sport is found')]
-    public function testGetSportReturnsSportWhenFoundById(): void
+    public function getSportReturnsSportWhenFoundById(): void
     {
         $sport = $this->createMock(Sport::class);
 
@@ -56,8 +59,9 @@ class CurrentSportProviderTest extends TestCase
         $this->assertSame($sport, $this->provider->getSport());
     }
 
+    #[Test]
     #[TestDox('Returns null when sport ID exists in session but sport is not found in repository')]
-    public function testGetSportReturnsNullWhenSportNotFoundInRepository(): void
+    public function getSportReturnsNullWhenSportNotFoundInRepository(): void
     {
         $this->session->method('get')->with('current_sport_id')->willReturn(99);
         $this->sportRepository->method('find')->with(99)->willReturn(null);
@@ -65,16 +69,18 @@ class CurrentSportProviderTest extends TestCase
         $this->assertNull($this->provider->getSport());
     }
 
+    #[Test]
     #[TestDox('Returns null from getSportId when no sport in session')]
-    public function testGetSportIdReturnsNullWhenNoSportInSession(): void
+    public function getSportIdReturnsNullWhenNoSportInSession(): void
     {
         $this->session->method('get')->with('current_sport_id')->willReturn(null);
 
         $this->assertNull($this->provider->getSportId());
     }
 
+    #[Test]
     #[TestDox('Returns sport ID when sport exists')]
-    public function testGetSportIdReturnsSportId(): void
+    public function getSportIdReturnsSportId(): void
     {
         $sport = $this->createMock(Sport::class);
         $sport->method('getId')->willReturn(5);
@@ -85,16 +91,18 @@ class CurrentSportProviderTest extends TestCase
         $this->assertEquals(5, $this->provider->getSportId());
     }
 
+    #[Test]
     #[TestDox('Returns null from getSportName when no sport in session')]
-    public function testGetSportNameReturnsNullWhenNoSportInSession(): void
+    public function getSportNameReturnsNullWhenNoSportInSession(): void
     {
         $this->session->method('get')->with('current_sport_id')->willReturn(null);
 
         $this->assertNull($this->provider->getSportName());
     }
 
+    #[Test]
     #[TestDox('Returns sport name when sport exists')]
-    public function testGetSportNameReturnsSportName(): void
+    public function getSportNameReturnsSportName(): void
     {
         $sport = $this->createMock(Sport::class);
         $sport->method('getName')->willReturn('Football');

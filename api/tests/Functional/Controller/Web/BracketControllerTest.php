@@ -21,93 +21,6 @@ final class BracketControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestCompetition(): Competition
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-        $sport = $this->createTestSport();
-
-        $competition = new Competition();
-        $competition->setName('Test Competition ' . uniqid());
-        $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
-        $competition->setCreatedBy($user);
-        $competition->setModifiedBy($user);
-        $competition->setIsActive(true);
-
-        $em->persist($competition);
-        $em->flush();
-
-        return $competition;
-    }
-
-    private function createTestSeason(): Season
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $season = new Season();
-        $season->setStartYear(2024);
-        $season->setEndYear(2025);
-        $season->setCreatedBy($user);
-        $season->setModifiedBy($user);
-        $season->setIsActive(true);
-
-        $em->persist($season);
-        $em->flush();
-
-        return $season;
-    }
-
-    private function createTestTeamForSport(\App\Entity\Sport $sport): Team
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $team = new Team();
-        $team->setName('Test Team ' . uniqid());
-        $team->setSport($sport);
-        $team->setTeamType(TeamType::CLUB);
-        $team->setCreatedBy($user);
-        $team->setModifiedBy($user);
-        $team->setIsActive(true);
-
-        $em->persist($team);
-        $em->flush();
-
-        return $team;
-    }
-
-    private function buildUrl(Competition $competition, Season $season, ?Team $team = null): string
-    {
-        if ($team !== null) {
-            return sprintf(
-                '/brackets/competitions/%d/seasons/%d/teams/%d',
-                $competition->getId(),
-                $season->getId(),
-                $team->getId(),
-            );
-        }
-
-        return sprintf(
-            '/brackets/competitions/%d/seasons/%d/teams',
-            $competition->getId(),
-            $season->getId(),
-        );
-    }
-
-    // -------------------------------------------------------------------------
     // Uwierzytelnienie
     // -------------------------------------------------------------------------
 
@@ -303,5 +216,92 @@ final class BracketControllerTest extends WebTestCase
         $client->followRedirect();
 
         $this->assertRouteSame('team_index');
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestCompetition(): Competition
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+        $sport = $this->createTestSport();
+
+        $competition = new Competition();
+        $competition->setName('Test Competition ' . uniqid());
+        $competition->setSport($sport);
+        $competition->setGender(Gender::MALE);
+        $competition->setCreatedBy($user);
+        $competition->setModifiedBy($user);
+        $competition->setIsActive(true);
+
+        $em->persist($competition);
+        $em->flush();
+
+        return $competition;
+    }
+
+    private function createTestSeason(): Season
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $season = new Season();
+        $season->setStartYear(2024);
+        $season->setEndYear(2025);
+        $season->setCreatedBy($user);
+        $season->setModifiedBy($user);
+        $season->setIsActive(true);
+
+        $em->persist($season);
+        $em->flush();
+
+        return $season;
+    }
+
+    private function createTestTeamForSport(\App\Entity\Sport $sport): Team
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $team = new Team();
+        $team->setName('Test Team ' . uniqid());
+        $team->setSport($sport);
+        $team->setTeamType(TeamType::CLUB);
+        $team->setCreatedBy($user);
+        $team->setModifiedBy($user);
+        $team->setIsActive(true);
+
+        $em->persist($team);
+        $em->flush();
+
+        return $team;
+    }
+
+    private function buildUrl(Competition $competition, Season $season, ?Team $team = null): string
+    {
+        if ($team !== null) {
+            return sprintf(
+                '/brackets/competitions/%d/seasons/%d/teams/%d',
+                $competition->getId(),
+                $season->getId(),
+                $team->getId(),
+            );
+        }
+
+        return sprintf(
+            '/brackets/competitions/%d/seasons/%d/teams',
+            $competition->getId(),
+            $season->getId(),
+        );
     }
 }

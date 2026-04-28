@@ -29,161 +29,6 @@ final class GameControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestSeason(): Season
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $season = new Season();
-        $season->setStartYear(2024);
-        $season->setEndYear(2025);
-        $season->setCreatedBy($user);
-        $season->setModifiedBy($user);
-        $season->setIsActive(true);
-
-        $em->persist($season);
-        $em->flush();
-
-        return $season;
-    }
-
-    private function createTestCompetition(Sport $sport): Competition
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $competition = new Competition();
-        $competition->setName('Test Competition ' . uniqid());
-        $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
-        $competition->setCreatedBy($user);
-        $competition->setModifiedBy($user);
-        $competition->setIsActive(true);
-
-        $em->persist($competition);
-        $em->flush();
-
-        return $competition;
-    }
-
-    private function createTestEvent(Competition $competition): Event
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $event = new Event();
-        $event->setName('Test Event ' . uniqid());
-        $event->setCompetition($competition);
-        $event->setCreatedBy($user);
-        $event->setModifiedBy($user);
-        $event->setIsActive(true);
-
-        $em->persist($event);
-        $em->flush();
-
-        return $event;
-    }
-
-    private function createTestGame(Event $event, Season $season): Game
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $game = new Game();
-        $game->setEvent($event);
-        $game->setSeason($season);
-        $game->setDate(new DateTimeImmutable());
-        $game->setCreatedBy($user);
-        $game->setModifiedBy($user);
-        $game->setIsActive(true);
-
-        $em->persist($game);
-        $em->flush();
-
-        return $game;
-    }
-
-    private function createTestTeam(Sport $sport): Team
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $team = new Team();
-        $team->setName('Test Team ' . uniqid());
-        $team->setSport($sport);
-        $team->setTeamType(TeamType::CLUB);
-        $team->setCreatedBy($user);
-        $team->setModifiedBy($user);
-        $team->setIsActive(true);
-
-        $em->persist($team);
-        $em->flush();
-
-        return $team;
-    }
-
-    private function createTestGameResult(Game $game, Team $team): GameResult
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        // DB constraint chk_team_or_person wymaga team LUB person
-        $gameResult = new GameResult();
-        $gameResult->setGame($game);
-        $gameResult->setTeam($team);
-        $gameResult->setMatchScore(1);
-        $gameResult->setCreatedBy($user);
-        $gameResult->setModifiedBy($user);
-        $gameResult->setIsActive(true);
-
-        $em->persist($gameResult);
-        $em->flush();
-
-        return $gameResult;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var \DOMElement $input */
-            $name = $input->getAttribute('name');
-            if (str_contains($name, '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -560,5 +405,160 @@ final class GameControllerTest extends WebTestCase
         $client->request('GET', sprintf('/games/%d/results', $game->getId()));
 
         $this->assertResponseIsSuccessful();
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestSeason(): Season
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $season = new Season();
+        $season->setStartYear(2024);
+        $season->setEndYear(2025);
+        $season->setCreatedBy($user);
+        $season->setModifiedBy($user);
+        $season->setIsActive(true);
+
+        $em->persist($season);
+        $em->flush();
+
+        return $season;
+    }
+
+    private function createTestCompetition(Sport $sport): Competition
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $competition = new Competition();
+        $competition->setName('Test Competition ' . uniqid());
+        $competition->setSport($sport);
+        $competition->setGender(Gender::MALE);
+        $competition->setCreatedBy($user);
+        $competition->setModifiedBy($user);
+        $competition->setIsActive(true);
+
+        $em->persist($competition);
+        $em->flush();
+
+        return $competition;
+    }
+
+    private function createTestEvent(Competition $competition): Event
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $event = new Event();
+        $event->setName('Test Event ' . uniqid());
+        $event->setCompetition($competition);
+        $event->setCreatedBy($user);
+        $event->setModifiedBy($user);
+        $event->setIsActive(true);
+
+        $em->persist($event);
+        $em->flush();
+
+        return $event;
+    }
+
+    private function createTestGame(Event $event, Season $season): Game
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $game = new Game();
+        $game->setEvent($event);
+        $game->setSeason($season);
+        $game->setDate(new DateTimeImmutable());
+        $game->setCreatedBy($user);
+        $game->setModifiedBy($user);
+        $game->setIsActive(true);
+
+        $em->persist($game);
+        $em->flush();
+
+        return $game;
+    }
+
+    private function createTestTeam(Sport $sport): Team
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $team = new Team();
+        $team->setName('Test Team ' . uniqid());
+        $team->setSport($sport);
+        $team->setTeamType(TeamType::CLUB);
+        $team->setCreatedBy($user);
+        $team->setModifiedBy($user);
+        $team->setIsActive(true);
+
+        $em->persist($team);
+        $em->flush();
+
+        return $team;
+    }
+
+    private function createTestGameResult(Game $game, Team $team): GameResult
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        // DB constraint chk_team_or_person wymaga team LUB person
+        $gameResult = new GameResult();
+        $gameResult->setGame($game);
+        $gameResult->setTeam($team);
+        $gameResult->setMatchScore(1);
+        $gameResult->setCreatedBy($user);
+        $gameResult->setModifiedBy($user);
+        $gameResult->setIsActive(true);
+
+        $em->persist($gameResult);
+        $em->flush();
+
+        return $gameResult;
+    }
+
+    private function getValidCsrfToken(KernelBrowser $client, string $url): string
+    {
+        $crawler = $client->request('GET', $url);
+
+        foreach ($crawler->filter('input[type="hidden"]') as $input) {
+            /** @var \DOMElement $input */
+            $name = $input->getAttribute('name');
+            if (str_contains($name, '_token')) {
+                return $input->getAttribute('value');
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

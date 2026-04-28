@@ -8,6 +8,8 @@ use App\Entity\User;
 use App\Enum\Role;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -54,7 +56,9 @@ class CreateUserCommandTest extends KernelTestCase
         parent::tearDown();
     }
 
-    public function testCreateAdminUserSuccessfully(): void
+    #[Test]
+    #[TestDox('Creates admin user successfully and persists it with correct role')]
+    public function createAdminUserSuccessfully(): void
     {
         $exitCode = $this->commandTester->execute([
             'email'    => 'integration-admin@example.com',
@@ -70,7 +74,9 @@ class CreateUserCommandTest extends KernelTestCase
         $this->assertContains(Role::ADMIN->value, $user->getRoles());
     }
 
-    public function testCreateUserWithDefaultRole(): void
+    #[Test]
+    #[TestDox('Creates user with default role when no role argument is provided')]
+    public function createUserWithDefaultRole(): void
     {
         $kernel = self::$kernel;
         $this->assertInstanceOf(KernelInterface::class, $kernel);
@@ -101,7 +107,9 @@ class CreateUserCommandTest extends KernelTestCase
         $this->assertContains(Role::USER->value, $user->getRoles());
     }
 
-    public function testFailsWhenEmailAlreadyExists(): void
+    #[Test]
+    #[TestDox('Fails with exit code 1 and error message when email already exists')]
+    public function failsWhenEmailAlreadyExists(): void
     {
         $this->commandTester->execute([
             'email'    => 'integration-duplicate@example.com',
@@ -120,7 +128,9 @@ class CreateUserCommandTest extends KernelTestCase
         $this->assertStringContainsString('Email already exists.', $this->commandTester->getDisplay());
     }
 
-    public function testFailsWhenEmailIsInvalid(): void
+    #[Test]
+    #[TestDox('Fails with exit code 1 and does not persist user when email is invalid')]
+    public function failsWhenEmailIsInvalid(): void
     {
         $exitCode = $this->commandTester->execute([
             'email'    => 'integration-invalid-email',
@@ -135,7 +145,9 @@ class CreateUserCommandTest extends KernelTestCase
         $this->assertNull($user);
     }
 
-    public function testFailsWhenPasswordIsTooShort(): void
+    #[Test]
+    #[TestDox('Fails with exit code 1 and does not persist user when password is too short')]
+    public function failsWhenPasswordIsTooShort(): void
     {
         $exitCode = $this->commandTester->execute([
             'email'    => 'integration-admin@example.com',
@@ -149,7 +161,9 @@ class CreateUserCommandTest extends KernelTestCase
         $this->assertNull($user);
     }
 
-    public function testUserPasswordIsHashed(): void
+    #[Test]
+    #[TestDox('Stored password is hashed and does not match the plain text input')]
+    public function userPasswordIsHashed(): void
     {
         $plainPassword = 'SecurePass123!';
 
@@ -165,7 +179,9 @@ class CreateUserCommandTest extends KernelTestCase
         $this->assertNotEmpty($user->getPassword());
     }
 
-    public function testUserIsPersistedInDatabase(): void
+    #[Test]
+    #[TestDox('User entity is persisted in the database with a non-null ID')]
+    public function userIsPersistedInDatabase(): void
     {
         $this->commandTester->execute([
             'email'    => 'integration-admin@example.com',

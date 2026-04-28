@@ -20,53 +20,6 @@ final class CompetitionControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestCompetition(): Competition
-    {
-        $em    = $this->getEntityManager();
-        $user  = $this->getTestUser();
-        $sport = $this->createTestSport();
-
-        $competition = new Competition();
-        $competition->setName('Test Competition ' . uniqid());
-        $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
-        $competition->setCreatedBy($user);
-        $competition->setModifiedBy($user);
-        $competition->setIsActive(true);
-
-        $em->persist($competition);
-        $em->flush();
-
-        return $competition;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -435,5 +388,52 @@ final class CompetitionControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertIsArray($data);
         $this->assertEmpty($data);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestCompetition(): Competition
+    {
+        $em    = $this->getEntityManager();
+        $user  = $this->getTestUser();
+        $sport = $this->createTestSport();
+
+        $competition = new Competition();
+        $competition->setName('Test Competition ' . uniqid());
+        $competition->setSport($sport);
+        $competition->setGender(Gender::MALE);
+        $competition->setCreatedBy($user);
+        $competition->setModifiedBy($user);
+        $competition->setIsActive(true);
+
+        $em->persist($competition);
+        $em->flush();
+
+        return $competition;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

@@ -14,23 +14,6 @@ use Symfony\Component\Validator\ConstraintViolationInterface;
 class ValidationErrorTest extends TestCase
 {
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function makeViolation(
-        string $message,
-        string $propertyPath,
-        mixed $invalidValue = null,
-    ): ConstraintViolationInterface&MockObject {
-        $violation = $this->createMock(ConstraintViolationInterface::class);
-        $violation->method('getMessage')->willReturn($message);
-        $violation->method('getPropertyPath')->willReturn($propertyPath);
-        $violation->method('getInvalidValue')->willReturn($invalidValue);
-
-        return $violation;
-    }
-
-    // -------------------------------------------------------------------------
     // Konstruktor – message
     // -------------------------------------------------------------------------
 
@@ -283,5 +266,22 @@ class ValidationErrorTest extends TestCase
         $error = new ValidationError($this->makeViolation('err', 'name'));
 
         self::assertSame(['message', 'field'], array_keys($error->getErrorAsArray()));
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function makeViolation(
+        string $message,
+        string $propertyPath,
+        mixed $invalidValue = null,
+    ): ConstraintViolationInterface&MockObject {
+        $violation = $this->createMock(ConstraintViolationInterface::class);
+        $violation->method('getMessage')->willReturn($message);
+        $violation->method('getPropertyPath')->willReturn($propertyPath);
+        $violation->method('getInvalidValue')->willReturn($invalidValue);
+
+        return $violation;
     }
 }

@@ -19,52 +19,6 @@ final class MemberPositionControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestMemberPosition(): MemberPosition
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-        $sport = $this->createTestSport();
-
-        $position = new MemberPosition();
-        $position->setName('Test Position ' . uniqid());
-        $position->setSport($sport);
-        $position->setCreatedBy($user);
-        $position->setModifiedBy($user);
-        $position->setIsActive(true);
-
-        $em->persist($position);
-        $em->flush();
-
-        return $position;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -354,5 +308,51 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $this->assertNotNull($stillActive);
         $this->assertTrue($stillActive->isActive());
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestMemberPosition(): MemberPosition
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+        $sport = $this->createTestSport();
+
+        $position = new MemberPosition();
+        $position->setName('Test Position ' . uniqid());
+        $position->setSport($sport);
+        $position->setCreatedBy($user);
+        $position->setModifiedBy($user);
+        $position->setIsActive(true);
+
+        $em->persist($position);
+        $em->flush();
+
+        return $position;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

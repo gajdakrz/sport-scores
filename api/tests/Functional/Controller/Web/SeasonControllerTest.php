@@ -19,51 +19,6 @@ final class SeasonControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestSeason(int $startYear = 2020, int $endYear = 2021): Season
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $season = new Season();
-        $season->setStartYear($startYear);
-        $season->setEndYear($endYear);
-        $season->setCreatedBy($user);
-        $season->setModifiedBy($user);
-        $season->setIsActive(true);
-
-        $em->persist($season);
-        $em->flush();
-
-        return $season;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -348,5 +303,50 @@ final class SeasonControllerTest extends WebTestCase
         }
 
         return '';
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestSeason(int $startYear = 2020, int $endYear = 2021): Season
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $season = new Season();
+        $season->setStartYear($startYear);
+        $season->setEndYear($endYear);
+        $season->setCreatedBy($user);
+        $season->setModifiedBy($user);
+        $season->setIsActive(true);
+
+        $em->persist($season);
+        $em->flush();
+
+        return $season;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

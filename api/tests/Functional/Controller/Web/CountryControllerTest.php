@@ -19,50 +19,6 @@ final class CountryControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestCountry(): Country
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $country = new Country();
-        $country->setName('Test Country ' . uniqid());
-        $country->setCreatedBy($user);
-        $country->setModifiedBy($user);
-        $country->setIsActive(true);
-
-        $em->persist($country);
-        $em->flush();
-
-        return $country;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -318,5 +274,49 @@ final class CountryControllerTest extends WebTestCase
 
         $this->assertNotNull($stillActive);
         $this->assertTrue($stillActive->isActive());
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestCountry(): Country
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $country = new Country();
+        $country->setName('Test Country ' . uniqid());
+        $country->setCreatedBy($user);
+        $country->setModifiedBy($user);
+        $country->setIsActive(true);
+
+        $em->persist($country);
+        $em->flush();
+
+        return $country;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

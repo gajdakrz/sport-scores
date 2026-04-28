@@ -23,33 +23,6 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function makeViolation(
-        string $message,
-        string $propertyPath,
-        mixed $invalidValue = null,
-    ): ConstraintViolationInterface&MockObject {
-        $violation = $this->createMock(ConstraintViolationInterface::class);
-        $violation->method('getMessage')->willReturn($message);
-        $violation->method('getPropertyPath')->willReturn($propertyPath);
-        $violation->method('getInvalidValue')->willReturn($invalidValue);
-
-        return $violation;
-    }
-
-    private function makeException(ConstraintViolationInterface ...$violations): ValidationFailedException&MockObject
-    {
-        $list = new ConstraintViolationList($violations);
-
-        $exception = $this->createMock(ValidationFailedException::class);
-        $exception->method('getViolations')->willReturn($list);
-
-        return $exception;
-    }
-
-    // -------------------------------------------------------------------------
     // getValidationErrorsAsArray – stan początkowy
     // -------------------------------------------------------------------------
 
@@ -254,10 +227,6 @@ class ValidationHelperTest extends TestCase
         self::assertSame(['message', 'field'], array_keys($error));
     }
 
-    // -------------------------------------------------------------------------
-    // prepareValidationErrors – idempotentność (wielokrotne wywołanie)
-    // -------------------------------------------------------------------------
-
     #[Test]
     #[TestDox('Accumulates errors across multiple calls to prepareValidationErrors')]
     public function multipleCallsAccumulateErrors(): void
@@ -270,5 +239,32 @@ class ValidationHelperTest extends TestCase
         );
 
         self::assertCount(2, $this->helper->getValidationErrorsAsArray());
+    }
+
+    // -------------------------------------------------------------------------
+    // helpers
+    // -------------------------------------------------------------------------
+
+    private function makeViolation(
+        string $message,
+        string $propertyPath,
+        mixed $invalidValue = null,
+    ): ConstraintViolationInterface&MockObject {
+        $violation = $this->createMock(ConstraintViolationInterface::class);
+        $violation->method('getMessage')->willReturn($message);
+        $violation->method('getPropertyPath')->willReturn($propertyPath);
+        $violation->method('getInvalidValue')->willReturn($invalidValue);
+
+        return $violation;
+    }
+
+    private function makeException(ConstraintViolationInterface ...$violations): ValidationFailedException&MockObject
+    {
+        $list = new ConstraintViolationList($violations);
+
+        $exception = $this->createMock(ValidationFailedException::class);
+        $exception->method('getViolations')->willReturn($list);
+
+        return $exception;
     }
 }

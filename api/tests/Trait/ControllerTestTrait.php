@@ -15,7 +15,7 @@ trait ControllerTestTrait
 {
     private const string USER_EMAIL_TEST = 'test@example.com';
 
-    private function getTestUser(): User
+    protected function getTestUser(): User
     {
         /** @var UserRepository $userRepository */
         $userRepository = static::getContainer()->get(UserRepository::class);
@@ -30,7 +30,7 @@ trait ControllerTestTrait
         return $user;
     }
 
-    private function createTestSport(): Sport
+    protected function createTestSport(): Sport
     {
         /** @var EntityManagerInterface $em */
         $em = static::getContainer()->get(EntityManagerInterface::class);
@@ -47,19 +47,18 @@ trait ControllerTestTrait
         return $sport;
     }
 
-    private function setCurrentSport(KernelBrowser $client): Sport
+    protected function setCurrentSport(KernelBrowser $client): Sport
     {
         /** @var SportRepository $sportRepository */
         $sportRepository = static::getContainer()->get(SportRepository::class);
         $sport = $sportRepository->findOneBy([]) ?? $this->createTestSport();
 
-        // Ustaw sport przez endpoint (tak jak robi to aplikacja)
         $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
 
         return $sport;
     }
 
-    private function loginAsTestUser(KernelBrowser $client): User
+    protected function loginAsTestUser(KernelBrowser $client): User
     {
         $user = $this->getTestUser();
         $client->loginUser($user);

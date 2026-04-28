@@ -24,103 +24,6 @@ final class TeamControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestTeamEntity(Sport $sport): Team
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $team = new Team();
-        $team->setName('Test Team ' . uniqid());
-        $team->setSport($sport);
-        $team->setTeamType(TeamType::CLUB);
-        $team->setCreatedBy($user);
-        $team->setModifiedBy($user);
-        $team->setIsActive(true);
-
-        $em->persist($team);
-        $em->flush();
-
-        return $team;
-    }
-
-    private function createTestCompetition(Sport $sport): Competition
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $competition = new Competition();
-        $competition->setName('Test Competition ' . uniqid());
-        $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
-        $competition->setCreatedBy($user);
-        $competition->setModifiedBy($user);
-        $competition->setIsActive(true);
-
-        $em->persist($competition);
-        $em->flush();
-
-        return $competition;
-    }
-
-    private function createTestSeason(): Season
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $season = new Season();
-        $season->setStartYear(2023);
-        $season->setEndYear(2024);
-        $season->setCreatedBy($user);
-        $season->setModifiedBy($user);
-        $season->setIsActive(true);
-
-        $em->persist($season);
-        $em->flush();
-
-        return $season;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var \DOMElement $input */
-            if (str_contains($input->getAttribute('name'), '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -503,5 +406,102 @@ final class TeamControllerTest extends WebTestCase
 
         // Strona renderuje się poprawnie (200), ale team=null w szablonie
         $this->assertResponseIsSuccessful();
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestTeamEntity(Sport $sport): Team
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $team = new Team();
+        $team->setName('Test Team ' . uniqid());
+        $team->setSport($sport);
+        $team->setTeamType(TeamType::CLUB);
+        $team->setCreatedBy($user);
+        $team->setModifiedBy($user);
+        $team->setIsActive(true);
+
+        $em->persist($team);
+        $em->flush();
+
+        return $team;
+    }
+
+    private function createTestCompetition(Sport $sport): Competition
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $competition = new Competition();
+        $competition->setName('Test Competition ' . uniqid());
+        $competition->setSport($sport);
+        $competition->setGender(Gender::MALE);
+        $competition->setCreatedBy($user);
+        $competition->setModifiedBy($user);
+        $competition->setIsActive(true);
+
+        $em->persist($competition);
+        $em->flush();
+
+        return $competition;
+    }
+
+    private function createTestSeason(): Season
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $season = new Season();
+        $season->setStartYear(2023);
+        $season->setEndYear(2024);
+        $season->setCreatedBy($user);
+        $season->setModifiedBy($user);
+        $season->setIsActive(true);
+
+        $em->persist($season);
+        $em->flush();
+
+        return $season;
+    }
+
+    private function getValidCsrfToken(KernelBrowser $client, string $url): string
+    {
+        $crawler = $client->request('GET', $url);
+
+        foreach ($crawler->filter('input[type="hidden"]') as $input) {
+            /** @var \DOMElement $input */
+            if (str_contains($input->getAttribute('name'), '_token')) {
+                return $input->getAttribute('value');
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

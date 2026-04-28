@@ -16,31 +16,6 @@ final class RegistrationControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    /**
-     * Rejestracja wymaga istnienia admina (RegistrationUserService::register()).
-     * Tworzymy go przez API endpoint który obsługuje role.
-     */
-    private function ensureAdminExists(KernelBrowser $client): void
-    {
-        $client->loginUser($this->getTestUser(), 'api');
-
-        $client->request(
-            method: 'POST',
-            uri: '/api/v1/user',
-            server: ['CONTENT_TYPE' => 'application/json'],
-            content: json_encode([
-                'email'         => 'admin_setup_' . uniqid() . '@example.com',
-                'plainPassword' => 'Admin123!',
-                'role'          => 'ROLE_ADMIN',
-            ], JSON_THROW_ON_ERROR),
-        );
-        // 201 = admin utworzony, 409 = już istnieje – oba są OK
-    }
-
-    // -------------------------------------------------------------------------
     // GET /register
     // -------------------------------------------------------------------------
 
@@ -221,5 +196,30 @@ final class RegistrationControllerTest extends WebTestCase
         $client->request('GET', '/register');
 
         $this->assertResponseIsSuccessful();
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Rejestracja wymaga istnienia admina (RegistrationUserService::register()).
+     * Tworzymy go przez API endpoint który obsługuje role.
+     */
+    private function ensureAdminExists(KernelBrowser $client): void
+    {
+        $client->loginUser($this->getTestUser(), 'api');
+
+        $client->request(
+            method: 'POST',
+            uri: '/api/v1/user',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: json_encode([
+                'email'         => 'admin_setup_' . uniqid() . '@example.com',
+                'plainPassword' => 'Admin123!',
+                'role'          => 'ROLE_ADMIN',
+            ], JSON_THROW_ON_ERROR),
+        );
+        // 201 = admin utworzony, 409 = już istnieje – oba są OK
     }
 }

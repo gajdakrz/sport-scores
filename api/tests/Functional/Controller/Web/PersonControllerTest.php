@@ -24,106 +24,6 @@ final class PersonControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = PersonControllerTest::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestCountry(): Country
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $country = new Country();
-        $country->setName('Test Country ' . uniqid());
-        $country->setCreatedBy($user);
-        $country->setModifiedBy($user);
-        $country->setIsActive(true);
-
-        $em->persist($country);
-        $em->flush();
-
-        return $country;
-    }
-
-    private function createTestTeam(): Team
-    {
-        $em    = $this->getEntityManager();
-        $user  = $this->getTestUser();
-        $sport = $this->createTestSport();
-
-        $team = new Team();
-        $team->setName('Test Team ' . uniqid());
-        $team->setSport($sport);
-        $team->setTeamType(TeamType::CLUB);
-        $team->setCreatedBy($user);
-        $team->setModifiedBy($user);
-        $team->setIsActive(true);
-
-        $em->persist($team);
-        $em->flush();
-
-        return $team;
-    }
-
-    private function createTestPerson(): Person
-    {
-        $em    = $this->getEntityManager();
-        $user  = $this->getTestUser();
-        $sport = $this->createTestSport();
-
-        $person = new Person();
-        $person->setFirstName('Jan');
-        $person->setLastName('Kowalski ' . uniqid());
-        $person->setGender(Gender::MALE);
-        $person->setSport($sport);
-        $person->setCreatedBy($user);
-        $person->setModifiedBy($user);
-        $person->setIsActive(true);
-
-        $em->persist($person);
-        $em->flush();
-
-        return $person;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var DOMElement $input */
-            $name = $input->getAttribute('name');
-            if (str_contains($name, '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -615,5 +515,105 @@ final class PersonControllerTest extends WebTestCase
         // InvalidArgumentException → Symfony konwertuje na odpowiedź błędu
         $statusCode = $client->getResponse()->getStatusCode();
         $this->assertGreaterThanOrEqual(400, $statusCode, 'Expected error response (4xx/5xx)');
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = PersonControllerTest::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestCountry(): Country
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $country = new Country();
+        $country->setName('Test Country ' . uniqid());
+        $country->setCreatedBy($user);
+        $country->setModifiedBy($user);
+        $country->setIsActive(true);
+
+        $em->persist($country);
+        $em->flush();
+
+        return $country;
+    }
+
+    private function createTestTeam(): Team
+    {
+        $em    = $this->getEntityManager();
+        $user  = $this->getTestUser();
+        $sport = $this->createTestSport();
+
+        $team = new Team();
+        $team->setName('Test Team ' . uniqid());
+        $team->setSport($sport);
+        $team->setTeamType(TeamType::CLUB);
+        $team->setCreatedBy($user);
+        $team->setModifiedBy($user);
+        $team->setIsActive(true);
+
+        $em->persist($team);
+        $em->flush();
+
+        return $team;
+    }
+
+    private function createTestPerson(): Person
+    {
+        $em    = $this->getEntityManager();
+        $user  = $this->getTestUser();
+        $sport = $this->createTestSport();
+
+        $person = new Person();
+        $person->setFirstName('Jan');
+        $person->setLastName('Kowalski ' . uniqid());
+        $person->setGender(Gender::MALE);
+        $person->setSport($sport);
+        $person->setCreatedBy($user);
+        $person->setModifiedBy($user);
+        $person->setIsActive(true);
+
+        $em->persist($person);
+        $em->flush();
+
+        return $person;
+    }
+
+    private function getValidCsrfToken(KernelBrowser $client, string $url): string
+    {
+        $crawler = $client->request('GET', $url);
+
+        foreach ($crawler->filter('input[type="hidden"]') as $input) {
+            /** @var DOMElement $input */
+            $name = $input->getAttribute('name');
+            if (str_contains($name, '_token')) {
+                return $input->getAttribute('value');
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

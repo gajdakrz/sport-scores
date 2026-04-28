@@ -19,64 +19,6 @@ final class SportControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestSportEntity(): Sport
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $sport = new Sport();
-        $sport->setName('Test Sport ' . uniqid());
-        $sport->setCreatedBy($user);
-        $sport->setModifiedBy($user);
-        $sport->setIsActive(true);
-
-        $em->persist($sport);
-        $em->flush();
-
-        return $sport;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var \DOMElement $input */
-            if (str_contains($input->getAttribute('name'), '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -369,5 +311,63 @@ final class SportControllerTest extends WebTestCase
         // który wywołuje requireSport() – jeśli sport nie jest ustawiony, zwraca 400
         $client->request('GET', '/sports/new');
         $this->assertResponseIsSuccessful();
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestSportEntity(): Sport
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $sport = new Sport();
+        $sport->setName('Test Sport ' . uniqid());
+        $sport->setCreatedBy($user);
+        $sport->setModifiedBy($user);
+        $sport->setIsActive(true);
+
+        $em->persist($sport);
+        $em->flush();
+
+        return $sport;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
+    }
+
+    private function getValidCsrfToken(KernelBrowser $client, string $url): string
+    {
+        $crawler = $client->request('GET', $url);
+
+        foreach ($crawler->filter('input[type="hidden"]') as $input) {
+            /** @var \DOMElement $input */
+            if (str_contains($input->getAttribute('name'), '_token')) {
+                return $input->getAttribute('value');
+            }
+        }
+
+        return '';
     }
 }

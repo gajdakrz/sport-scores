@@ -21,57 +21,6 @@ final class UserControllerTest extends WebTestCase
     private const string ROLE_ADMIN = 'ROLE_ADMIN';
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function createAuthenticatedClient(): KernelBrowser
-    {
-        $client = self::createClient();
-        $client->loginUser($this->getTestUser(), 'api');
-
-        return $client;
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     * @throws JsonException
-     */
-    private function postJson(KernelBrowser $client, array $data): void
-    {
-        $client->request(
-            method: 'POST',
-            uri: self::ENDPOINT,
-            server: ['CONTENT_TYPE' => 'application/json'],
-            content: json_encode($data, JSON_THROW_ON_ERROR),
-        );
-    }
-
-    private function postRaw(KernelBrowser $client, string $body): void
-    {
-        $client->request(
-            method: 'POST',
-            uri: self::ENDPOINT,
-            server: ['CONTENT_TYPE' => 'application/json'],
-            content: $body,
-        );
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function decodeResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // Sukces – 201 Created
     // -------------------------------------------------------------------------
 
@@ -367,5 +316,56 @@ final class UserControllerTest extends WebTestCase
         $this->postJson($client, []);
 
         $this->assertResponseHeaderSame('content-type', 'application/json');
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function createAuthenticatedClient(): KernelBrowser
+    {
+        $client = self::createClient();
+        $client->loginUser($this->getTestUser(), 'api');
+
+        return $client;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @throws JsonException
+     */
+    private function postJson(KernelBrowser $client, array $data): void
+    {
+        $client->request(
+            method: 'POST',
+            uri: self::ENDPOINT,
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: json_encode($data, JSON_THROW_ON_ERROR),
+        );
+    }
+
+    private function postRaw(KernelBrowser $client, string $body): void
+    {
+        $client->request(
+            method: 'POST',
+            uri: self::ENDPOINT,
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: $body,
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decodeResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

@@ -22,86 +22,6 @@ final class EventControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestCompetition(Sport $sport, bool $isBracket = false): Competition
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $competition = new Competition();
-        $competition->setName('Test Competition ' . uniqid());
-        $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
-        $competition->setIsBracket($isBracket);
-        $competition->setCreatedBy($user);
-        $competition->setModifiedBy($user);
-        $competition->setIsActive(true);
-
-        $em->persist($competition);
-        $em->flush();
-
-        return $competition;
-    }
-
-    private function createTestEvent(Competition $competition, ?int $orderIndex = null): Event
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $event = new Event();
-        $event->setName('Test Event ' . uniqid());
-        $event->setCompetition($competition);
-        $event->setOrderIndex($orderIndex);
-        $event->setCreatedBy($user);
-        $event->setModifiedBy($user);
-        $event->setIsActive(true);
-
-        $em->persist($event);
-        $em->flush();
-
-        return $event;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var \DOMElement $input */
-            $name = $input->getAttribute('name');
-            if (str_contains($name, '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
 
@@ -591,5 +511,85 @@ final class EventControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertIsArray($data);
         $this->assertEmpty($data);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em;
+    }
+
+    private function createTestCompetition(Sport $sport, bool $isBracket = false): Competition
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $competition = new Competition();
+        $competition->setName('Test Competition ' . uniqid());
+        $competition->setSport($sport);
+        $competition->setGender(Gender::MALE);
+        $competition->setIsBracket($isBracket);
+        $competition->setCreatedBy($user);
+        $competition->setModifiedBy($user);
+        $competition->setIsActive(true);
+
+        $em->persist($competition);
+        $em->flush();
+
+        return $competition;
+    }
+
+    private function createTestEvent(Competition $competition, ?int $orderIndex = null): Event
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $event = new Event();
+        $event->setName('Test Event ' . uniqid());
+        $event->setCompetition($competition);
+        $event->setOrderIndex($orderIndex);
+        $event->setCreatedBy($user);
+        $event->setModifiedBy($user);
+        $event->setIsActive(true);
+
+        $em->persist($event);
+        $em->flush();
+
+        return $event;
+    }
+
+    private function getValidCsrfToken(KernelBrowser $client, string $url): string
+    {
+        $crawler = $client->request('GET', $url);
+
+        foreach ($crawler->filter('input[type="hidden"]') as $input) {
+            /** @var \DOMElement $input */
+            $name = $input->getAttribute('name');
+            if (str_contains($name, '_token')) {
+                return $input->getAttribute('value');
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
     }
 }

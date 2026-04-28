@@ -9,6 +9,8 @@ use App\Entity\GameResult;
 use App\Entity\User;
 use App\Service\GameResultHandler;
 use Doctrine\Common\Collections\ArrayCollection;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 
 class GameResultHandlerTest extends TestCase
@@ -22,7 +24,9 @@ class GameResultHandlerTest extends TestCase
         $this->user = $this->createMock(User::class);
     }
 
-    public function testHandleSetsCreatedByAndModifiedByForNewGameResult(): void
+    #[Test]
+    #[TestDox('Sets createdBy and modifiedBy for new game result')]
+    public function handleSetsCreatedByAndModifiedByForNewGameResult(): void
     {
         $gameResult = $this->createMock(GameResult::class);
         $gameResult->method('getId')->willReturn(null);
@@ -34,7 +38,9 @@ class GameResultHandlerTest extends TestCase
         $this->handler->handle($game, $this->user);
     }
 
-    public function testHandleSetsOnlyModifiedByForExistingGameResult(): void
+    #[Test]
+    #[TestDox('Sets only modifiedBy for existing game result')]
+    public function handleSetsOnlyModifiedByForExistingGameResult(): void
     {
         $gameResult = $this->createMock(GameResult::class);
         $gameResult->method('getId')->willReturn(1);
@@ -46,14 +52,18 @@ class GameResultHandlerTest extends TestCase
         $this->handler->handle($game, $this->user);
     }
 
-    public function testHandleDoesNothingWhenNoGameResults(): void
+    #[Test]
+    #[TestDox('Does nothing when game has no results')]
+    public function handleDoesNothingWhenNoGameResults(): void
     {
         $game = $this->createGameWithResults([]);
         $this->handler->handle($game, $this->user);
         $this->expectNotToPerformAssertions();
     }
 
-    public function testHandleMixedNewAndExistingGameResults(): void
+    #[Test]
+    #[TestDox('Handles mixed new and existing game results correctly')]
+    public function handleMixedNewAndExistingGameResults(): void
     {
         $newResult = $this->createMock(GameResult::class);
         $newResult->method('getId')->willReturn(null);
@@ -70,10 +80,12 @@ class GameResultHandlerTest extends TestCase
         $this->handler->handle($game, $this->user);
     }
 
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     /**
      * @param GameResult[] $results
-     * @return Game
      */
     private function createGameWithResults(array $results): Game
     {

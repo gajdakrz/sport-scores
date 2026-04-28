@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Validator;
 use App\Entity\GameResult;
 use App\Validator\AtLeastOneScore;
 use App\Validator\AtLeastOneScoreValidator;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -29,16 +30,18 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->validator->initialize($this->context);
     }
 
+    #[Test]
     #[TestDox('Throws UnexpectedTypeException when constraint is not AtLeastOneScore')]
-    public function testThrowsExceptionForInvalidConstraintType(): void
+    public function throwsExceptionForInvalidConstraintType(): void
     {
         $this->expectException(UnexpectedTypeException::class);
 
         $this->validator->validate(new GameResult(), $this->createMock(Constraint::class));
     }
 
+    #[Test]
     #[TestDox('Skips validation when value is not a GameResult instance')]
-    public function testSkipsValidationForNonGameResultValue(): void
+    public function skipsValidationForNonGameResultValue(): void
     {
         $this->context->expects($this->never())->method('buildViolation');
 
@@ -47,8 +50,9 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->validator->validate(42, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Adds violation when both matchScore and rankingScore are null')]
-    public function testAddsViolationWhenBothScoresAreNull(): void
+    public function addsViolationWhenBothScoresAreNull(): void
     {
         $gameResult = $this->createGameResult(matchScore: null, rankingScore: null);
 
@@ -64,8 +68,9 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->validator->validate($gameResult, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Does not add violation when matchScore is set')]
-    public function testNoViolationWhenMatchScoreIsSet(): void
+    public function noViolationWhenMatchScoreIsSet(): void
     {
         $gameResult = $this->createGameResult(matchScore: 3, rankingScore: null);
 
@@ -74,8 +79,9 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->validator->validate($gameResult, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Does not add violation when rankingScore is set')]
-    public function testNoViolationWhenRankingScoreIsSet(): void
+    public function noViolationWhenRankingScoreIsSet(): void
     {
         $gameResult = $this->createGameResult(matchScore: null, rankingScore: 10);
 
@@ -84,8 +90,9 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->validator->validate($gameResult, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Does not add violation when both scores are set')]
-    public function testNoViolationWhenBothScoresAreSet(): void
+    public function noViolationWhenBothScoresAreSet(): void
     {
         $gameResult = $this->createGameResult(matchScore: 2, rankingScore: 5);
 
@@ -94,8 +101,9 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->validator->validate($gameResult, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Uses default violation message from constraint')]
-    public function testUsesDefaultViolationMessage(): void
+    public function usesDefaultViolationMessage(): void
     {
         $gameResult = $this->createGameResult(matchScore: null, rankingScore: null);
 
@@ -110,8 +118,9 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->validator->validate($gameResult, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Uses custom violation message when overridden in constraint')]
-    public function testUsesCustomViolationMessage(): void
+    public function usesCustomViolationMessage(): void
     {
         $gameResult = $this->createGameResult(matchScore: null, rankingScore: null);
 
@@ -128,6 +137,10 @@ class AtLeastOneScoreValidatorTest extends TestCase
 
         $this->validator->validate($gameResult, $customConstraint);
     }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     private function createGameResult(?int $matchScore, ?int $rankingScore): GameResult&MockObject
     {

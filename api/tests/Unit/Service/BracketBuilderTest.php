@@ -16,6 +16,7 @@ use App\Entity\Team;
 use App\Service\BracketBuilder;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -29,8 +30,9 @@ class BracketBuilderTest extends TestCase
         $this->builder = new BracketBuilder();
     }
 
+    #[Test]
     #[TestDox('Returns empty bracket when competition has no events')]
-    public function testBuildEmptyCompetition(): void
+    public function buildEmptyCompetition(): void
     {
         $competition = $this->createMock(Competition::class);
         $competition->method('getEvents')->willReturn(new ArrayCollection());
@@ -41,8 +43,9 @@ class BracketBuilderTest extends TestCase
         $this->assertCount(0, $bracket->stages);
     }
 
+    #[Test]
     #[TestDox('Creates stage for event with no games')]
-    public function testBuildWithOneEventNoGames(): void
+    public function buildWithOneEventNoGames(): void
     {
         $event = $this->createEvent(name: 'Quarterfinal', orderIndex: 1, games: []);
         $competition = $this->createCompetition([$event]);
@@ -57,8 +60,9 @@ class BracketBuilderTest extends TestCase
         $this->assertCount(0, $stage->getGames());
     }
 
+    #[Test]
     #[TestDox('Builds correct GameDto with team results')]
-    public function testBuildWithGamesAndResults(): void
+    public function buildWithGamesAndResults(): void
     {
         $season = $this->createMock(Season::class);
 
@@ -86,8 +90,9 @@ class BracketBuilderTest extends TestCase
         $this->assertEquals(['Team A', 'Team B'], $teamDtoNames);
     }
 
+    #[Test]
     #[TestDox('Skips events with null name')]
-    public function testEventWithNullNameIsSkipped(): void
+    public function eventWithNullNameIsSkipped(): void
     {
         $event = $this->createEvent(name: null, orderIndex: 0, games: []);
         $competition = $this->createCompetition([$event]);
@@ -98,8 +103,9 @@ class BracketBuilderTest extends TestCase
         $this->assertCount(0, $bracket->stages);
     }
 
+    #[Test]
     #[TestDox('Sorts events by orderIndex ascending')]
-    public function testBuildSortsEventsByOrderIndex(): void
+    public function buildSortsEventsByOrderIndex(): void
     {
         $season = $this->createMock(Season::class);
         $competition = $this->createCompetition([
@@ -116,8 +122,9 @@ class BracketBuilderTest extends TestCase
         $this->assertEquals('Final', $stages[2]->name);
     }
 
+    #[Test]
     #[TestDox('Skips games from different season')]
-    public function testBuildSkipsGamesFromDifferentSeason(): void
+    public function buildSkipsGamesFromDifferentSeason(): void
     {
         $season = $this->createMock(Season::class);
         $otherSeason = $this->createMock(Season::class);
@@ -135,8 +142,9 @@ class BracketBuilderTest extends TestCase
         $this->assertEmpty($bracket->stages[0]->getGames());
     }
 
+    #[Test]
     #[TestDox('Skips games with null ID')]
-    public function testBuildSkipsGamesWithNullId(): void
+    public function buildSkipsGamesWithNullId(): void
     {
         $season = $this->createMock(Season::class);
 
@@ -153,8 +161,9 @@ class BracketBuilderTest extends TestCase
         $this->assertEmpty($bracket->stages[0]->getGames());
     }
 
+    #[Test]
     #[TestDox('Skips games where all team results are incomplete')]
-    public function testBuildSkipsGamesWithEmptyTeamResults(): void
+    public function buildSkipsGamesWithEmptyTeamResults(): void
     {
         $season = $this->createMock(Season::class);
 
@@ -177,8 +186,9 @@ class BracketBuilderTest extends TestCase
         $this->assertEmpty($bracket->stages[0]->getGames());
     }
 
+    #[Test]
     #[TestDox('Skips game result when matchScore is null')]
-    public function testBuildSkipsGameResultWithNullMatchScore(): void
+    public function buildSkipsGameResultWithNullMatchScore(): void
     {
         $season = $this->createMock(Season::class);
 
@@ -204,8 +214,9 @@ class BracketBuilderTest extends TestCase
         $this->assertEmpty($bracket->stages[0]->getGames());
     }
 
+    #[Test]
     #[TestDox('Sorts games by date descending')]
-    public function testBuildSortsGamesByDateDescending(): void
+    public function buildSortsGamesByDateDescending(): void
     {
         $season = $this->createMock(Season::class);
 
@@ -239,16 +250,14 @@ class BracketBuilderTest extends TestCase
         $this->assertEquals(1, $games[1]->getId());
     }
 
+    #[Test]
     #[TestDox('Sorts games by team IDs ascending when dates are equal')]
-    public function testBuildSortsGamesByTeamIdsWhenDatesAreEqual(): void
+    public function buildSortsGamesByTeamIdsWhenDatesAreEqual(): void
     {
         $season = $this->createMock(Season::class);
         $date = new DateTimeImmutable('2024-03-15');
 
-        // Game z wyższymi ID zespołów
         $gameHighIds = $this->createGameWithTeamIds(id: 1, season: $season, date: $date, teamIds: [10, 20]);
-
-        // Game z niższymi ID zespołów
         $gameLowIds = $this->createGameWithTeamIds(id: 2, season: $season, date: $date, teamIds: [3, 7]);
 
         $event = $this->createEvent(name: 'Group Stage', orderIndex: 0, games: [$gameHighIds, $gameLowIds]);
@@ -261,16 +270,14 @@ class BracketBuilderTest extends TestCase
         $this->assertEquals(1, $games[1]->getId());
     }
 
+    #[Test]
     #[TestDox('Uses 0 as fallback when team ID is null during sort')]
-    public function testBuildUsesZeroAsFallbackForNullTeamIdDuringSort(): void
+    public function buildUsesZeroAsFallbackForNullTeamIdDuringSort(): void
     {
         $season = $this->createMock(Season::class);
         $date = new DateTimeImmutable('2024-03-15');
 
-        // Game z null team ID → traktowane jako 0
         $gameNullTeam = $this->createGameWithTeamIds(id: 1, season: $season, date: $date, teamIds: [null, 5]);
-
-        // Game z ID > 0
         $gameWithIds = $this->createGameWithTeamIds(id: 2, season: $season, date: $date, teamIds: [3, 7]);
 
         $event = $this->createEvent(name: 'Group Stage', orderIndex: 0, games: [$gameWithIds, $gameNullTeam]);
@@ -283,7 +290,9 @@ class BracketBuilderTest extends TestCase
         $this->assertEquals(2, $games[1]->getId());
     }
 
-    // --- Helpers ---
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     /**
      * @param array<MockObject&Event> $events

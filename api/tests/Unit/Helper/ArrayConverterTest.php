@@ -19,6 +19,25 @@ class ArrayConverterTest extends TestCase
         $this->converter = new ArrayConverter();
     }
 
+    /**
+     * @return array<string, array{mixed, string}>
+     */
+    public static function scalarProvider(): array
+    {
+        return [
+            'string'        => ['hello',   '[hello]'],
+            'empty string'  => ['',        '[]'],
+            'int zero'      => [0,          '[0]'],
+            'int positive'  => [42,         '[42]'],
+            'int negative'  => [-7,         '[-7]'],
+            'float'         => [3.14,       '[3.14]'],
+            'float zero'    => [0.0,        '[0]'],
+            'bool true'     => [true,       '[true]'],
+            'bool false'    => [false,      '[false]'],
+            'null'          => [null,       '[null]'],
+        ];
+    }
+
     // -------------------------------------------------------------------------
     // Pusta tablica
     // -------------------------------------------------------------------------
@@ -40,25 +59,6 @@ class ArrayConverterTest extends TestCase
     public function scalarValuesAreConvertedCorrectly(mixed $value, string $expected): void
     {
         self::assertSame($expected, $this->converter->toStringOfValues([$value]));
-    }
-
-    /**
-     * @return array<string, array{mixed, string}>
-     */
-    public static function scalarProvider(): array
-    {
-        return [
-            'string'        => ['hello',   '[hello]'],
-            'empty string'  => ['',        '[]'],
-            'int zero'      => [0,          '[0]'],
-            'int positive'  => [42,         '[42]'],
-            'int negative'  => [-7,         '[-7]'],
-            'float'         => [3.14,       '[3.14]'],
-            'float zero'    => [0.0,        '[0]'],
-            'bool true'     => [true,       '[true]'],
-            'bool false'    => [false,      '[false]'],
-            'null'          => [null,       '[null]'],
-        ];
     }
 
     // -------------------------------------------------------------------------

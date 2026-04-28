@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Validator;
 use App\Entity\Season;
 use App\Validator\SeasonYearRange;
 use App\Validator\SeasonYearRangeValidator;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -30,16 +31,18 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->validator->initialize($this->context);
     }
 
+    #[Test]
     #[TestDox('Throws UnexpectedTypeException when constraint is not SeasonYearRange')]
-    public function testThrowsExceptionForInvalidConstraintType(): void
+    public function throwsExceptionForInvalidConstraintType(): void
     {
         $this->expectException(UnexpectedTypeException::class);
 
         $this->validator->validate(new Season(), $this->createMock(Constraint::class));
     }
 
+    #[Test]
     #[TestDox('Skips validation when value is not a Season instance')]
-    public function testSkipsValidationForNonSeasonValue(): void
+    public function skipsValidationForNonSeasonValue(): void
     {
         $this->context->expects($this->never())->method('buildViolation');
 
@@ -48,8 +51,9 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->validator->validate(42, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Does not add violation when endYear equals startYear')]
-    public function testNoViolationWhenEndYearEqualsStartYear(): void
+    public function noViolationWhenEndYearEqualsStartYear(): void
     {
         $season = $this->createSeason(startYear: 2024, endYear: 2024);
 
@@ -58,8 +62,9 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->validator->validate($season, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Does not add violation when endYear is greater than startYear')]
-    public function testNoViolationWhenEndYearIsAfterStartYear(): void
+    public function noViolationWhenEndYearIsAfterStartYear(): void
     {
         $season = $this->createSeason(startYear: 2023, endYear: 2024);
 
@@ -68,8 +73,9 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->validator->validate($season, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Adds violation when endYear is before startYear')]
-    public function testAddsViolationWhenEndYearIsBeforeStartYear(): void
+    public function addsViolationWhenEndYearIsBeforeStartYear(): void
     {
         $season = $this->createSeason(startYear: 2024, endYear: 2023);
 
@@ -86,8 +92,9 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->validator->validate($season, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Sets startYear and endYear as message parameters')]
-    public function testSetsCorrectMessageParameters(): void
+    public function setsCorrectMessageParameters(): void
     {
         $season = $this->createSeason(startYear: 2025, endYear: 2020);
 
@@ -107,8 +114,9 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->validator->validate($season, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Uses default violation message from constraint')]
-    public function testUsesDefaultViolationMessage(): void
+    public function usesDefaultViolationMessage(): void
     {
         $season = $this->createSeason(startYear: 2024, endYear: 2020);
 
@@ -124,8 +132,9 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->validator->validate($season, $this->constraint);
     }
 
+    #[Test]
     #[TestDox('Uses custom violation message when overridden in constraint')]
-    public function testUsesCustomViolationMessage(): void
+    public function usesCustomViolationMessage(): void
     {
         $season = $this->createSeason(startYear: 2024, endYear: 2020);
 
@@ -143,6 +152,10 @@ class SeasonYearRangeValidatorTest extends TestCase
 
         $this->validator->validate($season, $customConstraint);
     }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     private function createSeason(int $startYear, int $endYear): Season&MockObject
     {
