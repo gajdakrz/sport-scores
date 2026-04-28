@@ -22,6 +22,8 @@ use Symfony\Component\Routing\RouterInterface;
 
 final class EventType extends AbstractType
 {
+    private const string LABEL_ORDER_INDEX = 'Order index';
+
     public function __construct(
         private readonly RouterInterface $router,
         private readonly CompetitionRepository $competitionRepository
@@ -63,7 +65,7 @@ final class EventType extends AbstractType
                 ],
             ])
             ->add('orderIndex', IntegerType::class, [
-                'label' => 'Order index',
+                'label' => self::LABEL_ORDER_INDEX,
                 'attr' => [
                     'min' => 1,
                 ],
@@ -96,7 +98,7 @@ final class EventType extends AbstractType
                 }
 
                 $form->add('orderIndex', IntegerType::class, [
-                    'label' => 'Order index',
+                    'label' => self::LABEL_ORDER_INDEX,
                     'attr' => [
                         'min' => 1,
                     ],
@@ -125,7 +127,7 @@ final class EventType extends AbstractType
                 $competition = $this->competitionRepository->find($competitionId);
                 if ($competition?->isBracket()) {
                     $form->add('orderIndex', IntegerType::class, [
-                        'label' => 'Order index',
+                        'label' => self::LABEL_ORDER_INDEX,
                         'attr' => ['min' => 1],
                         'required' => false,
                         'empty_data' => null,
