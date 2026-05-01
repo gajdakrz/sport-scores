@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Api;
 
 use App\Tests\Trait\ControllerTestTrait;
-use JsonException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -146,8 +145,12 @@ final class UserControllerTest extends WebTestCase
 
         $errors = $data['errors'];
         $this->assertIsArray($errors);
+        $this->assertNotEmpty($errors);
         $this->assertIsArray($errors[0]);
-        $this->assertStringStartsWith('Wrong json:', $errors[0]['message']);
+        $this->assertArrayHasKey('message', $errors[0]);
+        $message = $errors[0]['message'];
+        $this->assertIsString($message);
+        $this->assertStringStartsWith('Wrong json:', $message);
     }
 
     #[Test]
@@ -332,7 +335,6 @@ final class UserControllerTest extends WebTestCase
 
     /**
      * @param array<string, mixed> $data
-     * @throws JsonException
      */
     private function postJson(KernelBrowser $client, array $data): void
     {
@@ -340,7 +342,7 @@ final class UserControllerTest extends WebTestCase
             method: 'POST',
             uri: self::ENDPOINT,
             server: ['CONTENT_TYPE' => 'application/json'],
-            content: json_encode($data, JSON_THROW_ON_ERROR),
+            content: json_encode($data) ?: '{}',
         );
     }
 

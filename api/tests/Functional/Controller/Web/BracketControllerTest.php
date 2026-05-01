@@ -10,7 +10,6 @@ use App\Entity\Team;
 use App\Enum\Gender;
 use App\Enum\TeamType;
 use App\Tests\Trait\ControllerTestTrait;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -52,7 +51,8 @@ final class BracketControllerTest extends WebTestCase
         $season      = $this->createTestSeason();
 
         // Ustaw current sport zgodny z competition
-        $client->request('POST', sprintf('/sports/set/%d', $competition->getSport()->getId()));
+        $sport = $this->assertSport($competition->getSport());
+        $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
 
         $client->request('GET', $this->buildUrl($competition, $season));
 
@@ -68,10 +68,11 @@ final class BracketControllerTest extends WebTestCase
         $this->loginAsTestUser($client);
 
         $competition = $this->createTestCompetition();
+        $sport       = $this->assertSport($competition->getSport());
         $season      = $this->createTestSeason();
-        $team        = $this->createTestTeamForSport($competition->getSport());
+        $team        = $this->createTestTeamForSport($sport);
 
-        $client->request('POST', sprintf('/sports/set/%d', $competition->getSport()->getId()));
+        $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
 
         $client->request('GET', $this->buildUrl($competition, $season, $team));
 
@@ -89,7 +90,8 @@ final class BracketControllerTest extends WebTestCase
         $competition = $this->createTestCompetition();
         $season      = $this->createTestSeason();
 
-        $client->request('POST', sprintf('/sports/set/%d', $competition->getSport()->getId()));
+        $sport = $this->assertSport($competition->getSport());
+        $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
 
         $client->request('GET', $this->buildUrl($competition, $season));
 
@@ -117,7 +119,8 @@ final class BracketControllerTest extends WebTestCase
         $teamOtherSport = $this->createTestTeamForSport($otherSport);
 
         // current sport = sport competitionu, team należy do innego sportu
-        $client->request('POST', sprintf('/sports/set/%d', $competition->getSport()->getId()));
+        $sport = $this->assertSport($competition->getSport());
+        $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
 
         $client->request('GET', $this->buildUrl($competition, $season, $teamOtherSport));
 
@@ -140,7 +143,8 @@ final class BracketControllerTest extends WebTestCase
         $otherSport     = $this->createTestSport();
         $teamOtherSport = $this->createTestTeamForSport($otherSport);
 
-        $client->request('POST', sprintf('/sports/set/%d', $competition->getSport()->getId()));
+        $sport = $this->assertSport($competition->getSport());
+        $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
         $client->request('GET', $this->buildUrl($competition, $season, $teamOtherSport));
         $client->followRedirect();
 
@@ -221,14 +225,6 @@ final class BracketControllerTest extends WebTestCase
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
 
     private function createTestCompetition(): Competition
     {

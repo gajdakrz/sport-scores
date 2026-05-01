@@ -65,4 +65,47 @@ trait ControllerTestTrait
 
         return $user;
     }
+
+    protected function assertSport(?Sport $sport): Sport
+    {
+        $this->assertNotNull($sport);
+
+        return $sport;
+    }
+
+    protected function getEntityManager(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        return $em;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function assertJsonSuccessResponse(KernelBrowser $client): array
+    {
+        $content = $client->getResponse()->getContent();
+        $this->assertIsString($content);
+        $this->assertJson($content);
+
+        $data = json_decode($content, true);
+        $this->assertIsArray($data);
+
+        return $data;
+    }
+
+    protected function getValidCsrfToken(KernelBrowser $client, string $url): string
+    {
+        $crawler = $client->request('GET', $url);
+
+        foreach ($crawler->filter('input[type="hidden"]') as $input) {
+            /** @var \DOMElement $input */
+            if (str_contains($input->getAttribute('name'), '_token')) {
+                return $input->getAttribute('value');
+            }
+        }
+
+        return '';
+    }
 }

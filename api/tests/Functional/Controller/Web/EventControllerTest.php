@@ -10,10 +10,8 @@ use App\Entity\Sport;
 use App\Enum\Gender;
 use App\Repository\EventRepository;
 use App\Tests\Trait\ControllerTestTrait;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -194,7 +192,6 @@ final class EventControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
         $errors = $data['errors'];
-        $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
     }
 
@@ -220,7 +217,6 @@ final class EventControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $errors = $data['errors'];
         $this->assertIsArray($errors);
-
         $messages = array_column($errors, 'message');
         $found = false;
         foreach ($messages as $message) {
@@ -442,7 +438,6 @@ final class EventControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
 
         $ids = array_column($data, 'id');
 
@@ -463,7 +458,6 @@ final class EventControllerTest extends WebTestCase
         $client->request('GET', sprintf('/events/by-competition/%d', $competition->getId()));
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
 
         foreach ($data as $entry) {
             $this->assertIsArray($entry);
@@ -490,7 +484,6 @@ final class EventControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
         $this->assertEmpty($data);
     }
 
@@ -509,21 +502,12 @@ final class EventControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
         $this->assertEmpty($data);
     }
 
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
 
     private function createTestCompetition(Sport $sport, bool $isBracket = false): Competition
     {
@@ -562,34 +546,5 @@ final class EventControllerTest extends WebTestCase
         $em->flush();
 
         return $event;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var \DOMElement $input */
-            $name = $input->getAttribute('name');
-            if (str_contains($name, '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
     }
 }

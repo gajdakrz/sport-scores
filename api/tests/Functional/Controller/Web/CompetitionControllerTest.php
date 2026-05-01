@@ -8,10 +8,8 @@ use App\Entity\Competition;
 use App\Enum\Gender;
 use App\Repository\CompetitionRepository;
 use App\Tests\Trait\ControllerTestTrait;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -154,7 +152,6 @@ final class CompetitionControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
         $errors = $data['errors'];
-        $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
     }
 
@@ -254,7 +251,6 @@ final class CompetitionControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
         $errors = $data['errors'];
-        $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
     }
 
@@ -345,7 +341,6 @@ final class CompetitionControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
         $this->assertNotEmpty($data);
 
         $ids = array_column($data, 'id');
@@ -365,7 +360,6 @@ final class CompetitionControllerTest extends WebTestCase
         $client->request('GET', sprintf('/competitions/by-sport/%d', $sportId));
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
 
         foreach ($data as $entry) {
             $this->assertIsArray($entry);
@@ -386,21 +380,12 @@ final class CompetitionControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
         $this->assertEmpty($data);
     }
 
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
 
     private function createTestCompetition(): Competition
     {
@@ -420,20 +405,5 @@ final class CompetitionControllerTest extends WebTestCase
         $em->flush();
 
         return $competition;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
     }
 }

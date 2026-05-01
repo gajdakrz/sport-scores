@@ -7,10 +7,8 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Entity\Sport;
 use App\Repository\SportRepository;
 use App\Tests\Trait\ControllerTestTrait;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -122,7 +120,6 @@ final class SportControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
         $errors = $data['errors'];
-        $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
     }
 
@@ -207,7 +204,6 @@ final class SportControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
         $errors = $data['errors'];
-        $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
     }
 
@@ -317,14 +313,6 @@ final class SportControllerTest extends WebTestCase
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
     private function createTestSportEntity(): Sport
     {
         $em   = $this->getEntityManager();
@@ -340,34 +328,5 @@ final class SportControllerTest extends WebTestCase
         $em->flush();
 
         return $sport;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var \DOMElement $input */
-            if (str_contains($input->getAttribute('name'), '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
     }
 }

@@ -16,10 +16,8 @@ use App\Enum\TeamType;
 use App\Repository\GameResultRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -367,14 +365,6 @@ final class GameResultControllerTest extends WebTestCase
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
     private function createTestCompetition(Sport $sport): Competition
     {
         $em   = $this->getEntityManager();
@@ -485,35 +475,5 @@ final class GameResultControllerTest extends WebTestCase
         $em->flush();
 
         return $gameResult;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var \DOMElement $input */
-            $name = $input->getAttribute('name');
-            if (str_contains($name, '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
     }
 }

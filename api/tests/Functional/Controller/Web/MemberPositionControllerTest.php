@@ -7,10 +7,8 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Entity\MemberPosition;
 use App\Repository\MemberPositionRepository;
 use App\Tests\Trait\ControllerTestTrait;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -75,9 +73,12 @@ final class MemberPositionControllerTest extends WebTestCase
         ]);
 
         $this->assertResponseStatusCodeSame(400);
-        $data = json_decode($client->getResponse()->getContent(), true);
+        $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
-        $this->assertSame('Sport not selected', $data['errors'][0]['message']);
+        $errors = $data['errors'];
+        $this->assertIsArray($errors);
+        $this->assertIsArray($errors[0]);
+        $this->assertSame('Sport not selected', $errors[0]['message']);
     }
 
     // -------------------------------------------------------------------------
@@ -314,14 +315,6 @@ final class MemberPositionControllerTest extends WebTestCase
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
     private function createTestMemberPosition(): MemberPosition
     {
         $em   = $this->getEntityManager();
@@ -339,20 +332,5 @@ final class MemberPositionControllerTest extends WebTestCase
         $em->flush();
 
         return $position;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
     }
 }

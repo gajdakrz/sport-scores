@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Web;
 
-use App\Entity\Country;
 use App\Entity\Person;
 use App\Entity\Team;
 use App\Enum\Gender;
 use App\Enum\TeamType;
 use App\Repository\PersonRepository;
 use App\Tests\Trait\ControllerTestTrait;
-use Doctrine\ORM\EntityManagerInterface;
-use DOMElement;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -160,7 +156,6 @@ final class PersonControllerTest extends WebTestCase
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
         $errors = $data['errors'];
-        $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
     }
 
@@ -332,7 +327,6 @@ final class PersonControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
     }
 
     #[Test]
@@ -374,7 +368,6 @@ final class PersonControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
         $this->assertNotEmpty($data);
 
         foreach ($data as $entry) {
@@ -423,7 +416,6 @@ final class PersonControllerTest extends WebTestCase
         $client->request('GET', sprintf('/persons/person-by-current-team/%d/included', $team->getId()));
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
 
         $ids = array_column($data, 'id');
         $this->assertContains($person->getId(), $ids);
@@ -491,7 +483,6 @@ final class PersonControllerTest extends WebTestCase
         $client->request('GET', sprintf('/persons/person-by-current-team/%d/excluded', $filteredTeam->getId()));
 
         $data = $this->assertJsonSuccessResponse($client);
-        $this->assertIsArray($data);
 
         $ids = array_column($data, 'id');
 
@@ -520,31 +511,6 @@ final class PersonControllerTest extends WebTestCase
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface $em */
-        $em = PersonControllerTest::getContainer()->get(EntityManagerInterface::class);
-
-        return $em;
-    }
-
-    private function createTestCountry(): Country
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $country = new Country();
-        $country->setName('Test Country ' . uniqid());
-        $country->setCreatedBy($user);
-        $country->setModifiedBy($user);
-        $country->setIsActive(true);
-
-        $em->persist($country);
-        $em->flush();
-
-        return $country;
-    }
 
     private function createTestTeam(): Team
     {
@@ -585,35 +551,5 @@ final class PersonControllerTest extends WebTestCase
         $em->flush();
 
         return $person;
-    }
-
-    private function getValidCsrfToken(KernelBrowser $client, string $url): string
-    {
-        $crawler = $client->request('GET', $url);
-
-        foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var DOMElement $input */
-            $name = $input->getAttribute('name');
-            if (str_contains($name, '_token')) {
-                return $input->getAttribute('value');
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function assertJsonSuccessResponse(KernelBrowser $client): array
-    {
-        $content = $client->getResponse()->getContent();
-        $this->assertIsString($content);
-        $this->assertJson($content);
-
-        $data = json_decode($content, true);
-        $this->assertIsArray($data);
-
-        return $data;
     }
 }
