@@ -9,10 +9,8 @@ services:
     environment:
       APP_ENV: dev
       DATABASE_URL: pgsql://admin:1234@db:5432/sport-scores-db
-      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f/messages
     depends_on:
       - db
-      - rabbitmq
 
   db:
     container_name: sport-scores-postgres
@@ -23,13 +21,6 @@ services:
       POSTGRES_PASSWORD: 1234
     ports:
       - "5432:5432"
-
-  rabbitmq:
-    container_name: sport-scores-rabbit
-    image: rabbitmq:3-management
-    ports:
-      - '5672:5672'
-      - '15672:15672'
 
   node:
     container_name: sport-scores-node
