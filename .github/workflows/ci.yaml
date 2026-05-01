@@ -57,11 +57,13 @@ jobs:
           php bin/console doctrine:fixtures:load --no-interaction --purge-with-truncate --env=test
 
       # --- ASSETY ---
-      - name: Create fake asset manifest
-        run: |
-          mkdir -p public/build
-          echo '{}' > public/build/manifest.json
-          echo '{"entrypoints":{"app":{"js":[],"css":[]}}}' > public/build/entrypoints.json
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install JS dependencies & build assets
+        run: npm install && npm run build
 
       # --- TESTY + COVERAGE ---
       - name: Run tests
