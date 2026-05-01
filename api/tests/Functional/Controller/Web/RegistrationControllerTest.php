@@ -216,7 +216,7 @@ final class RegistrationControllerTest extends WebTestCase
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode([
                 'email'         => 'admin_setup_' . uniqid() . '@example.com',
-                'plainPassword' => 'Admin123!',
+                'plainPassword' => $_ENV['TEST_ADMIN_PASSWORD'],
                 'role'          => 'ROLE_ADMIN',
             ], JSON_THROW_ON_ERROR),
         );
