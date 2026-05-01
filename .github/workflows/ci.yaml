@@ -61,7 +61,7 @@ jobs:
         run: |
           mkdir -p public/build
           echo '{}' > public/build/manifest.json
-          echo '{"entrypoints":{}}' > public/build/entrypoints.json
+          echo '{"entrypoints":{"app":{"js":[],"css":[]}}}' > public/build/entrypoints.json
 
       # --- TESTY + COVERAGE ---
       - name: Run tests
