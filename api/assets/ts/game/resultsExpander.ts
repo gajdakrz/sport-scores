@@ -28,7 +28,7 @@ export function initResultsExpander(): void {
                 const row = document.createElement('tr');
                 row.classList.add('game-results-row');
                 row.innerHTML = `<td colspan="8">${html}</td>`;
-                tr.insertAdjacentElement('afterend', row);
+                tr.after(row);
             } catch (err) {
                 console.error(err);
                 alert('Error loading results');

@@ -213,9 +213,9 @@ export class AppBase {
                 return;
             }
 
-            const deleteUrl = button.getAttribute('data-delete-url');
-            const itemName = button.getAttribute('data-item-name');
-            const token = button.getAttribute('data-token');
+            const deleteUrl = button.dataset.deleteUrl;
+            const itemName  = button.dataset.itemName;
+            const token     = button.dataset.token;
 
             const itemNameEl = deleteModal.querySelector('#delete-item-name');
             if (itemNameEl && itemName) {

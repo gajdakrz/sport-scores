@@ -8,8 +8,9 @@
             <h1 class="fw-light">Hello,</h1>
             <h1 class="fw-light">Start with sport</h1>
             <p>
-                <select id="sport-select" class="form-select form-select-lg mb-3" aria-label="Large select example">
-                    <option hidden >Select sport</option>
+                <label for="sport-select" class="form-label">Select sport</label>
+                <select id="sport-select" class="form-select form-select-lg mb-3">
+                    <option hidden>Select sport</option>
                     {% for sport in sports %}
                         <option value="{{ sport.id }}">{{ sport.name }}</option>
                     {% endfor %}
