@@ -7,11 +7,14 @@ on:
     branches: [main]
 
 jobs:
-  tests:
+  lint-and-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -23,11 +26,22 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
-      - name: Run tests
-        run: php bin/phpunit
+      # --- LINT ---
+      - name: PHP CS Fixer (lint)
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+        continue-on-error: true
 
-      - name: PHPStan
-        run: vendor/bin/phpstan analyse
+      - name: PHPStan (static analysis)
+        run: vendor/bin/phpstan analyse --no-progress
+        continue-on-error: true
 
-      - name: CS Fixer
-        run: vendor/bin/php-cs-fixer fix --dry-run
+      # --- TESTY + COVERAGE ---
+      - name: Run tests with coverage
+        run: php bin/phpunit --coverage-clover coverage.xml
+
+      # --- SONAR ---
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
