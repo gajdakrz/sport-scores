@@ -13,6 +13,17 @@ jobs:
       run:
         working-directory: ./api
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: 1234
+          POSTGRES_DB: sport-scores-db
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - uses: actions/checkout@v5
 
@@ -20,8 +31,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: string, intl, pdo_mysql
-          coverage: none
+          extensions: mbstring, intl, pdo_pgsql
+          coverage: pcov
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
@@ -35,8 +46,20 @@ jobs:
         run: vendor/bin/phpstan analyse --no-progress
         continue-on-error: true
 
+      # --- BAZA TESTOWA ---
+      - name: Prepare test database
+        env:
+          DATABASE_URL: pgsql://admin:1234@127.0.0.1:5432/sport-scores-db
+        run: |
+          php bin/console doctrine:database:drop --force --if-exists --env=test
+          php bin/console doctrine:database:create --env=test
+          php bin/console doctrine:migrations:migrate --no-interaction --env=test
+          php bin/console doctrine:fixtures:load --no-interaction --purge-with-truncate --env=test
+
       # --- TESTY + COVERAGE ---
-      - name: Run tests with coverage
+      - name: Run tests
+        env:
+          DATABASE_URL: pgsql://admin:1234@127.0.0.1:5432/sport-scores-db
         run: php bin/phpunit --coverage-clover coverage.xml
 
       # --- SONAR ---
