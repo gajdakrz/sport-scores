@@ -20,7 +20,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!modalInstance) {
+        if (modalInstance) {
+            // Paginacja — tylko aktualizujemy body
+            const modalBody = container.querySelector<HTMLElement>('.modal-body');
+            const fetchedModalBody = doc.querySelector('.modal-body');
+            if (!modalBody || !fetchedModalBody) {
+                console.error('Nie znaleziono .modal-body');
+                return;
+            }
+            modalBody.innerHTML = fetchedModalBody.innerHTML;
+        } else {
             // Pierwsze otwarcie — wstawiamy cały HTML i tworzymy instancję modala
             container.innerHTML = html;
             const modalEl = container.querySelector<HTMLElement>('.modal');
@@ -30,15 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             modalInstance = new Modal(modalEl);
             modalInstance.show();
-        } else {
-            // Paginacja — tylko aktualizujemy body
-            const modalBody = container.querySelector<HTMLElement>('.modal-body');
-            const fetchedModalBody = doc.querySelector('.modal-body');
-            if (!modalBody || !fetchedModalBody) {
-                console.error('Nie znaleziono .modal-body');
-                return;
-            }
-            modalBody.innerHTML = fetchedModalBody.innerHTML;
         }
 
         bindPaginationLinks(container);

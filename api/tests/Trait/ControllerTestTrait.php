@@ -8,6 +8,7 @@ use App\Entity\Sport;
 use App\Entity\User;
 use App\Repository\SportRepository;
 use App\Repository\UserRepository;
+use App\Tests\Exception\FixtureNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
@@ -22,7 +23,7 @@ trait ControllerTestTrait
         $user = $userRepository->findOneBy(['email' => self::USER_EMAIL_TEST]);
 
         if (!$user) {
-            throw new \RuntimeException(
+            throw new FixtureNotFoundException(
                 sprintf('Test user with email "%s" not found. Make sure fixtures are loaded.', self::USER_EMAIL_TEST)
             );
         }
@@ -75,9 +76,8 @@ trait ControllerTestTrait
 
     protected function getEntityManager(): EntityManagerInterface
     {
-        /** @var EntityManagerInterface $em */
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        return $em;
+        /** @var EntityManagerInterface */
+        return static::getContainer()->get(EntityManagerInterface::class);
     }
 
     /**

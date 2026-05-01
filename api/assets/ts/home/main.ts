@@ -18,6 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
 
-        window.location.href = '/games';
+        globalThis.location.href = '/games';
     });
 });

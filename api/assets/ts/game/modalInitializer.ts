@@ -17,10 +17,10 @@ export class ModalInitializer {
         AppBase.initDeleteModal();
     }
 
-    private initGameFormListeners = (): void => {
+    private readonly initGameFormListeners = (): void => {
         const competitionSelect = document.getElementById('game_competition') as HTMLSelectElement | null;
         const eventSelect = document.getElementById('game_event') as HTMLSelectElement | null;
-        const modal = document.getElementById('gameModal') as HTMLElement | null;
+        const modal = document.getElementById('gameModal');
 
         if (!competitionSelect || !eventSelect || !modal) {
             console.error('One or more elements not found!');
@@ -111,7 +111,7 @@ export class ModalInitializer {
 
     private initGameResultsCollection(): void {
         const container = document.querySelector('.game-results-list') as HTMLElement | null;
-        const addButton = document.getElementById('addGameResult') as HTMLElement | null;
+        const addButton = document.getElementById('addGameResult');
 
         if (!container || !addButton) return;
 
@@ -185,9 +185,7 @@ export class ModalInitializer {
                 const idInput = item.querySelector<HTMLInputElement>('input[id$="_id"]');
                 const hasId = idInput?.value;
 
-                if (!hasId) {
-                    item.remove();
-                } else {
+                if (hasId) {
                     item.style.opacity = '0.5';
                     item.style.textDecoration = 'line-through';
 
@@ -214,6 +212,8 @@ export class ModalInitializer {
                     removeBtn.classList.remove('btn-danger', 'remove-result');
                     removeBtn.classList.add('btn-success', 'restore-result');
                     removeBtn.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i>';
+                } else {
+                    item.remove();
                 }
 
                 return;

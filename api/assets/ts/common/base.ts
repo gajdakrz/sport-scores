@@ -6,7 +6,6 @@ import { Polish } from "flatpickr/dist/l10n/pl.js";
 
 flatpickr.localize(Polish);
 
-import 'bootstrap';
 import "bootstrap/dist/css/bootstrap.min.css";
 import {Modal, Alert} from "bootstrap";
 
@@ -103,7 +102,7 @@ export class AppBase {
                             const modalEl = document.getElementById(modalId);
                             modalEl?.addEventListener('hidden.bs.modal', () => {
                                 AppBase.showFlashAfterReload('success', json.message ?? 'Saved successfully.');
-                                window.location.href = json.redirect ?? window.location.href;
+                                globalThis.location.href = json.redirect ?? globalThis.location.href;
                             }, { once: true });
                             currentModal?.hide();
                         } else {
@@ -121,7 +120,7 @@ export class AppBase {
                     } else if (res.redirected) {
                         const modalEl = document.getElementById(modalId);
                         modalEl?.addEventListener('hidden.bs.modal', () => {
-                            window.location.reload();
+                            globalThis.location.reload();
                         }, { once: true });
                         currentModal?.hide();
                     } else {
@@ -253,7 +252,7 @@ export class AppBase {
                     } else {
                         AppBase.showFlashAfterReload('danger', json.error ?? 'An error occurred.');
                     }
-                    window.location.reload();
+                    globalThis.location.reload();
                 }, { once: true });
 
                 modalInstance?.hide();
@@ -327,9 +326,9 @@ export class AppBase {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
-                const cleanUrl = window.location.origin + window.location.pathname;
-                window.history.replaceState({}, document.title, cleanUrl);
-                window.location.reload();
+                const cleanUrl = globalThis.location.origin + globalThis.location.pathname;
+                globalThis.history.replaceState({}, document.title, cleanUrl);
+                globalThis.location.reload();
             } catch (e) {
                 console.error('Failed to switch sport', e);
             }

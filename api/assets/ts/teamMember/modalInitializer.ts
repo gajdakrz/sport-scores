@@ -18,10 +18,10 @@ export class ModalInitializer {
         AppBase.initDeleteModal();
     }
 
-    private initTeamMemberFormListeners = (): void => {
+    private readonly initTeamMemberFormListeners = (): void => {
         const teamSelect = document.getElementById('team_member_team') as HTMLSelectElement | null;
         const personSelect = document.getElementById('team_member_person') as HTMLSelectElement | null;
-        const modal = document.getElementById('teamMemberModal') as HTMLElement | null;
+        const modal = document.getElementById('teamMemberModal');
         const isCurrentCheckbox = document.getElementById('team_member_isCurrentMember') as HTMLInputElement | null;
 
         if (!teamSelect || !personSelect || !modal || !isCurrentCheckbox) {

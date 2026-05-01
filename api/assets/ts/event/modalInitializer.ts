@@ -29,7 +29,7 @@ export class ModalInitializer {
                 return;
             }
 
-            const selectedOption = this.options[this.selectedIndex] as HTMLOptionElement;
+            const selectedOption = this.options[this.selectedIndex];
 
             orderIndex.disabled = selectedOption.dataset.isBracket === 'false';
 

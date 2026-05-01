@@ -320,6 +320,6 @@ function areSameTeams(gameA: GameDto, gameB: GameDto): boolean {
     return teamsA === teamsB && gameA.date === gameB.date;
 }
 
-if (typeof bracketDto !== "undefined") {
+if (bracketDto !== undefined) {
     renderBracket(bracketDto);
 }

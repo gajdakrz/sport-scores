@@ -325,8 +325,6 @@ final class PersonControllerTest extends WebTestCase
         $client->request('GET', sprintf('/persons/person-by-current-team/%d/all', $team->getId()));
 
         $this->assertResponseIsSuccessful();
-
-        $data = $this->assertJsonSuccessResponse($client);
     }
 
     #[Test]

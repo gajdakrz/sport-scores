@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
-            window.location.href = '/games';
+            globalThis.location.href = '/games';
         } catch (err) {
             console.error('Failed to switch sport', err);
         }

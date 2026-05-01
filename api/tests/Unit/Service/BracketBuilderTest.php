@@ -24,6 +24,7 @@ use PHPUnit\Framework\TestCase;
 class BracketBuilderTest extends TestCase
 {
     private BracketBuilder $builder;
+    private static int $idCounter = 0;
 
     protected function setUp(): void
     {
@@ -344,7 +345,7 @@ class BracketBuilderTest extends TestCase
     {
         $team = $this->createMock(Team::class);
         $team->method('getName')->willReturn($teamName);
-        $team->method('getId')->willReturn(rand(1, 100));
+        $team->method('getId')->willReturn(++self::$idCounter);
 
         $gameResult = $this->createMock(GameResult::class);
         $gameResult->method('getTeam')->willReturn($team);
