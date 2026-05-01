@@ -58,7 +58,10 @@ jobs:
 
       # --- ASSETY ---
       - name: Create fake asset manifest
-        run: mkdir -p public/build && echo '{}' > public/build/manifest.json
+        run: |
+          mkdir -p public/build
+          echo '{}' > public/build/manifest.json
+          echo '{"entrypoints":{}}' > public/build/entrypoints.json
 
       # --- TESTY + COVERAGE ---
       - name: Run tests
