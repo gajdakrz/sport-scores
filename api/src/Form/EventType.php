@@ -48,27 +48,19 @@ final class EventType extends AbstractType
                 'class' => Competition::class,
                 'choice_label' => 'name',
                 'placeholder' => 'Select competition',
-                'query_builder' => $this->competitionRepository->createActiveQueryBuilder(
-                    'name',
-                    'ASC',
-                    $sport,
-                ),
-                'choice_attr' => function (Competition $competition) {
-                    return [
-                        'data-is-bracket' => $competition->isBracket() ? 'true' : 'false',
-                    ];
-                },
+                'query_builder' => $this->competitionRepository->createActiveQueryBuilder('name', 'ASC', $sport),
+                'choice_attr' => fn(Competition $competition) => [
+                    'data-is-bracket' => $competition->isBracket() ? 'true' : 'false',
+                ],
                 'attr' => [
                     'data-url' => $this->router->generate('event_by_competition', [
-                        'competitionId' => 'COMPETITION_ID'
+                        'competitionId' => 'COMPETITION_ID',
                     ]),
                 ],
             ])
             ->add('orderIndex', IntegerType::class, [
                 'label' => self::LABEL_ORDER_INDEX,
-                'attr' => [
-                    'min' => 1,
-                ],
+                'attr' => ['min' => 1],
                 'required' => false,
                 'empty_data' => null,
                 'disabled' => true,
@@ -76,95 +68,86 @@ final class EventType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Event name',
             ])
-            ->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) {
-                /** @var ?Event $data */
-                $data = $event->getData();
-                $form = $event->getForm();
-
-                if ($data === null) {
-                    return;
-                }
-
-                $competition = $data->getCompetition();
-
-                if ($competition === null) {
-                    return;
-                }
-
-                $sport = $competition->getSport();
-
-                if ($sport !== null) {
-                    $form->get('sport')->setData($sport);
-                }
-
-                $form->add('orderIndex', IntegerType::class, [
-                    'label' => self::LABEL_ORDER_INDEX,
-                    'attr' => [
-                        'min' => 1,
-                    ],
-                    'required' => false,
-                    'empty_data' => null,
-                    'disabled' => $competition->isBracket() === false,
-                ]);
-            })
-            ->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $formEvent) {
-                $data = $formEvent->getData();
-                $form = $formEvent->getForm();
-
-                if (!is_array($data)) {
-                    return;
-                }
-
-                if ($form->get('orderIndex')->getConfig()->getOption('disabled') === false) {
-                    return;
-                }
-
-                $competitionId = $data['competition'] ?? null;
-                if ($competitionId === null) {
-                    return;
-                }
-
-                $competition = $this->competitionRepository->find($competitionId);
-                if ($competition?->isBracket()) {
-                    $form->add('orderIndex', IntegerType::class, [
-                        'label' => self::LABEL_ORDER_INDEX,
-                        'attr' => ['min' => 1],
-                        'required' => false,
-                        'empty_data' => null,
-                        'disabled' => false,
-                    ]);
-                }
-            })
-            ->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
-                /** @var ?Event $data */
-                $data = $event->getData();
-                $form = $event->getForm();
-
-                if ($data === null) {
-                    return;
-                }
-
-                $competition = $data->getCompetition();
-
-                if ($competition === null) {
-                    return;
-                }
-
-                $orderIndex = is_int($raw = $form->get('orderIndex')->getData()) ? $raw : null;
-
-                if ($competition->isBracket() === false && $orderIndex !== null) {
-                    $form->get('orderIndex')->addError(
-                        new FormError(
-                            'Order index is not required for non bracket competition: ' . $competition->getName()
-                        )
-                    );
-
-                    return;
-                }
-
-                $this->validOrderIndex($event, $competition, $orderIndex);
-            })
+            ->addEventListener(FormEvents::POST_SET_DATA, fn(FormEvent $event) => $this->onPostSetData($event))
+            ->addEventListener(FormEvents::PRE_SUBMIT, fn(FormEvent $event) => $this->onPreSubmit($event))
+            ->addEventListener(FormEvents::POST_SUBMIT, fn(FormEvent $event) => $this->onPostSubmit($event))
         ;
+    }
+
+    private function onPostSetData(FormEvent $event): void
+    {
+        /** @var ?Event $data */
+        $data = $event->getData();
+        $form = $event->getForm();
+
+        if ($data === null || $data->getCompetition() === null) {
+            return;
+        }
+
+        $competition = $data->getCompetition();
+        $sport = $competition->getSport();
+
+        if ($sport !== null) {
+            $form->get('sport')->setData($sport);
+        }
+
+        $form->add('orderIndex', IntegerType::class, [
+            'label' => self::LABEL_ORDER_INDEX,
+            'attr' => ['min' => 1],
+            'required' => false,
+            'empty_data' => null,
+            'disabled' => $competition->isBracket() === false,
+        ]);
+    }
+
+    private function onPreSubmit(FormEvent $formEvent): void
+    {
+        $data = $formEvent->getData();
+        $form = $formEvent->getForm();
+
+        if (!is_array($data) || $form->get('orderIndex')->getConfig()->getOption('disabled') === false) {
+            return;
+        }
+
+        $competitionId = $data['competition'] ?? null;
+        if ($competitionId === null) {
+            return;
+        }
+
+        $competition = $this->competitionRepository->find($competitionId);
+        if ($competition?->isBracket()) {
+            $form->add('orderIndex', IntegerType::class, [
+                'label' => self::LABEL_ORDER_INDEX,
+                'attr' => ['min' => 1],
+                'required' => false,
+                'empty_data' => null,
+                'disabled' => false,
+            ]);
+        }
+    }
+
+    private function onPostSubmit(FormEvent $event): void
+    {
+        /** @var ?Event $data */
+        $data = $event->getData();
+        $form = $event->getForm();
+
+        if ($data === null || $data->getCompetition() === null) {
+            return;
+        }
+
+        $competition = $data->getCompetition();
+        $orderIndex = is_int($raw = $form->get('orderIndex')->getData()) ? $raw : null;
+
+        if ($competition->isBracket() === false && $orderIndex !== null) {
+            $form->get('orderIndex')->addError(new FormError(
+                'Order index is not required for non bracket competition: ' . $competition->getName()
+            ));
+
+            return;
+        }
+
+        $this->validOrderIndex($event, $competition, $orderIndex);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

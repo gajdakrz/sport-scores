@@ -81,6 +81,9 @@ export class AppBase {
             const modalEl = document.getElementById(modalId);
             if (!modalEl) return;
 
+            // Tworzymy kontroler powiązany z tym konkretnym modelem
+            const formAbortController = new AbortController();
+
             const form = container.querySelector<HTMLFormElement>('form');
             if (form) {
                 form.addEventListener('submit', async (e) => {
@@ -107,7 +110,6 @@ export class AppBase {
                             const errorDiv = container.querySelector('.modal-body');
                             if (errorDiv && json.errors) {
                                 errorDiv.querySelectorAll('.alert-danger').forEach(el => el.remove());
-
                                 json.errors.forEach((err: { message: string; field: string }) => {
                                     const alert = document.createElement('div');
                                     alert.className = 'alert alert-danger';
@@ -126,7 +128,7 @@ export class AppBase {
                         const responseHtml = await res.text();
                         openModal(responseHtml);
                     }
-                }, { once: true });
+                }, { signal: formAbortController.signal });
             }
 
             currentModal = new Modal(modalEl, { focus: true });
@@ -138,6 +140,7 @@ export class AppBase {
             }, { once: true });
 
             modalEl.addEventListener('hidden.bs.modal', () => {
+                formAbortController.abort(); // ← czyścimy listener przy zamknięciu
                 container.innerHTML = '';
                 currentModal = null;
                 isLoading = false;

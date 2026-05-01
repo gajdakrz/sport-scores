@@ -41,7 +41,6 @@ final class TeamMemberType extends AbstractType
         $teamMember = $builder->getData();
         /** @var ?Sport $sport */
         $sport = $options['current_sport'] ?? $teamMember?->getTeam()?->getSport();
-        $isEdit = $teamMember && $teamMember->getId();
 
         $builder
             ->add('team', EntityType::class, [
@@ -104,60 +103,7 @@ final class TeamMemberType extends AbstractType
                         $sport
                     ),
                 'required' => true,
-            ])
-            ->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use ($isEdit, $teamMember) {
-                /** @var array<string, mixed> $data */
-                $data = $event->getData();
-                $form = $event->getForm();
-
-                $teamId = $data['team'] ?? null;
-                $isCurrentMember = isset($data['isCurrentMember']) && $data['isCurrentMember'];
-                $originalPersonId = $teamMember?->getPerson()?->getId();
-
-                if ($teamId) {
-                    $form->add('person', EntityType::class, [
-                        'class' => Person::class,
-                        'choice_label' => function (Person $person): string {
-                            return sprintf(
-                                '%s %s (obecnie: %s)',
-                                $person->getLastName(),
-                                $person->getFirstName(),
-                                $person->getCurrentTeam()?->getName()
-                            );
-                        },
-                        'placeholder' => 'Select person',
-                        'required' => true,
-                        'query_builder' => function (PersonRepository $personRepository) use (
-                            $teamId,
-                            $isEdit,
-                            $isCurrentMember,
-                            $originalPersonId
-                        ) {
-                            $qb = $personRepository->createQueryBuilder('p');
-
-                            if ($isEdit) {
-                                $qb->where('p.currentTeam = :teamId')
-                                    ->orWhere('p.currentTeam IS NULL');
-
-                                if ($originalPersonId !== null) {
-                                    $qb->orWhere('p.id = :originalPersonId')
-                                        ->setParameter('originalPersonId', $originalPersonId);
-                                }
-
-                                return $qb->setParameter('teamId', $teamId);
-                            }
-
-                            if ($isCurrentMember) {
-                                return $qb->where('p.currentTeam != :teamId')
-                                    ->orWhere('p.currentTeam IS NULL')
-                                    ->setParameter('teamId', $teamId);
-                            }
-
-                            return $qb;
-                        },
-                    ]);
-                }
-            })
+            ])->addEventListener(FormEvents::PRE_SUBMIT, fn(FormEvent $event) => $this->onPreSubmit($event))
         ;
     }
 
@@ -169,5 +115,78 @@ final class TeamMemberType extends AbstractType
         ]);
 
         $resolver->setAllowedTypes('current_sport', [Sport::class, 'null']);
+    }
+
+    private function onPreSubmit(FormEvent $event): void
+    {
+        /** @var array<string, mixed> $data */
+        $data = $event->getData();
+        $form = $event->getForm();
+
+        $teamId = $data['team'] ?? null;
+        if (!is_int($teamId) && !is_string($teamId)) {
+            return;
+        }
+
+        /** @var ?TeamMember $teamMember */
+        $teamMember = $form->getData();
+        $isEdit = $teamMember && $teamMember->getId();
+        $isCurrentMember = isset($data['isCurrentMember']) && $data['isCurrentMember'];
+        $originalPersonId = $teamMember?->getPerson()?->getId();
+
+        $form->add('person', EntityType::class, [
+            'class' => Person::class,
+            'choice_label' => fn(Person $person): string => $this->personChoiceLabel($person),
+            'placeholder' => 'Select person',
+            'required' => true,
+            'query_builder' => fn(PersonRepository $r) => $this->buildPersonQueryBuilder(
+                $r,
+                $teamId,
+                $isEdit,
+                $isCurrentMember,
+                $originalPersonId
+            ),
+        ]);
+    }
+
+    private function buildPersonQueryBuilder(
+        PersonRepository $personRepository,
+        int|string $teamId,
+        bool $isEdit,
+        bool $isCurrentMember,
+        ?int $originalPersonId
+    ): \Doctrine\ORM\QueryBuilder {
+        $qb = $personRepository->createQueryBuilder('p');
+
+        if ($isEdit) {
+            $qb->where('p.currentTeam = :teamId')
+                ->orWhere('p.currentTeam IS NULL')
+                ->setParameter('teamId', $teamId);
+
+            if ($originalPersonId !== null) {
+                $qb->orWhere('p.id = :originalPersonId')
+                    ->setParameter('originalPersonId', $originalPersonId);
+            }
+
+            return $qb;
+        }
+
+        if ($isCurrentMember) {
+            return $qb->where('p.currentTeam != :teamId')
+                ->orWhere('p.currentTeam IS NULL')
+                ->setParameter('teamId', $teamId);
+        }
+
+        return $qb;
+    }
+
+    private function personChoiceLabel(Person $person): string
+    {
+        return sprintf(
+            '%s %s (obecnie: %s)',
+            $person->getLastName(),
+            $person->getFirstName(),
+            $person->getCurrentTeam()?->getName()
+        );
     }
 }

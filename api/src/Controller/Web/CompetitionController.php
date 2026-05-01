@@ -69,7 +69,6 @@ final class CompetitionController extends BaseController
         $em->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Competition created.'], Response::HTTP_CREATED);
-
     }
 
     #[Route('/{id}/edit', name: 'competition_edit', methods: ['GET', 'POST'])]
