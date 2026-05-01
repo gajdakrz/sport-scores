@@ -115,7 +115,7 @@ export class ModalInitializer {
 
         if (!container || !addButton) return;
 
-        let index = parseInt(container.dataset.index || '0', 10);
+        let index = Number.parseInt(container.dataset.index || '0', 10);
 
         addButton.addEventListener('click', () => {
             const prototype = container.dataset.prototype;

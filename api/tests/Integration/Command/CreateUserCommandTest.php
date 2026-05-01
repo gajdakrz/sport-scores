@@ -165,17 +165,17 @@ class CreateUserCommandTest extends KernelTestCase
     #[TestDox('Stored password is hashed and does not match the plain text input')]
     public function userPasswordIsHashed(): void
     {
-        $plainPassword = 'SecurePass123!';
+        $plainTextInput = 'SecurePass123!';
 
         $this->commandTester->execute([
             'email'    => 'integration-admin@example.com',
-            'password' => $plainPassword,
+            'password' => $plainTextInput,
             'role'     => Role::ADMIN->value,
         ]);
 
         $user = $this->userRepository->findOneBy(['email' => 'integration-admin@example.com']);
         $this->assertNotNull($user);
-        $this->assertNotEquals($plainPassword, $user->getPassword());
+        $this->assertNotEquals($plainTextInput, $user->getPassword());
         $this->assertNotEmpty($user->getPassword());
     }
 

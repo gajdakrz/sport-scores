@@ -312,8 +312,10 @@ function createGameDateText(
 function areSameTeams(gameA: GameDto, gameB: GameDto): boolean {
     if (!gameA || !gameB) return false;
 
-    const teamsA = gameA.teams.map(t => t.teamName).sort().join(',');
-    const teamsB = gameB.teams.map(t => t.teamName).sort().join(',');
+    const teamsA
+        = gameA.teams.map(t => t.teamName).sort((a, b) => a.localeCompare(b)).join(',');
+    const teamsB
+        = gameB.teams.map(t => t.teamName).sort((a, b) => a.localeCompare(b)).join(',');
 
     return teamsA === teamsB && gameA.date === gameB.date;
 }
