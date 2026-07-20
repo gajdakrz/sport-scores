@@ -25,7 +25,10 @@ class MemberPositionRepository extends AbstractRepository
         $qb = $this->createQueryBuilder('memberPosition')
             ->andWhere('memberPosition.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('memberPosition.' . $orderBy, $direction);
+            ->orderBy(
+                'memberPosition.' . $this->assertValidSortField($orderBy),
+                $this->assertValidSortDirection($direction)
+            );
 
         if ($sport !== null) {
             $qb->andWhere('memberPosition.sport = :sport')

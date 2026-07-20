@@ -31,7 +31,7 @@ class PersonRepository extends AbstractRepository
         $qb = $this->createQueryBuilder('person')
             ->andWhere('person.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('person.' . $orderBy, $direction);
+            ->orderBy('person.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
 
         if ($sport !== null) {
             $qb->andWhere('person.sport = :sport')
@@ -94,7 +94,7 @@ class PersonRepository extends AbstractRepository
         $qb = $this->createQueryBuilder('person')
             ->andWhere('person.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('person.' . $orderBy, $direction);
+            ->orderBy('person.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
 
         $this->applyFilter($qb, 'person.sport', $sport);
         $this->applyFilter($qb, 'person.birthDate', $filter->getBirthDate());

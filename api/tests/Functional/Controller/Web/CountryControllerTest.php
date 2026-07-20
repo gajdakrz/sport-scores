@@ -52,12 +52,24 @@ final class CountryControllerTest extends WebTestCase
     public function newPageDisplaysForm(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $client->request('GET', '/countries/new');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
+    }
+
+    #[Test]
+    #[TestDox('New page is forbidden for a non-admin authenticated user')]
+    public function newPageForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $client->request('GET', '/countries/new');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------
@@ -69,7 +81,7 @@ final class CountryControllerTest extends WebTestCase
     public function submittingNewFormCreatesCountry(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $crawler = $client->request('GET', '/countries/new');
         $form    = $crawler->selectButton('Save')->form();
@@ -100,7 +112,7 @@ final class CountryControllerTest extends WebTestCase
     public function submittingNewFormWithInvalidCsrfTokenReturnsValidationErrors(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         // CountryType ma tylko TextType – żadnych enumów ani constraints, więc
         // jedyną drogą do form->isValid() = false jest nieprawidłowy token CSRF.
@@ -130,7 +142,7 @@ final class CountryControllerTest extends WebTestCase
     public function editPageDisplaysForm(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $country = $this->createTestCountry();
 
@@ -138,6 +150,20 @@ final class CountryControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
+    }
+
+    #[Test]
+    #[TestDox('Edit page is forbidden for a non-admin authenticated user')]
+    public function editPageForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $country = $this->createTestCountry();
+
+        $client->request('GET', sprintf('/countries/%d/edit', $country->getId()));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------
@@ -149,7 +175,7 @@ final class CountryControllerTest extends WebTestCase
     public function submittingEditFormUpdatesCountry(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $country      = $this->createTestCountry();
         $originalName = $country->getName();
@@ -186,7 +212,7 @@ final class CountryControllerTest extends WebTestCase
     public function submittingEditFormWithInvalidCsrfTokenReturnsValidationErrors(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $country = $this->createTestCountry();
 
@@ -215,7 +241,7 @@ final class CountryControllerTest extends WebTestCase
     public function deleteSoftDeletesCountry(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $country   = $this->createTestCountry();
         $countryId = $country->getId();
@@ -250,7 +276,7 @@ final class CountryControllerTest extends WebTestCase
     public function deleteWithInvalidCsrfTokenReturnsForbidden(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $country = $this->createTestCountry();
 
@@ -272,6 +298,22 @@ final class CountryControllerTest extends WebTestCase
 
         $this->assertNotNull($stillActive);
         $this->assertTrue($stillActive->isActive());
+    }
+
+    #[Test]
+    #[TestDox('Delete is forbidden for a non-admin authenticated user')]
+    public function deleteForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $country = $this->createTestCountry();
+
+        $client->request('POST', sprintf('/countries/%d', $country->getId()), [
+            '_token' => 'irrelevant',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------

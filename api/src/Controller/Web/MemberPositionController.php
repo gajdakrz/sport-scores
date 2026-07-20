@@ -35,6 +35,7 @@ final class MemberPositionController extends BaseController
         ]);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/new', name: 'member_position_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
@@ -71,6 +72,7 @@ final class MemberPositionController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Member position created.'], Response::HTTP_CREATED);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}/edit', name: 'member_position_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, MemberPosition $memberPosition, EntityManagerInterface $em): Response
     {
@@ -96,6 +98,7 @@ final class MemberPositionController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Member position updated.']);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}', name: 'member_position_delete', methods: ['POST'])]
     public function delete(Request $request, MemberPosition $memberPosition, EntityManagerInterface $em): Response
     {

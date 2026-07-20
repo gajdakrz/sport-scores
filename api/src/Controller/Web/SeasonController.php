@@ -29,6 +29,7 @@ final class SeasonController extends BaseController
         ]);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/new', name: 'season_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -58,6 +59,7 @@ final class SeasonController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Season created.'], Response::HTTP_CREATED);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}/edit', name: 'season_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Season $season, EntityManagerInterface $em): Response
     {
@@ -83,6 +85,7 @@ final class SeasonController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Season updated.']);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}', name: 'season_delete', methods: ['POST'])]
     public function delete(Request $request, Season $season, EntityManagerInterface $em): Response
     {

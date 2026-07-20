@@ -25,7 +25,7 @@ class SportRepository extends AbstractRepository
         return $this->createQueryBuilder('sport')
             ->where('sport.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('sport.' . $orderBy, $direction);
+            ->orderBy('sport.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
     }
 
     /**

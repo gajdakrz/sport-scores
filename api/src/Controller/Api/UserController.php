@@ -6,6 +6,7 @@ namespace App\Controller\Api;
 
 use App\Controller\BaseController;
 use App\Dto\Request\RegistrationUserRequest;
+use App\Enum\Role;
 use App\Exception\CustomBadRequestException;
 use App\Service\RegistrationUserService;
 use Doctrine\DBAL\Exception;
@@ -91,6 +92,10 @@ class UserController extends BaseController
         } catch (ExceptionInterface $e) {
             throw new CustomBadRequestException([['message' => 'Wrong json: ' . $e->getMessage(), 'field' => '']]);
         }
+
+        // This is a public, unauthenticated self-registration endpoint: never trust a
+        // client-supplied role. Elevated roles may only be granted via app:create-user.
+        $dto->setRole(Role::USER);
 
         $violations = $this->validator->validate($dto);
 

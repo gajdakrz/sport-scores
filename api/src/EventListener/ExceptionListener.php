@@ -7,6 +7,7 @@ namespace App\EventListener;
 use App\Dto\Response\ExceptionResponse;
 use App\Exception\CustomBadRequestException;
 use App\Helper\ValidationHelper;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -15,8 +16,10 @@ use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 readonly class ExceptionListener
 {
-    public function __construct(private ValidationHelper $validationHelper)
-    {
+    public function __construct(
+        private ValidationHelper $validationHelper,
+        private LoggerInterface $logger,
+    ) {
     }
 
     /**
@@ -38,8 +41,15 @@ readonly class ExceptionListener
                 $this->validationHelper->prepareValidationErrors($previous);
                 $exceptionResponse->setErrors($this->validationHelper->getValidationErrorsAsArray());
             } else {
-                $response->setStatusCode($this->getStatusCode($exception));
-                $exceptionResponse->setMessage($exception->getMessage());
+                $statusCode = $this->getStatusCode($exception);
+                $response->setStatusCode($statusCode);
+
+                if ($statusCode >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+                    $this->logger->error($exception->getMessage(), ['exception' => $exception]);
+                    $exceptionResponse->setMessage('Internal server error.');
+                } else {
+                    $exceptionResponse->setMessage($exception->getMessage());
+                }
             }
             $response->setData($exceptionResponse->toArray());
             $event->setResponse($response);

@@ -28,6 +28,7 @@ final class CountryController extends BaseController
         ]);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/new', name: 'country_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -57,6 +58,7 @@ final class CountryController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Country created.'], Response::HTTP_CREATED);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}/edit', name: 'country_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Country $country, EntityManagerInterface $em): Response
     {
@@ -82,6 +84,7 @@ final class CountryController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Country updated.']);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}', name: 'country_delete', methods: ['POST'])]
     public function delete(Request $request, Country $country, EntityManagerInterface $em): Response
     {

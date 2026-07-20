@@ -25,7 +25,7 @@ class SeasonRepository extends AbstractRepository
         return $this->createQueryBuilder('season')
             ->where('season.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('season.' . $orderBy, $direction);
+            ->orderBy('season.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
     }
 
     /**

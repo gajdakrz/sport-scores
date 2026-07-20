@@ -25,7 +25,7 @@ class CountryRepository extends AbstractRepository
         return $this->createQueryBuilder('country')
             ->andWhere('country.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('country.' . $orderBy, $direction);
+            ->orderBy('country.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
     }
 
     /**

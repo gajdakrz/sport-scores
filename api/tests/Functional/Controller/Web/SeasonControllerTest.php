@@ -52,12 +52,24 @@ final class SeasonControllerTest extends WebTestCase
     public function newPageDisplaysForm(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $client->request('GET', '/seasons/new');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
+    }
+
+    #[Test]
+    #[TestDox('New page is forbidden for a non-admin authenticated user')]
+    public function newPageForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $client->request('GET', '/seasons/new');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------
@@ -69,7 +81,7 @@ final class SeasonControllerTest extends WebTestCase
     public function submittingNewFormCreatesSeason(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $crawler = $client->request('GET', '/seasons/new');
         $form    = $crawler->selectButton('Save')->form();
@@ -109,7 +121,7 @@ final class SeasonControllerTest extends WebTestCase
     public function submittingNewFormWithStartYearGreaterThanEndYearReturns400(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $currentYear = (int) date('Y');
 
@@ -140,7 +152,7 @@ final class SeasonControllerTest extends WebTestCase
     public function editPageDisplaysForm(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $season = $this->createTestSeason();
 
@@ -148,6 +160,20 @@ final class SeasonControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
+    }
+
+    #[Test]
+    #[TestDox('Edit page is forbidden for a non-admin authenticated user')]
+    public function editPageForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $season = $this->createTestSeason();
+
+        $client->request('GET', sprintf('/seasons/%d/edit', $season->getId()));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------
@@ -159,7 +185,7 @@ final class SeasonControllerTest extends WebTestCase
     public function submittingEditFormUpdatesSeason(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $season = $this->createTestSeason(2018, 2019);
 
@@ -200,7 +226,7 @@ final class SeasonControllerTest extends WebTestCase
     public function submittingEditFormWithInvalidYearRangeReturns400(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $season      = $this->createTestSeason();
         $currentYear = (int) date('Y');
@@ -228,7 +254,7 @@ final class SeasonControllerTest extends WebTestCase
     public function deleteSoftDeletesSeason(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $season   = $this->createTestSeason();
         $seasonId = $season->getId();
@@ -263,7 +289,7 @@ final class SeasonControllerTest extends WebTestCase
     public function deleteWithInvalidCsrfTokenReturnsForbidden(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $season = $this->createTestSeason();
 
@@ -282,6 +308,22 @@ final class SeasonControllerTest extends WebTestCase
 
         $this->assertNotNull($stillActive);
         $this->assertTrue($stillActive->isActive());
+    }
+
+    #[Test]
+    #[TestDox('Delete is forbidden for a non-admin authenticated user')]
+    public function deleteForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $season = $this->createTestSeason();
+
+        $client->request('POST', sprintf('/seasons/%d', $season->getId()), [
+            '_token' => 'irrelevant',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------

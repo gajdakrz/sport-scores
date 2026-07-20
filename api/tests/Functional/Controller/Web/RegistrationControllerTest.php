@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Web;
 
+use App\Entity\User;
+use App\Enum\Role;
+use App\Repository\UserRepository;
 use App\Tests\Trait\ControllerTestTrait;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class RegistrationControllerTest extends WebTestCase
 {
@@ -55,7 +59,7 @@ final class RegistrationControllerTest extends WebTestCase
 
         // RegistrationFormType nie ma pola role → domyślnie Role::USER.
         // Rejestracja usera wymaga istniejącego admina.
-        $this->ensureAdminExists($client);
+        $this->ensureAdminExists();
 
         $crawler = $client->request('GET', '/register');
         $form    = $crawler->selectButton('Register')->form();
@@ -80,7 +84,7 @@ final class RegistrationControllerTest extends WebTestCase
     public function successfulRegistrationShowsFlashMessage(): void
     {
         $client = self::createClient();
-        $this->ensureAdminExists($client);
+        $this->ensureAdminExists();
 
         $crawler = $client->request('GET', '/register');
         $form    = $crawler->selectButton('Register')->form();
@@ -203,23 +207,30 @@ final class RegistrationControllerTest extends WebTestCase
     // -------------------------------------------------------------------------
 
     /**
-     * Rejestracja wymaga istnienia admina (RegistrationUserService::register()).
-     * Tworzymy go przez API endpoint który obsługuje role.
+     * Rejestracja usera wymaga istnienia admina (RegistrationUserService::register()).
+     * POST /api/v1/user nie przyjmuje już roli od klienta (mass-assignment fix), więc
+     * admina tworzymy bezpośrednio przez EntityManager, tak jak robi to app:create-user.
      */
-    private function ensureAdminExists(KernelBrowser $client): void
+    private function ensureAdminExists(): void
     {
-        $client->loginUser($this->getTestUser(), 'api');
+        /** @var UserRepository $userRepository */
+        $userRepository = static::getContainer()->get(UserRepository::class);
 
-        $client->request(
-            method: 'POST',
-            uri: '/api/v1/user',
-            server: ['CONTENT_TYPE' => 'application/json'],
-            content: json_encode([
-                'email'         => 'admin_setup_' . uniqid() . '@example.com',
-                'plainPassword' => $_ENV['TEST_ADMIN_PASSWORD'],
-                'role'          => 'ROLE_ADMIN',
-            ], JSON_THROW_ON_ERROR),
-        );
-        // 201 = admin utworzony, 409 = już istnieje – oba są OK
+        if ($userRepository->isAdminExists()) {
+            return;
+        }
+
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        /** @var UserPasswordHasherInterface $passwordHasher */
+        $passwordHasher = static::getContainer()->get(UserPasswordHasherInterface::class);
+
+        $admin = new User();
+        $admin->setEmail('admin_setup_' . uniqid() . '@example.com');
+        $admin->setRoles([Role::ADMIN->value]);
+        $admin->setPassword($passwordHasher->hashPassword($admin, 'Secret123!'));
+
+        $em->persist($admin);
+        $em->flush();
     }
 }

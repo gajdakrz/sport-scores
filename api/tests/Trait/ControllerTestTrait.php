@@ -15,16 +15,27 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 trait ControllerTestTrait
 {
     private const string USER_EMAIL_TEST = 'test@example.com';
+    private const string ADMIN_EMAIL_TEST = 'admin_test@example.com';
 
     protected function getTestUser(): User
     {
+        return $this->findFixtureUser(self::USER_EMAIL_TEST);
+    }
+
+    protected function getTestAdmin(): User
+    {
+        return $this->findFixtureUser(self::ADMIN_EMAIL_TEST);
+    }
+
+    private function findFixtureUser(string $email): User
+    {
         /** @var UserRepository $userRepository */
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy(['email' => self::USER_EMAIL_TEST]);
+        $user = $userRepository->findOneBy(['email' => $email]);
 
         if (!$user) {
             throw new FixtureNotFoundException(
-                sprintf('Test user with email "%s" not found. Make sure fixtures are loaded.', self::USER_EMAIL_TEST)
+                sprintf('Test user with email "%s" not found. Make sure fixtures are loaded.', $email)
             );
         }
 
@@ -65,6 +76,14 @@ trait ControllerTestTrait
         $client->loginUser($user);
 
         return $user;
+    }
+
+    protected function loginAsTestAdmin(KernelBrowser $client): User
+    {
+        $admin = $this->getTestAdmin();
+        $client->loginUser($admin);
+
+        return $admin;
     }
 
     protected function assertSport(?Sport $sport): Sport

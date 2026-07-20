@@ -20,5 +20,18 @@ services:
 
     App\Service\CurrentSportProvider:
         public: true
+
+    # Monolog without symfony/monolog-bridge (CVE-2026-45077 in the bridge's
+    # server:log listener has no fix compatible with the pinned Symfony 7.3.* line).
+    Monolog\Handler\StreamHandler:
+        arguments:
+            $stream: 'php://stderr'
+
+    Monolog\Logger:
+        arguments:
+            $name: 'app'
+            $handlers: [ '@Monolog\Handler\StreamHandler' ]
+
+    Psr\Log\LoggerInterface: '@Monolog\Logger'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

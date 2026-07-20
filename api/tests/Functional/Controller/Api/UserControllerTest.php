@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Api;
 
+use App\Repository\UserRepository;
 use App\Tests\Trait\ControllerTestTrait;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -85,6 +87,7 @@ final class UserControllerTest extends WebTestCase
     public function registeringUserWithoutAdminReturnsConflict(): void
     {
         $client = $this->createAuthenticatedClient();
+        $this->deleteAllAdminUsers();
 
         $this->postJson($client, [
             'email' => 'user_' . uniqid() . '@example.com',
@@ -331,6 +334,26 @@ final class UserControllerTest extends WebTestCase
         $client->loginUser($this->getTestUser(), 'api');
 
         return $client;
+    }
+
+    /**
+     * Fixtures always seed a ROLE_ADMIN user; remove it so tests can exercise the
+     * "no admin registered yet" path regardless of ambient fixture data.
+     */
+    private function deleteAllAdminUsers(): void
+    {
+        /** @var UserRepository $userRepository */
+        $userRepository = static::getContainer()->get(UserRepository::class);
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        foreach ($userRepository->findAll() as $user) {
+            if (in_array(self::ROLE_ADMIN, $user->getRoles(), true)) {
+                $em->remove($user);
+            }
+        }
+
+        $em->flush();
     }
 
     /**

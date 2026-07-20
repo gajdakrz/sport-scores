@@ -52,7 +52,7 @@ final class MemberPositionControllerTest extends WebTestCase
     public function newPageDisplaysForm(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
         $this->setCurrentSport($client);
 
         $client->request('GET', '/member-positions/new');
@@ -62,11 +62,24 @@ final class MemberPositionControllerTest extends WebTestCase
     }
 
     #[Test]
+    #[TestDox('New page is forbidden for a non-admin authenticated user')]
+    public function newPageForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+
+        $client->request('GET', '/member-positions/new');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+    }
+
+    #[Test]
     #[TestDox('New endpoint returns 400 when no sport is selected')]
     public function newReturnsBadRequestWhenNoSportSelected(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $client->request('GET', '/member-positions/new', [], [], [
             'HTTP_X-Requested-With' => 'XMLHttpRequest',
@@ -90,7 +103,7 @@ final class MemberPositionControllerTest extends WebTestCase
     public function submittingNewFormCreatesMemberPosition(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
         $sport = $this->setCurrentSport($client);
 
         $crawler = $client->request('GET', '/member-positions/new');
@@ -129,7 +142,7 @@ final class MemberPositionControllerTest extends WebTestCase
     public function submittingNewFormWithInvalidCsrfTokenReturnsValidationErrors(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
         $this->setCurrentSport($client);
 
         // MemberPositionType ma tylko TextType – jedyna droga do isValid()=false
@@ -159,7 +172,7 @@ final class MemberPositionControllerTest extends WebTestCase
     public function editPageDisplaysForm(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $position = $this->createTestMemberPosition();
 
@@ -167,6 +180,20 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
+    }
+
+    #[Test]
+    #[TestDox('Edit page is forbidden for a non-admin authenticated user')]
+    public function editPageForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $position = $this->createTestMemberPosition();
+
+        $client->request('GET', sprintf('/member-positions/%d/edit', $position->getId()));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------
@@ -178,7 +205,7 @@ final class MemberPositionControllerTest extends WebTestCase
     public function submittingEditFormUpdatesMemberPosition(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $position     = $this->createTestMemberPosition();
         $originalName = $position->getName();
@@ -222,7 +249,7 @@ final class MemberPositionControllerTest extends WebTestCase
     public function submittingEditFormWithInvalidCsrfTokenReturnsValidationErrors(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $position = $this->createTestMemberPosition();
 
@@ -251,7 +278,7 @@ final class MemberPositionControllerTest extends WebTestCase
     public function deleteSoftDeletesMemberPosition(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $position   = $this->createTestMemberPosition();
         $positionId = $position->getId();
@@ -286,7 +313,7 @@ final class MemberPositionControllerTest extends WebTestCase
     public function deleteWithInvalidCsrfTokenReturnsForbidden(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $position = $this->createTestMemberPosition();
 
@@ -309,6 +336,22 @@ final class MemberPositionControllerTest extends WebTestCase
 
         $this->assertNotNull($stillActive);
         $this->assertTrue($stillActive->isActive());
+    }
+
+    #[Test]
+    #[TestDox('Delete is forbidden for a non-admin authenticated user')]
+    public function deleteForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $position = $this->createTestMemberPosition();
+
+        $client->request('POST', sprintf('/member-positions/%d', $position->getId()), [
+            '_token' => 'irrelevant',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------

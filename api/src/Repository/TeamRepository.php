@@ -28,7 +28,7 @@ class TeamRepository extends AbstractRepository
         $qb = $this->createQueryBuilder('team')
             ->andWhere('team.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('team.' . $orderBy, $direction);
+            ->orderBy('team.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
 
         if ($sport !== null) {
             $qb->andWhere('team.sport = :sport')
@@ -71,7 +71,7 @@ class TeamRepository extends AbstractRepository
         $qb = $this->createQueryBuilder('team')
             ->andWhere('team.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('team.' . $orderBy, $direction);
+            ->orderBy('team.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
 
         $this->applyFilter($qb, 'team.sport', $sport);
         $this->applyFilter($qb, 'team.country', $filter->getCountryId());

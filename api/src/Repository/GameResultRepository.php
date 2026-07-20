@@ -39,7 +39,10 @@ class GameResultRepository extends AbstractRepository
             ->join('competition.sport', 'sport')
             ->andWhere('gameResult.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('gameResult.' . $orderBy, $direction);
+            ->orderBy(
+                'gameResult.' . $this->assertValidSortField($orderBy),
+                $this->assertValidSortDirection($direction)
+            );
 
         if ($sport !== null) {
             $qb->andWhere('competition.sport = :sport')
@@ -83,7 +86,7 @@ class GameResultRepository extends AbstractRepository
             ->andWhere('gr.isActive = :isActive')
             ->setParameter('isActive', true)
             ->setParameter('game', $game)
-            ->orderBy('gr.' . $orderBy, $direction)
+            ->orderBy('gr.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction))
             ->getQuery()
             ->getResult();
     }
@@ -109,7 +112,10 @@ class GameResultRepository extends AbstractRepository
             ->andWhere('gr1.isActive = :isActive')
             ->setParameter('isActive', true)
             ->setParameter('team', $team)
-            ->orderBy($orderBy, $direction);
+            ->orderBy(
+                $this->assertAllowedSortExpression($orderBy, ['gr1.createdAt', 'g.date']),
+                $this->assertValidSortDirection($direction)
+            );
 
         if ($season !== null) {
             $qb->andWhere('g.season = :season')
@@ -150,7 +156,10 @@ class GameResultRepository extends AbstractRepository
             ->andWhere('gameResult.isActive = true')
             ->setParameter('team', $team)
             ->groupBy('season.id, competition.id')
-            ->orderBy($orderBy, $direction);
+            ->orderBy(
+                $this->assertAllowedSortExpression($orderBy, ['season.startYear']),
+                $this->assertValidSortDirection($direction)
+            );
 
         $this->applyFilter($qb, 'competition.sport', $sport);
         $this->applyFilter($qb, 'game.season', $filter->getSeasonId());
@@ -185,7 +194,10 @@ class GameResultRepository extends AbstractRepository
             )
             ->andWhere('gameResult.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('gameResult.' . $orderBy, $direction);
+            ->orderBy(
+                'gameResult.' . $this->assertValidSortField($orderBy),
+                $this->assertValidSortDirection($direction)
+            );
 
         $this->applyFilter($qb, 'competition.sport', $sport);
         $this->applyFilter($qb, 'game.date', $filter->getDate());

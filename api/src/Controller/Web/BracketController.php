@@ -13,6 +13,7 @@ use App\Service\CurrentSportProvider;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Serializer\Encoder\JsonEncode;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -52,16 +53,26 @@ final class BracketController extends BaseController
 
         $bracketDto = $builder->build($competition, $season);
 
+        // Bracket data (team/event names) is user-editable content rendered raw into a
+        // <script> block; hex-encode <, >, &, ' and " so it can't break out of the tag (XSS).
+        $jsSafeJsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+
         $bracketJson = $serializer->serialize(
             $bracketDto,
             'json',
             [
-                'datetime_format' => 'Y-m-d'
+                'datetime_format' => 'Y-m-d',
+                JsonEncode::OPTIONS => $jsSafeJsonFlags,
             ]
         );
 
+        $highlightTeamJson = $team !== null
+            ? json_encode($team->getName(), $jsSafeJsonFlags | JSON_THROW_ON_ERROR)
+            : 'null';
+
         return $this->render('bracket/show.html.twig', [
             'bracketJson' => $bracketJson,
+            'highlightTeamJson' => $highlightTeamJson,
             'competition' => $competition,
             'season' => $season,
             'highlightTeam' => $team

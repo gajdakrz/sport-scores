@@ -28,6 +28,7 @@ final class SportController extends BaseController
         ]);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/new', name: 'sport_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
@@ -57,6 +58,7 @@ final class SportController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Sport created.'], Response::HTTP_CREATED);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}/edit', name: 'sport_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Sport $sport, EntityManagerInterface $em): Response
     {
@@ -82,6 +84,7 @@ final class SportController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Sport updated.']);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}', name: 'sport_delete', methods: ['POST'])]
     public function delete(Request $request, Sport $sport, EntityManagerInterface $em): Response
     {

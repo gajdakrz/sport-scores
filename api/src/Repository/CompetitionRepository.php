@@ -27,7 +27,10 @@ class CompetitionRepository extends AbstractRepository
         $qb = $this->createQueryBuilder('competition')
             ->andWhere('competition.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('competition.' . $orderBy, $direction);
+            ->orderBy(
+                'competition.' . $this->assertValidSortField($orderBy),
+                $this->assertValidSortDirection($direction)
+            );
 
         if ($sport !== null) {
             $qb->andWhere('competition.sport = :sport')

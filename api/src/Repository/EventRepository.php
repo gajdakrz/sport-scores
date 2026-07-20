@@ -30,7 +30,7 @@ class EventRepository extends AbstractRepository
             ->join('competition.sport', 'sport')
             ->andWhere('event.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('event.' . $orderBy, $direction);
+            ->orderBy('event.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
 
         if ($sport !== null) {
             $qb->andWhere('competition.sport = :sport')
@@ -74,7 +74,7 @@ class EventRepository extends AbstractRepository
             ->join('event.competition', 'competition')
             ->andWhere('event.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('event.' . $orderBy, $direction);
+            ->orderBy('event.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
 
         $this->applyFilter($qb, 'competition.sport', $sport);
         $this->applyFilter($qb, 'event.competition', $filter->getCompetitionId());

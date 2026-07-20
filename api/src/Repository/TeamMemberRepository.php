@@ -38,7 +38,10 @@ class TeamMemberRepository extends AbstractRepository
             ->join('teamMember.person', 'person')
             ->andWhere('teamMember.isActive = :isActive')
             ->setParameter('isActive', true)
-            ->orderBy('teamMember.' . $orderBy, $direction);
+            ->orderBy(
+                'teamMember.' . $this->assertValidSortField($orderBy),
+                $this->assertValidSortDirection($direction)
+            );
 
         $this->applyFilter($qb, 'team.sport', $sport);
         $this->applyFilter($qb, 'teamMember.team', $filter->getTeamId());

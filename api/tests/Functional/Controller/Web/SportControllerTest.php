@@ -52,12 +52,24 @@ final class SportControllerTest extends WebTestCase
     public function newPageDisplaysForm(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $client->request('GET', '/sports/new');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
+    }
+
+    #[Test]
+    #[TestDox('New page is forbidden for a non-admin authenticated user')]
+    public function newPageForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $client->request('GET', '/sports/new');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------
@@ -69,7 +81,7 @@ final class SportControllerTest extends WebTestCase
     public function submittingNewFormCreatesSport(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $crawler = $client->request('GET', '/sports/new');
         $form    = $crawler->selectButton('Save')->form();
@@ -104,7 +116,7 @@ final class SportControllerTest extends WebTestCase
     public function submittingNewFormWithInvalidCsrfTokenReturnsValidationErrors(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         // SportType ma tylko TextType – jedyna droga do isValid()=false
         // to nieprawidłowy token CSRF
@@ -132,7 +144,7 @@ final class SportControllerTest extends WebTestCase
     public function editPageDisplaysForm(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $sport = $this->createTestSportEntity();
 
@@ -140,6 +152,20 @@ final class SportControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
+    }
+
+    #[Test]
+    #[TestDox('Edit page is forbidden for a non-admin authenticated user')]
+    public function editPageForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $sport = $this->createTestSportEntity();
+
+        $client->request('GET', sprintf('/sports/%d/edit', $sport->getId()));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------
@@ -151,7 +177,7 @@ final class SportControllerTest extends WebTestCase
     public function submittingEditFormUpdatesSport(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $sport        = $this->createTestSportEntity();
         $originalName = $sport->getName();
@@ -188,7 +214,7 @@ final class SportControllerTest extends WebTestCase
     public function submittingEditFormWithInvalidCsrfTokenReturnsValidationErrors(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $sport = $this->createTestSportEntity();
 
@@ -216,7 +242,7 @@ final class SportControllerTest extends WebTestCase
     public function deleteSoftDeletesSport(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $sport   = $this->createTestSportEntity();
         $sportId = $sport->getId();
@@ -251,7 +277,7 @@ final class SportControllerTest extends WebTestCase
     public function deleteWithInvalidCsrfTokenReturnsForbidden(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $sport = $this->createTestSportEntity();
 
@@ -270,6 +296,22 @@ final class SportControllerTest extends WebTestCase
 
         $this->assertNotNull($stillActive);
         $this->assertTrue($stillActive->isActive());
+    }
+
+    #[Test]
+    #[TestDox('Delete is forbidden for a non-admin authenticated user')]
+    public function deleteForbiddenForNonAdmin(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $sport = $this->createTestSportEntity();
+
+        $client->request('POST', sprintf('/sports/%d', $sport->getId()), [
+            '_token' => 'irrelevant',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     // -------------------------------------------------------------------------
@@ -295,7 +337,7 @@ final class SportControllerTest extends WebTestCase
     public function setSportMakesSportAvailableInSession(): void
     {
         $client = self::createClient();
-        $this->loginAsTestUser($client);
+        $this->loginAsTestAdmin($client);
 
         $sport = $this->createTestSportEntity();
 
