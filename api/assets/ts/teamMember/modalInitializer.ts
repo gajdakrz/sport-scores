@@ -1,5 +1,12 @@
 import { AppBase, ModalFeatureConfig } from '../common/base';
 
+type PersonOption = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    currentTeamName: string | null;
+};
+
 export class ModalInitializer {
     private teamChangeHandler: ((this: HTMLSelectElement) => Promise<void>) | null = null;
     private isCurrentChangeHandler: ((event: Event) => Promise<void>) | null = null;
@@ -53,18 +60,13 @@ export class ModalInitializer {
 
             try {
                 const personResponse = await fetch(url);
-                const persons: Array<{
-                    id: string;
-                    firstName: string;
-                    lastName: string;
-                    currentTeamName: string;
-                }> = await personResponse.json();
+                const persons: PersonOption[] = await personResponse.json();
 
                 personSelect.innerHTML = '<option value="">Select person</option>';
                 persons.forEach(e => {
                     const option = document.createElement('option');
                     option.value = e.id;
-                    option.textContent = `${e.firstName} ${e.lastName} (${e.currentTeamName})`;
+                    option.textContent = ModalInitializer.formatPersonLabel(e);
                     personSelect.appendChild(option);
                 });
             } catch (err) {
@@ -121,23 +123,22 @@ export class ModalInitializer {
                 return;
             }
 
-            const persons: Array<{
-                id: string;
-                firstName: string;
-                lastName: string;
-                currentTeamName: string;
-            }> = await personResponse.json();
+            const persons: PersonOption[] = await personResponse.json();
 
             personSelect.innerHTML = '<option value="">Select person</option>';
             persons.forEach(e => {
                 const option = document.createElement('option');
                 option.value = e.id;
-                option.textContent = `${e.firstName} ${e.lastName} (${e.currentTeamName})`;
+                option.textContent = ModalInitializer.formatPersonLabel(e);
                 option.selected = Number(e.id) === Number(initialPersonId);
                 personSelect.appendChild(option);
             });
         } catch (err) {
             console.error('Error loading initial data:', err);
         }
+    }
+
+    private static formatPersonLabel(person: PersonOption): string {
+        return `${person.firstName} ${person.lastName} (${person.currentTeamName ?? 'none'})`;
     }
 }

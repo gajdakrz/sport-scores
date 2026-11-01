@@ -420,7 +420,7 @@ final class PersonControllerTest extends WebTestCase
     }
 
     #[Test]
-    #[TestDox('findByTeam with filter "excluded" does not return persons belonging to the team')]
+    #[TestDox('findByTeam with filter "excluded" returns persons from other teams or without a team, not members')]
     public function findByTeamWithExcludedFilterReturnsNonTeamMembers(): void
     {
         $client = self::createClient();
@@ -462,8 +462,7 @@ final class PersonControllerTest extends WebTestCase
         $insidePerson->setIsActive(true);
         $em->persist($insidePerson);
 
-        // Osoba w innym teamie – EXCLUDED: WHERE currentTeam != filteredTeam
-        // (NULL != X = NULL w SQL, więc currentTeam MUSI być != null)
+        // Osoba w innym teamie – powinna być w wynikach excluded
         $outsidePerson = new Person();
         $outsidePerson->setFirstName('Outside');
         $outsidePerson->setLastName('Member');
@@ -474,6 +473,19 @@ final class PersonControllerTest extends WebTestCase
         $outsidePerson->setModifiedBy($user);
         $outsidePerson->setIsActive(true);
         $em->persist($outsidePerson);
+
+        // Osoba bez teamu – też powinna być w wynikach excluded
+        // (repozytorium musi jawnie dodać IS NULL, bo NULL != X daje w SQL NULL, a nie true)
+        $teamlessPerson = new Person();
+        $teamlessPerson->setFirstName('Teamless');
+        $teamlessPerson->setLastName('Member');
+        $teamlessPerson->setGender(Gender::MALE);
+        $teamlessPerson->setSport($sport);
+        $teamlessPerson->setCurrentTeam(null);
+        $teamlessPerson->setCreatedBy($user);
+        $teamlessPerson->setModifiedBy($user);
+        $teamlessPerson->setIsActive(true);
+        $em->persist($teamlessPerson);
         $em->flush();
 
         // Celowo NIE ustawiamy sportu w sesji – currentSportProvider->getSport() zwróci null,
@@ -488,6 +500,8 @@ final class PersonControllerTest extends WebTestCase
         $this->assertNotContains($insidePerson->getId(), $ids);
         // Osoba z innego teamu POWINNA być w wynikach
         $this->assertContains($outsidePerson->getId(), $ids);
+        // Osoba bez teamu POWINNA być w wynikach
+        $this->assertContains($teamlessPerson->getId(), $ids);
     }
 
     #[Test]

@@ -45,7 +45,13 @@ class PersonRepository extends AbstractRepository
                         ->setParameter('currentTeam', $currentTeamId);
                     break;
                 case TeamFilter::EXCLUDED:
-                    $qb->andWhere('person.currentTeam != :currentTeam')
+                    // NULL != :currentTeam evaluates to NULL in SQL, so people without a team need an explicit IS NULL
+                    $qb->andWhere(
+                        $qb->expr()->orX(
+                            'person.currentTeam != :currentTeam',
+                            'person.currentTeam IS NULL'
+                        )
+                    )
                         ->setParameter('currentTeam', $currentTeamId);
                     break;
                 default:
