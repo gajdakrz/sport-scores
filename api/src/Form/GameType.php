@@ -52,6 +52,9 @@ final class GameType extends AbstractType
             ->add('competition', EntityType::class, [
                 'class' => Competition::class,
                 'choice_label' => 'name',
+                'choice_attr' => fn(Competition $competition): array => [
+                    'data-gender' => $competition->getGender()->value,
+                ],
                 'mapped' => false,
                 'placeholder' => 'Select competition',
                 'query_builder' =>

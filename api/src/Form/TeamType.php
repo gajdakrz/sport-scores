@@ -7,6 +7,7 @@ namespace App\Form;
 use App\Entity\Country;
 use App\Entity\Sport;
 use App\Entity\Team;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType as TeamTypeEnum;
 use App\Repository\CountryRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -15,6 +16,7 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 final class TeamType extends AbstractType
 {
@@ -47,6 +49,19 @@ final class TeamType extends AbstractType
                 'class' => TeamTypeEnum::class,
                 'choice_label' => fn(TeamTypeEnum $enum) => $enum->label(),
                 'placeholder' => 'Select type',
+            ])
+            ->add('gender', EnumType::class, [
+                'label' => 'Gender',
+                'class' => GenderCategory::class,
+                'choice_label' => fn(GenderCategory $enum) => $enum->label(),
+                'placeholder' => 'Select gender',
+                'constraints' => [new NotNull()],
+                // keep the entity setter strict: an empty choice is reported by NotNull instead of passing null
+                'setter' => function (Team $team, ?GenderCategory $gender): void {
+                    if ($gender !== null) {
+                        $team->setGender($gender);
+                    }
+                },
             ])
             ->add('name', TextType::class, [
                 'label' => 'Team name',

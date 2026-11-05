@@ -18,6 +18,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 final class GameResultType extends AbstractType
 {
@@ -33,6 +34,9 @@ final class GameResultType extends AbstractType
                 'label' => 'Game',
                 'class' => Game::class,
                 'choice_label' => fn (Game $game) => $game->getDate()->format('Y-m-d'),
+                'choice_attr' => fn(Game $game): array => [
+                    'data-gender' => $game->getEvent()?->getCompetition()?->getGender()->value ?? '',
+                ],
                 'placeholder' => 'Select game date',
                 'query_builder' =>
                     fn(GameRepository $gameRepository) => $gameRepository->createActiveQueryBuilder(
@@ -48,7 +52,11 @@ final class GameResultType extends AbstractType
                 'label' => 'Team',
                 'class' => Team::class,
                 'choice_label' => 'name',
+                'choice_attr' => fn(Team $team): array => ['data-gender' => $team->getGender()->value],
                 'placeholder' => 'Select team',
+                // this form records team results only, so a team is required
+                // (the database check chk_team_or_person would otherwise fail with a 500)
+                'constraints' => [new NotNull(message: 'Select a team for every result.')],
                 'query_builder' =>
                     fn(TeamRepository $teamRepository) => $teamRepository->createActiveQueryBuilder(
                         'name',

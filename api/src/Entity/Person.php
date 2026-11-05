@@ -49,7 +49,7 @@ class Person extends AbstractAuditableEntity
     #[ORM\OneToMany(targetEntity: GameResult::class, mappedBy: 'person', orphanRemoval: true)]
     private Collection $gameResults;
 
-    #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'persons')]
+    #[ORM\ManyToOne(targetEntity: Sport::class)]
     #[ORM\JoinColumn(
         name: 'sport_id',
         referencedColumnName: 'id',

@@ -40,7 +40,8 @@ Encore
     .enableSingleRuntimeChunk()
     .cleanupOutputBeforeBuild()
     .enableSourceMaps(!Encore.isProduction())
-    .enableVersioning(Encore.isProduction())
+    // hashed filenames in dev too, so the browser never keeps a stale build after a change
+    .enableVersioning()
 
     .enableTypeScriptLoader()
 ;

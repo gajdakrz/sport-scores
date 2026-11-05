@@ -10,12 +10,13 @@ use App\Entity\Person;
 use App\Entity\User;
 use App\Enum\Gender;
 use App\Enum\TeamFilter;
+use App\Exception\CustomBadRequestException;
 use App\Form\PersonType;
 use App\Repository\CountryRepository;
 use App\Repository\PersonRepository;
+use App\Repository\TeamRepository;
 use App\Service\CurrentSportProvider;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -140,6 +141,7 @@ final class PersonController extends BaseController
     #[Route('/person-by-current-team/{teamId}/{teamFilter}', name: 'person_by_current_team', methods: ['GET'])]
     public function findByTeam(
         PersonRepository $personRepository,
+        TeamRepository $teamRepository,
         CurrentSportProvider $currentSportProvider,
         int $teamId,
         string $teamFilter
@@ -147,12 +149,15 @@ final class PersonController extends BaseController
         $filterEnum = TeamFilter::tryFrom($teamFilter);
 
         if ($filterEnum === null) {
-            throw new InvalidArgumentException('Invalid team filter');
+            throw new CustomBadRequestException([
+                ['message' => 'Invalid team filter', 'field' => 'teamFilter'],
+            ]);
         }
         $persons = $personRepository->findActiveSortedBy(
             sport: $currentSportProvider->getSport(),
             currentTeamId: $teamId,
-            teamFilter: $filterEnum
+            teamFilter: $filterEnum,
+            gender: $teamRepository->find($teamId)?->getGender()->toGender(),
         );
 
         $result = [];

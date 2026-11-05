@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\Competition;
-use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Repository\CompetitionRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -97,7 +98,7 @@ final class CompetitionControllerTest extends WebTestCase
             if (str_contains($name, '[name]')) {
                 $formData[$name] = 'New Competition';
             } elseif (str_contains($name, '[gender]')) {
-                $formData[$name] = Gender::MALE->value;
+                $formData[$name] = GenderCategory::MALE->value;
             }
         }
 
@@ -254,6 +255,47 @@ final class CompetitionControllerTest extends WebTestCase
         $this->assertNotEmpty($errors);
     }
 
+    #[Test]
+    #[TestDox('Submitting the new form without gender returns 400 with error on "gender"')]
+    public function submittingNewFormWithoutGenderReturns400(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+
+        $crawler = $client->request('GET', '/competitions/new');
+        $form    = $crawler->selectButton('Save')->form();
+
+        $client->submit($form, [
+            'competition[name]'   => 'No Gender Competition ' . uniqid(),
+            'competition[gender]' => '',
+        ]);
+
+        $this->assertGenderFieldError($client);
+    }
+
+    #[Test]
+    #[TestDox('Clearing gender in the edit form returns 400 with error on "gender" and keeps the stored gender')]
+    public function submittingEditFormWithoutGenderReturns400(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $competition = $this->createTestCompetition();
+
+        $crawler = $client->request('GET', sprintf('/competitions/%d/edit', $competition->getId()));
+        $form    = $crawler->selectButton('Save')->form();
+
+        $client->submit($form, ['competition[gender]' => '']);
+
+        $this->assertGenderFieldError($client);
+
+        $this->getEntityManager()->clear();
+        /** @var CompetitionRepository $repository */
+        $repository = static::getContainer()->get(CompetitionRepository::class);
+        $this->assertSame(GenderCategory::MALE, $repository->find($competition->getId())?->getGender());
+    }
+
     // -------------------------------------------------------------------------
     // delete
     // -------------------------------------------------------------------------
@@ -387,6 +429,15 @@ final class CompetitionControllerTest extends WebTestCase
     // Helpers
     // -------------------------------------------------------------------------
 
+    private function assertGenderFieldError(KernelBrowser $client): void
+    {
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('gender', array_column($data['errors'], 'field'));
+    }
+
     private function createTestCompetition(): Competition
     {
         $em    = $this->getEntityManager();
@@ -396,7 +447,7 @@ final class CompetitionControllerTest extends WebTestCase
         $competition = new Competition();
         $competition->setName('Test Competition ' . uniqid());
         $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
+        $competition->setGender(GenderCategory::MALE);
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
         $competition->setIsActive(true);

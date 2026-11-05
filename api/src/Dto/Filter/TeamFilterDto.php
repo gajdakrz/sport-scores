@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Dto\Filter;
 
 use App\Dto\Request\PaginationRequest;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -18,6 +19,9 @@ class TeamFilterDto extends PaginationRequest
 
     #[Assert\Choice(callback: [TeamType::class, 'cases'])]
     private ?TeamType $teamType = null;
+
+    #[Assert\Choice(callback: [GenderCategory::class, 'cases'])]
+    private ?GenderCategory $gender = null;
 
     public function getName(): ?string
     {
@@ -51,6 +55,18 @@ class TeamFilterDto extends PaginationRequest
     public function setTeamType(?TeamType $teamType): static
     {
         $this->teamType = $teamType;
+
+        return $this;
+    }
+
+    public function getGender(): ?GenderCategory
+    {
+        return $this->gender;
+    }
+
+    public function setGender(?GenderCategory $gender): static
+    {
+        $this->gender = $gender;
 
         return $this;
     }

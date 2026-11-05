@@ -12,12 +12,15 @@ use App\Entity\Season;
 use App\Entity\Sport;
 use App\Entity\Team;
 use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType;
 use App\Repository\GameResultRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -175,6 +178,36 @@ final class GameResultControllerTest extends WebTestCase
         $this->assertNotEmpty($errors);
     }
 
+    #[Test]
+    #[TestDox('Submitting the new form without a team returns 400 with error on "team"')]
+    public function submittingNewFormWithoutTeamReturnsBadRequest(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $competition = $this->createTestCompetition($sport);
+        $event       = $this->createTestEvent($competition);
+        $season      = $this->createTestSeason();
+        $game        = $this->createTestGame($event, $season);
+
+        $client->request('POST', '/game-results/new', [
+            'game_result' => [
+                'game'         => (string) $game->getId(),
+                'team'         => '',
+                'matchScore'   => '1',
+                'rankingScore' => '',
+                '_token'       => $this->getValidCsrfToken($client, '/game-results/new'),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('team', array_column($data['errors'], 'field'));
+    }
+
     // -------------------------------------------------------------------------
     // edit – GET
     // -------------------------------------------------------------------------
@@ -281,38 +314,80 @@ final class GameResultControllerTest extends WebTestCase
         $this->assertArrayHasKey('errors', $data);
     }
 
+    /**
+     * @return array<string, array{int, bool}>
+     */
+    public static function moveToAnotherGameProvider(): array
+    {
+        return [
+            'original game would keep one result'  => [2, false],
+            'original game would keep two results' => [3, true],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('moveToAnotherGameProvider')]
+    #[TestDox('Moving a result out of a game with $resultCount results is allowed: $allowed')]
+    public function movingResultToAnotherGameRespectsMinimumResults(int $resultCount, bool $allowed): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $sport        = $this->createTestSport();
+        $event        = $this->createTestEvent($this->createTestCompetition($sport));
+        $season       = $this->createTestSeason();
+        $originalGame = $this->createTestGame($event, $season);
+        $otherGame    = $this->createTestGame($event, $season);
+        $gameResult   = $this->createTestGameResults($originalGame, $sport, $resultCount)[0];
+        $editUrl      = sprintf('/game-results/%d/edit', $gameResult->getId());
+
+        $client->request('POST', $editUrl, [
+            'game_result' => [
+                'game'         => (string) $otherGame->getId(),
+                'team'         => (string) $gameResult->getTeam()?->getId(),
+                'matchScore'   => '1',
+                'rankingScore' => '',
+                '_token'       => $this->getValidCsrfToken($client, $editUrl),
+            ],
+        ]);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $expectedGame = $allowed ? $otherGame : $originalGame;
+
+        if ($allowed) {
+            $this->assertTrue($data['success']);
+        } else {
+            $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+            $this->assertIsArray($data['errors']);
+            $this->assertContains('game', array_column($data['errors'], 'field'));
+        }
+
+        $this->getEntityManager()->clear();
+        /** @var GameResultRepository $repository */
+        $repository = static::getContainer()->get(GameResultRepository::class);
+        $this->assertSame($expectedGame->getId(), $repository->find($gameResult->getId())?->getGame()?->getId());
+    }
+
     // -------------------------------------------------------------------------
     // delete
     // -------------------------------------------------------------------------
 
     #[Test]
-    #[TestDox('Delete request soft-deletes the game result by setting it as inactive')]
+    #[TestDox('Delete request soft-deletes the game result when the game keeps at least two results')]
     public function deleteSoftDeletesGameResult(): void
     {
         $client = self::createClient();
         $this->loginAsTestUser($client);
 
         // setCurrentSport ustawia sport w sesji I zwraca ten sam sport
-        $sport        = $this->setCurrentSport($client);
-        $competition  = $this->createTestCompetition($sport);
-        $event        = $this->createTestEvent($competition);
-        $season       = $this->createTestSeason();
-        $game         = $this->createTestGame($event, $season);
-        $team1        = $this->createTestTeam($sport);
-        $team2        = $this->createTestTeam($sport);
-        // createActiveByFilterBuilder robi INNER JOIN na opponent –
-        // wymaga istnienia DRUGIEGO game result dla tej samej gry
-        $gameResult   = $this->createTestGameResult($game, $team1);
-        $this->createTestGameResult($game, $team2); // opponent – wymagany przez join
-        $gameResultId = $gameResult->getId();
-
-        $crawler      = $client->request('GET', '/game-results');
-        $deleteButton = $crawler->filter(sprintf('button[data-delete-url*="/game-results/%d"]', $gameResultId));
-
-        $this->assertGreaterThan(0, $deleteButton->count(), 'Delete button not found');
+        $sport       = $this->setCurrentSport($client);
+        $competition = $this->createTestCompetition($sport);
+        $game        = $this->createTestGame($this->createTestEvent($competition), $this->createTestSeason());
+        // the game keeps two results after the delete (index also needs an opponent for the INNER JOIN)
+        $gameResultId = (int) $this->createTestGameResults($game, $sport, 3)[0]->getId();
 
         $client->request('POST', sprintf('/game-results/%d', $gameResultId), [
-            '_token' => $deleteButton->attr('data-token'),
+            '_token' => $this->getDeleteToken($client, $gameResultId),
         ]);
 
         $data = $this->assertJsonSuccessResponse($client);
@@ -327,6 +402,33 @@ final class GameResultControllerTest extends WebTestCase
 
         $this->assertNotNull($deleted);
         $this->assertFalse($deleted->isActive());
+    }
+
+    #[Test]
+    #[TestDox('Delete request returns 400 and keeps the result when the game would be left with fewer than two')]
+    public function deleteBelowMinimumResultsReturnsBadRequest(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $sport       = $this->setCurrentSport($client);
+        $competition = $this->createTestCompetition($sport);
+        $game        = $this->createTestGame($this->createTestEvent($competition), $this->createTestSeason());
+        $gameResultId = (int) $this->createTestGameResults($game, $sport, 2)[0]->getId();
+
+        $client->request('POST', sprintf('/game-results/%d', $gameResultId), [
+            '_token' => $this->getDeleteToken($client, $gameResultId),
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertNotEmpty($data['errors']);
+
+        $this->getEntityManager()->clear();
+        /** @var GameResultRepository $repository */
+        $repository = static::getContainer()->get(GameResultRepository::class);
+        $this->assertTrue($repository->find($gameResultId)?->isActive());
     }
 
     #[Test]
@@ -362,10 +464,117 @@ final class GameResultControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // new – POST (walidacja płci: drużyna vs rozgrywki)
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Submitting a male team for a female competition returns 400 with error on "team"')]
+    public function submittingTeamWithMismatchedGenderReturns400(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $competition = $this->createTestCompetition($sport, GenderCategory::FEMALE);
+        $game        = $this->createTestGame($this->createTestEvent($competition), $this->createTestSeason());
+        $team        = $this->createTestTeam($sport, GenderCategory::MALE);
+
+        $client->request('POST', '/game-results/new', [
+            'game_result' => [
+                'game'       => (string) $game->getId(),
+                'team'       => (string) $team->getId(),
+                'matchScore' => '1',
+                '_token'     => $this->getValidCsrfToken($client, '/game-results/new'),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('team', array_column($data['errors'], 'field'));
+    }
+
+    #[Test]
+    #[TestDox('Submitting a mixed team for a female competition returns 400 with error on "team"')]
+    public function submittingMixedTeamForFemaleCompetitionReturns400(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $competition = $this->createTestCompetition($sport, GenderCategory::FEMALE);
+        $game        = $this->createTestGame($this->createTestEvent($competition), $this->createTestSeason());
+        $team        = $this->createTestTeam($sport, GenderCategory::MIXED);
+
+        $client->request('POST', '/game-results/new', [
+            'game_result' => [
+                'game'       => (string) $game->getId(),
+                'team'       => (string) $team->getId(),
+                'matchScore' => '1',
+                '_token'     => $this->getValidCsrfToken($client, '/game-results/new'),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('team', array_column($data['errors'], 'field'));
+    }
+
+    #[Test]
+    #[TestDox('Submitting a mixed team for a mixed competition creates the game result')]
+    public function submittingMixedTeamForMixedCompetitionIsAccepted(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $competition = $this->createTestCompetition($sport, GenderCategory::MIXED);
+        $game        = $this->createTestGame($this->createTestEvent($competition), $this->createTestSeason());
+        $team        = $this->createTestTeam($sport, GenderCategory::MIXED);
+
+        $client->request('POST', '/game-results/new', [
+            'game_result' => [
+                'game'       => (string) $game->getId(),
+                'team'       => (string) $team->getId(),
+                'matchScore' => '1',
+                '_token'     => $this->getValidCsrfToken($client, '/game-results/new'),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function createTestCompetition(Sport $sport): Competition
+    /**
+     * @return list<GameResult>
+     */
+    private function createTestGameResults(Game $game, Sport $sport, int $count): array
+    {
+        $results = [];
+        for ($i = 0; $i < $count; $i++) {
+            $results[] = $this->createTestGameResult($game, $this->createTestTeam($sport));
+        }
+
+        return $results;
+    }
+
+    private function getDeleteToken(KernelBrowser $client, int $gameResultId): string
+    {
+        $crawler      = $client->request('GET', '/game-results');
+        $deleteButton = $crawler->filter(sprintf('button[data-delete-url*="/game-results/%d"]', $gameResultId));
+
+        $this->assertGreaterThan(0, $deleteButton->count(), 'Delete button not found');
+
+        return (string) $deleteButton->attr('data-token');
+    }
+
+    private function createTestCompetition(Sport $sport, GenderCategory $gender = GenderCategory::MALE): Competition
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
@@ -373,7 +582,7 @@ final class GameResultControllerTest extends WebTestCase
         $competition = new Competition();
         $competition->setName('Test Competition ' . uniqid());
         $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
+        $competition->setGender($gender);
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
         $competition->setIsActive(true);
@@ -439,7 +648,7 @@ final class GameResultControllerTest extends WebTestCase
         return $game;
     }
 
-    private function createTestTeam(Sport $sport): Team
+    private function createTestTeam(Sport $sport, GenderCategory $gender = GenderCategory::MALE): Team
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
@@ -447,6 +656,7 @@ final class GameResultControllerTest extends WebTestCase
         $team = new Team();
         $team->setName('Test Team ' . uniqid());
         $team->setSport($sport);
+        $team->setGender($gender);
         $team->setTeamType(TeamType::CLUB);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
@@ -464,7 +674,7 @@ final class GameResultControllerTest extends WebTestCase
         $user = $this->getTestUser();
 
         $gameResult = new GameResult();
-        $gameResult->setGame($game);
+        $game->addGameResult($gameResult);
         $gameResult->setTeam($team);
         $gameResult->setMatchScore(1);
         $gameResult->setCreatedBy($user);

@@ -6,13 +6,14 @@ namespace App\Form;
 
 use App\Entity\Competition;
 use App\Entity\Sport;
-use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 class CompetitionType extends AbstractType
 {
@@ -31,9 +32,16 @@ class CompetitionType extends AbstractType
             ])
             ->add('gender', EnumType::class, [
                 'label' => 'Gender',
-                'class' => Gender::class,
-                'choice_label' => fn(Gender $enum) => $enum->label(),
-                'placeholder' => 'Select type',
+                'class' => GenderCategory::class,
+                'choice_label' => fn(GenderCategory $enum) => $enum->label(),
+                'placeholder' => 'Select gender',
+                'constraints' => [new NotNull()],
+                // keep the entity setter strict: an empty choice is reported by NotNull instead of passing null
+                'setter' => function (Competition $competition, ?GenderCategory $gender): void {
+                    if ($gender !== null) {
+                        $competition->setGender($gender);
+                    }
+                },
             ])
             ->add('isBracket', CheckboxType::class, [
                 'label' => 'Is bracket',

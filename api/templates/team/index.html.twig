@@ -3,7 +3,7 @@
 {% block title %}Teams{% endblock %}
 
 {% block body %}
-    {% set columnCount = 7 %}
+    {% set columnCount = 8 %}
 
     <div class="container mt-5">
 
@@ -47,7 +47,18 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2 align-self-end">
+            <div class="col-md-2">
+                <label for="gender" class="form-label">Gender</label>
+                <select name="gender" id="gender" class="form-select">
+                    <option value="">All</option>
+                    {% for gender in genders %}
+                        <option value="{{ gender.value }}" {% if gender.value == app.request.get('gender') %}selected{% endif %}>
+                            {{ gender.label() }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1 align-self-end">
                 <button type="submit" class="btn btn-secondary w-100">Filter</button>
             </div>
         </form>
@@ -59,6 +70,7 @@
                 <th>Name</th>
                 <th>Country</th>
                 <th>Type</th>
+                <th>Gender</th>
                 <th>Created At</th>
                 <th>Modified At</th>
                 <th class="text-end">Actions</th>
@@ -71,6 +83,7 @@
                     <td>{{ team.name }}</td>
                     <td>{{ team.country.name ?? '' }}</td>
                     <td>{{ team.teamType.name|replace({'_': ' '})|capitalize }}</td>
+                    <td>{{ team.gender.label() }}</td>
                     <td>{{ team.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ team.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">

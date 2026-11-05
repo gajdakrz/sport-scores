@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\Person;
+use App\Entity\Sport;
 use App\Entity\Team;
 use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType;
 use App\Repository\PersonRepository;
 use App\Tests\Trait\ControllerTestTrait;
@@ -344,6 +346,7 @@ final class PersonControllerTest extends WebTestCase
         $team->setName('Struct Team ' . uniqid());
         $team->setSport($sport);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);
@@ -378,6 +381,52 @@ final class PersonControllerTest extends WebTestCase
     }
 
     #[Test]
+    #[TestDox('findByTeam for a female team returns only female persons')]
+    public function findByTeamForFemaleTeamReturnsOnlyFemalePersons(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $sport = $this->createTestSport();
+        $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
+
+        $femaleTeam = $this->createGenderTeam($sport, GenderCategory::FEMALE);
+        $female     = $this->createGenderPerson($sport, Gender::FEMALE);
+        $male       = $this->createGenderPerson($sport, Gender::MALE);
+
+        $client->request('GET', sprintf('/persons/person-by-current-team/%d/all', $femaleTeam->getId()));
+
+        $this->assertResponseIsSuccessful();
+        $ids = array_column($this->assertJsonSuccessResponse($client), 'id');
+
+        $this->assertContains($female->getId(), $ids);
+        $this->assertNotContains($male->getId(), $ids);
+    }
+
+    #[Test]
+    #[TestDox('findByTeam for a mixed team returns persons of both genders')]
+    public function findByTeamForMixedTeamReturnsBothGenders(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $sport = $this->createTestSport();
+        $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
+
+        $mixedTeam = $this->createGenderTeam($sport, GenderCategory::MIXED);
+        $female    = $this->createGenderPerson($sport, Gender::FEMALE);
+        $male      = $this->createGenderPerson($sport, Gender::MALE);
+
+        $client->request('GET', sprintf('/persons/person-by-current-team/%d/all', $mixedTeam->getId()));
+
+        $this->assertResponseIsSuccessful();
+        $ids = array_column($this->assertJsonSuccessResponse($client), 'id');
+
+        $this->assertContains($female->getId(), $ids);
+        $this->assertContains($male->getId(), $ids);
+    }
+
+    #[Test]
     #[TestDox('findByTeam with filter "included" returns only persons belonging to the team')]
     public function findByTeamWithIncludedFilterReturnsTeamMembers(): void
     {
@@ -394,6 +443,7 @@ final class PersonControllerTest extends WebTestCase
         $team->setName('Filter Team ' . uniqid());
         $team->setSport($sport);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);
@@ -435,6 +485,7 @@ final class PersonControllerTest extends WebTestCase
         $filteredTeam->setName('Filtered Team ' . uniqid());
         $filteredTeam->setSport($sport);
         $filteredTeam->setTeamType(TeamType::CLUB);
+        $filteredTeam->setGender(GenderCategory::MALE);
         $filteredTeam->setCreatedBy($user);
         $filteredTeam->setModifiedBy($user);
         $filteredTeam->setIsActive(true);
@@ -445,6 +496,7 @@ final class PersonControllerTest extends WebTestCase
         $otherTeam->setName('Other Team ' . uniqid());
         $otherTeam->setSport($sport);
         $otherTeam->setTeamType(TeamType::CLUB);
+        $otherTeam->setGender(GenderCategory::MALE);
         $otherTeam->setCreatedBy($user);
         $otherTeam->setModifiedBy($user);
         $otherTeam->setIsActive(true);
@@ -505,8 +557,8 @@ final class PersonControllerTest extends WebTestCase
     }
 
     #[Test]
-    #[TestDox('findByTeam returns non-successful response when an invalid team filter value is provided')]
-    public function findByTeamWithInvalidFilterThrowsException(): void
+    #[TestDox('findByTeam returns 400 with error on "teamFilter" when an invalid team filter value is provided')]
+    public function findByTeamWithInvalidFilterReturnsBadRequest(): void
     {
         $client = self::createClient();
         $this->loginAsTestUser($client);
@@ -515,9 +567,11 @@ final class PersonControllerTest extends WebTestCase
 
         $client->request('GET', sprintf('/persons/person-by-current-team/%d/invalid_filter', $team->getId()));
 
-        // InvalidArgumentException → Symfony konwertuje na odpowiedź błędu
-        $statusCode = $client->getResponse()->getStatusCode();
-        $this->assertGreaterThanOrEqual(400, $statusCode, 'Expected error response (4xx/5xx)');
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('teamFilter', array_column($data['errors'], 'field'));
     }
 
     // -------------------------------------------------------------------------
@@ -534,6 +588,7 @@ final class PersonControllerTest extends WebTestCase
         $team->setName('Test Team ' . uniqid());
         $team->setSport($sport);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);
@@ -554,6 +609,46 @@ final class PersonControllerTest extends WebTestCase
         $person->setFirstName('Jan');
         $person->setLastName('Kowalski ' . uniqid());
         $person->setGender(Gender::MALE);
+        $person->setSport($sport);
+        $person->setCreatedBy($user);
+        $person->setModifiedBy($user);
+        $person->setIsActive(true);
+
+        $em->persist($person);
+        $em->flush();
+
+        return $person;
+    }
+
+    private function createGenderTeam(Sport $sport, GenderCategory $gender): Team
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $team = new Team();
+        $team->setName('Gender Team ' . uniqid());
+        $team->setSport($sport);
+        $team->setTeamType(TeamType::CLUB);
+        $team->setGender($gender);
+        $team->setCreatedBy($user);
+        $team->setModifiedBy($user);
+        $team->setIsActive(true);
+
+        $em->persist($team);
+        $em->flush();
+
+        return $team;
+    }
+
+    private function createGenderPerson(Sport $sport, Gender $gender): Person
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $person = new Person();
+        $person->setFirstName('Gender');
+        $person->setLastName('Person ' . uniqid());
+        $person->setGender($gender);
         $person->setSport($sport);
         $person->setCreatedBy($user);
         $person->setModifiedBy($user);

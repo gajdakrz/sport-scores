@@ -13,6 +13,7 @@ use App\Entity\Competition;
 use App\Entity\Season;
 use App\Entity\Team;
 use App\Entity\User;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType as TeamTypeEnum;
 use App\Form\TeamType;
 use App\Repository\CompetitionRepository;
@@ -56,6 +57,7 @@ final class TeamController extends BaseController
         return $this->render('team/index.html.twig', [
             'teams' => $pagerfanta,
             'teamTypes' => TeamTypeEnum::cases(),
+            'genders' => GenderCategory::cases(),
             'countries' => $countryRepository->findActiveSortedBy('name', 'ASC'),
         ]);
     }

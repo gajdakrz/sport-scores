@@ -60,6 +60,13 @@ export class ModalInitializer {
 
             try {
                 const personResponse = await fetch(url);
+
+                if (!personResponse.ok) {
+                    console.error('Failed to fetch persons:', personResponse.statusText);
+                    alert('Failed to load persons');
+                    return;
+                }
+
                 const persons: PersonOption[] = await personResponse.json();
 
                 personSelect.innerHTML = '<option value="">Select person</option>';

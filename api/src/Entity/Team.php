@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType;
+use App\Validator\TeamGenderConsistent;
 use App\Repository\TeamRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
+#[TeamGenderConsistent]
 class Team extends AbstractAuditableEntity
 {
     #[ORM\Id]
@@ -21,7 +25,7 @@ class Team extends AbstractAuditableEntity
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\ManyToOne(targetEntity: Country::class, inversedBy: 'persons')]
+    #[ORM\ManyToOne(targetEntity: Country::class, inversedBy: 'teams')]
     #[ORM\JoinColumn(
         name: 'country_id',
         referencedColumnName: 'id',
@@ -31,6 +35,9 @@ class Team extends AbstractAuditableEntity
 
     #[ORM\Column(enumType: TeamType::class)]
     private TeamType $teamType;
+
+    #[ORM\Column(enumType: GenderCategory::class)]
+    private GenderCategory $gender;
 
     /**
      * @var Collection<int, TeamMember>
@@ -47,10 +54,10 @@ class Team extends AbstractAuditableEntity
     /**
      * @var Collection<int, Person>
      */
-    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'person', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'currentTeam')]
     private Collection $persons;
 
-    #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'teams')]
+    #[ORM\ManyToOne(targetEntity: Sport::class)]
     #[ORM\JoinColumn(
         name: 'sport_id',
         referencedColumnName: 'id',
@@ -111,6 +118,34 @@ class Team extends AbstractAuditableEntity
         $this->teamType = $teamType;
 
         return $this;
+    }
+
+    public function getGender(): GenderCategory
+    {
+        return $this->gender;
+    }
+
+    public function setGender(GenderCategory $gender): static
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
+    /**
+     * Membership rule: a MIXED team accepts persons of every gender.
+     */
+    public function acceptsGender(Gender $gender): bool
+    {
+        return $this->gender->accepts($gender);
+    }
+
+    /**
+     * Competition rule: exact match – a MIXED team plays only in a MIXED competition.
+     */
+    public function canPlayIn(Competition $competition): bool
+    {
+        return $this->gender === $competition->getGender();
     }
 
     /**

@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Dto\Filter\PersonFilterDto;
 use App\Entity\Person;
 use App\Entity\Sport;
+use App\Enum\Gender;
 use App\Enum\TeamFilter;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -27,16 +28,15 @@ class PersonRepository extends AbstractRepository
         ?Sport $sport = null,
         ?int $currentTeamId = null,
         TeamFilter $teamFilter = TeamFilter::ALL,
+        ?Gender $gender = null,
     ): QueryBuilder {
         $qb = $this->createQueryBuilder('person')
             ->andWhere('person.isActive = :isActive')
             ->setParameter('isActive', true)
             ->orderBy('person.' . $this->assertValidSortField($orderBy), $this->assertValidSortDirection($direction));
 
-        if ($sport !== null) {
-            $qb->andWhere('person.sport = :sport')
-                ->setParameter('sport', $sport);
-        }
+        $this->applyFilter($qb, 'person.sport', $sport);
+        $this->applyFilter($qb, 'person.gender', $gender);
 
         if ($currentTeamId !== null && $teamFilter !== TeamFilter::ALL) {
             switch ($teamFilter) {
@@ -68,6 +68,7 @@ class PersonRepository extends AbstractRepository
      * @param ?Sport $sport
      * @param ?int $currentTeamId
      * @param TeamFilter $teamFilter
+     * @param ?Gender $gender
      * @return Person[]
      */
     public function findActiveSortedBy(
@@ -76,10 +77,11 @@ class PersonRepository extends AbstractRepository
         ?Sport $sport = null,
         ?int $currentTeamId = null,
         TeamFilter $teamFilter = TeamFilter::ALL,
+        ?Gender $gender = null,
     ): array {
 
         /** @var Person[] */
-        return $this->createActiveQueryBuilder($orderBy, $direction, $sport, $currentTeamId, $teamFilter)
+        return $this->createActiveQueryBuilder($orderBy, $direction, $sport, $currentTeamId, $teamFilter, $gender)
             ->getQuery()
             ->getResult();
     }

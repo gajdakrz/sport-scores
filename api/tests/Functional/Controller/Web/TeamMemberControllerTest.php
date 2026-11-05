@@ -10,6 +10,7 @@ use App\Entity\Season;
 use App\Entity\Team;
 use App\Entity\TeamMember;
 use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType;
 use App\Repository\TeamMemberRepository;
 use App\Tests\Trait\ControllerTestTrait;
@@ -113,6 +114,7 @@ final class TeamMemberControllerTest extends WebTestCase
         $team->setName('Form Team ' . uniqid());
         $team->setSport($sport);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);
@@ -198,6 +200,60 @@ final class TeamMemberControllerTest extends WebTestCase
         $errors = $data['errors'];
         $this->assertIsArray($errors);
         $this->assertNotEmpty($errors);
+    }
+
+    // -------------------------------------------------------------------------
+    // new – POST (walidacja płci: osoba vs drużyna)
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Submitting a male person for a female team returns 400 with error on "person"')]
+    public function submittingPersonWithMismatchedGenderReturns400(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+        $em    = $this->getEntityManager();
+        $user  = $this->getTestUser();
+
+        $team = new Team();
+        $team->setName('Female Team ' . uniqid());
+        $team->setSport($sport);
+        $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::FEMALE);
+        $team->setCreatedBy($user);
+        $team->setModifiedBy($user);
+        $em->persist($team);
+
+        $person = new Person();
+        $person->setFirstName('Male');
+        $person->setLastName('Person ' . uniqid());
+        $person->setGender(Gender::MALE);
+        $person->setSport($sport);
+        $person->setCreatedBy($user);
+        $person->setModifiedBy($user);
+        $em->persist($person);
+        $em->flush();
+
+        $season   = $this->createTestSeason();
+        $position = $this->createTestMemberPosition($team);
+
+        $client->request('POST', '/team-members/new', [
+            'team_member' => [
+                'team'            => (string) $team->getId(),
+                'person'          => (string) $person->getId(),
+                'startSeason'     => (string) $season->getId(),
+                'memberPosition'  => (string) $position->getId(),
+                'isCurrentMember' => '1',
+                '_token'          => $this->getValidCsrfToken($client, '/team-members/new'),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('person', array_column($data['errors'], 'field'));
     }
 
     // -------------------------------------------------------------------------
@@ -315,6 +371,7 @@ final class TeamMemberControllerTest extends WebTestCase
         $team->setName('Del Team ' . uniqid());
         $team->setSport($sport);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);
@@ -427,6 +484,7 @@ final class TeamMemberControllerTest extends WebTestCase
         $team->setName('Test Team ' . uniqid());
         $team->setSport($sport);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);

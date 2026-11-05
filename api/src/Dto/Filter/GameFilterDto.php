@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Dto\Filter;
 
 use App\Dto\Request\PaginationRequest;
-use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class GameFilterDto extends PaginationRequest
@@ -22,8 +22,8 @@ class GameFilterDto extends PaginationRequest
     #[Assert\DateTime(format: 'Y-m-d')]
     private ?string $date = null;
 
-    #[Assert\Choice(callback: [Gender::class, 'cases'])]
-    private ?Gender $gender = null;
+    #[Assert\Choice(callback: [GenderCategory::class, 'cases'])]
+    private ?GenderCategory $gender = null;
 
     public function getCompetitionId(): ?int
     {
@@ -73,12 +73,12 @@ class GameFilterDto extends PaginationRequest
         return $this;
     }
 
-    public function getGender(): ?Gender
+    public function getGender(): ?GenderCategory
     {
         return $this->gender;
     }
 
-    public function setGender(?Gender $gender): static
+    public function setGender(?GenderCategory $gender): static
     {
         $this->gender = $gender;
         return $this;

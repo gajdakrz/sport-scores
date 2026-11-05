@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Repository\CompetitionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -30,8 +30,8 @@ class Competition extends AbstractAuditableEntity
     )]
     private ?Sport $sport = null;
 
-    #[ORM\Column(enumType: Gender::class)]
-    private Gender $gender;
+    #[ORM\Column(enumType: GenderCategory::class)]
+    private GenderCategory $gender;
 
     /**
      * @var Collection<int, Event>
@@ -83,12 +83,12 @@ class Competition extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getGender(): Gender
+    public function getGender(): GenderCategory
     {
         return $this->gender;
     }
 
-    public function setGender(Gender $gender): static
+    public function setGender(GenderCategory $gender): static
     {
         $this->gender = $gender;
 

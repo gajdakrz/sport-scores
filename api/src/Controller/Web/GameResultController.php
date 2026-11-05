@@ -6,9 +6,11 @@ namespace App\Controller\Web;
 
 use App\Controller\BaseController;
 use App\Dto\Filter\GameResultFilterDto;
+use App\Entity\Game;
 use App\Entity\GameResult;
 use App\Entity\User;
 use App\Enum\MatchResultStatus;
+use App\Exception\CustomBadRequestException;
 use App\Form\GameResultType;
 use App\Repository\GameResultRepository;
 use App\Repository\TeamRepository;
@@ -96,6 +98,10 @@ final class GameResultController extends BaseController
         /** @var User $user */
         $user = $this->getUser();
         $gameResult->setModifiedBy($user);
+        $originalGame = $gameResult->getGame();
+        // evaluated before the form changes the result: loading the original game's results
+        // after that would make Doctrine reset the result's game back to the original one
+        $canLeaveOriginalGame = $this->canBeTakenFromGame($gameResult);
         $form = $this->createForm(GameResultType::class, $gameResult);
         $form->handleRequest($request);
 
@@ -108,6 +114,11 @@ final class GameResultController extends BaseController
 
         if (!$form->isValid()) {
             $this->throwFormErrors($form);
+        }
+
+        // moving the result to another game takes it away from the original one
+        if ($originalGame !== $gameResult->getGame() && !$canLeaveOriginalGame) {
+            $this->throwMinimumResultsError('game');
         }
 
         $em->flush();
@@ -127,6 +138,10 @@ final class GameResultController extends BaseController
             return $response;
         }
 
+        if (!$this->canBeTakenFromGame($gameResult)) {
+            $this->throwMinimumResultsError('');
+        }
+
         /** @var User $user */
         $user = $this->getUser();
         $gameResult->setModifiedBy($user);
@@ -134,5 +149,19 @@ final class GameResultController extends BaseController
         $em->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Game result deleted.']);
+    }
+
+    private function canBeTakenFromGame(GameResult $gameResult): bool
+    {
+        $game = $gameResult->getGame();
+
+        return $game === null || !$gameResult->isActive() || $game->canLoseResult();
+    }
+
+    private function throwMinimumResultsError(string $field): never
+    {
+        throw new CustomBadRequestException([
+            ['message' => Game::MIN_RESULTS_MESSAGE, 'field' => $field],
+        ]);
     }
 }
