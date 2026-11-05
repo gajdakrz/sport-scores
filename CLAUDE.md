@@ -1,5 +1,5 @@
 @AGENTS.md
 
-## Tylko dla Claude Code
+## Claude Code only
 
-- Przy zmianach obejmujących więcej niż 3 pliki zacznij od trybu planowania.
+- For changes touching more than 3 files, start in plan mode.

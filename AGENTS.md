@@ -1,52 +1,111 @@
 # AGENTS.md
 
-Aplikacja do zarządzania wynikami sportowymi: Symfony 7.3 + PHP 8.4, Doctrine ORM 3, PostgreSQL, frontend TypeScript + Bootstrap 5 (Webpack Encore). Kod aplikacji jest w `api/`, wszystko działa w Dockerze.
+Sports results management app: Symfony 7.3 + PHP 8.4, Doctrine ORM 3, PostgreSQL, TypeScript + Bootstrap 5 frontend (Webpack Encore). Application code lives in `api/`; everything runs in Docker.
 
-## Komendy
+Reply to the user in the language they write in.
 
-PHP i Node nie są zainstalowane lokalnie – komendy uruchamiaj w kontenerach (katalog roboczy kontenera = `api/`).
-Agent nie ma TTY: używaj `docker exec` **bez** `-it` (dlatego `make test` i `make test-db` nie zadziałają).
+## General principle
+
+Follow Symfony, Doctrine, PHP and TypeScript best practices: stay consistent with existing code, keep domain logic in entities/services rather than controllers, validate on the server (the frontend only makes choosing easier), and add tests for new logic.
+
+## Commands
+
+PHP and Node are not installed locally – run commands inside the containers (container working directory = `api/`).
+The agent has no TTY: use `docker exec` **without** `-it` (which is why `make test` and `make test-db` won't work).
 
 ```bash
-docker compose up -d                                                  # start środowiska
-make test-db-ide                                                      # odbudowa bazy testowej (drop/create/migrate/fixtures)
-docker exec sport-scores-php sh -c "APP_ENV=test php bin/phpunit"     # wszystkie testy
-docker exec sport-scores-php sh -c "APP_ENV=test php bin/phpunit tests/Unit/Service/BracketBuilderTest.php"  # jeden plik
-docker exec sport-scores-php vendor/bin/phpstan analyse --no-progress --memory-limit=1G # PHPStan, level 9 (domyślne 128M nie wystarcza)
+docker compose up -d                                                  # start the environment
+make test-db-ide                                                      # rebuild the test database (drop/create/migrate/fixtures)
+docker exec sport-scores-php sh -c "APP_ENV=test php bin/phpunit"     # all tests
+docker exec sport-scores-php sh -c "APP_ENV=test php bin/phpunit tests/Unit/Service/BracketBuilderTest.php"  # single file
+docker exec sport-scores-php vendor/bin/phpstan analyse --no-progress --memory-limit=1G # PHPStan, level 9 (the default 128M is not enough)
 docker exec sport-scores-php vendor/bin/phpcs                         # PSR-12
 docker exec sport-scores-node npm run lint                            # ESLint (assets/ts)
 docker exec sport-scores-node npm run typecheck                       # tsc --noEmit
 ```
 
-Pozostałe cele (`up`, `composer-install`, `db`, `cache-clear`) są w `Makefile` i działają bez TTY.
+Other targets (`up`, `composer-install`, `db`, `cache-clear`) are in the `Makefile` and work without a TTY.
 
-## Zanim uznasz zadanie za skończone
+## Before you consider a task done
 
-- PHPUnit, PHPStan (level 9) i phpcs przechodzą bez błędów. W CI lint i PHPStan mają `continue-on-error`, więc błąd nie zatrzyma pipeline'u – sprawdź lokalnie.
-- Przy zmianach w `assets/ts/` przechodzą `lint` i `typecheck`.
-- Nowy kod w `src/` ma testy – pokrycie trafia do SonarCloud (`coverage.xml`).
+- PHPUnit, PHPStan (level 9) and phpcs pass with no errors. phpcs reports line length as a warning – treat warnings as failures too. In CI, lint and PHPStan have `continue-on-error`, so a failure won't stop the pipeline – check locally.
+- `docker exec sport-scores-php php bin/console doctrine:schema:validate --env=test` reports OK in both sections (Mapping and Database) – read the full output, not just the tail. Don't use `doctrine:migrations:diff` as a check – it creates a migration file.
+- For changes in `assets/ts/`, `lint` and `typecheck` pass.
+- New code in `src/` has tests – coverage goes to SonarCloud (`coverage.xml`). Check it locally – see [SonarCloud](#sonarcloud).
+- Code follows the SonarCloud rules below (no new issues on the quality gate).
 
-## Konwencje backendu
+## SonarCloud
 
-- Każdy plik PHP zaczyna się od `declare(strict_types=1);`.
-- Kontrolery dziedziczą po `App\Controller\BaseController`: `Web/` – widoki Twig + AJAX, `Api/` – endpointy JSON.
-- Błędy walidacji: `throwFormErrors($form)` lub `CustomBadRequestException`. Listener zamienia je na JSON `{ "errors": [{ "message", "field" }] }` – nie buduj tej odpowiedzi ręcznie.
-- Akcje AJAX zmieniające dane sprawdzają CSRF przez `validateCsrfToken()`.
-- W odpowiedziach AJAX nie używaj `addFlash()` – komunikat idzie w JSON-ie.
-- `createdAt` / `modifiedAt` ustawia `AbstractEntity` (lifecycle callbacks) – nie ustawiaj ich ręcznie.
-- Zmiana schematu = nowa migracja (`php bin/console make:migration`). Nie edytuj istniejących plików w `migrations/`.
+Project `gajdakrz_sport-scores` (config: `api/sonar-project.properties`). CI (`.github/workflows/ci.yaml`) runs the analysis on push with `SONAR_TOKEN` – there is no local scanner and no token for agents, so verify in two steps:
 
-## Konwencje frontendu
+1. **Locally, before finishing** – coverage of the code you changed (Xdebug is in the PHP container; output goes to `var/`, which is gitignored):
 
-- Każdy moduł w `assets/ts/<feature>/` ma `ModalInitializer` z metodą `init()`, która wywołuje `AppBase.initPendingFlash()`.
-- Komunikat po AJAX + przeładowaniu strony: `AppBase.showFlashAfterReload()`, potem `window.location.reload()`.
+   ```bash
+   docker exec sport-scores-php sh -c "APP_ENV=test XDEBUG_MODE=coverage php bin/phpunit --coverage-text=var/coverage.txt --colors=never"
+   docker exec sport-scores-php grep -A1 'App\\Validator\\MyValidator' var/coverage.txt   # per class
+   ```
 
-## Testy
+   New and changed classes should be covered (aim for ≥ 80% lines); untouched legacy methods don't count.
+2. **After push (CI finished)** – the project is public, so read-only API calls need no token:
 
-- `tests/Unit`, `tests/Integration`, `tests/Functional` (kontrolery Web/Api, repozytoria). Wspólne helpery w `tests/Trait/ControllerTestTrait.php`.
-- DAMA DoctrineTestBundle cofa każdy test w transakcji – testy nie muszą sprzątać bazy, ale wymagają załadowanych fixtures (`make test-db-ide`).
+   ```bash
+   curl -s "https://sonarcloud.io/api/qualitygates/project_status?projectKey=gajdakrz_sport-scores"                 # gate: status OK
+   curl -s "https://sonarcloud.io/api/issues/search?componentKeys=gajdakrz_sport-scores&resolved=false&ps=100"       # open issues
+   curl -s "https://sonarcloud.io/api/project_analyses/search?project=gajdakrz_sport-scores&ps=1"                   # last analysed commit
+   ```
 
-## Bezpieczeństwo
+   For a pull request add `&pullRequest=<number>` (gate and issues). Confirm the last analysed `revision` is your commit – if not, the analysis didn't run.
 
-- Nie commituj sekretów. Lokalne wartości trzymaj w `api/.env.local`, nie w `api/.env`.
-- Nie wyłączaj reguł PHPStan / Sonar adnotacjami (`@phpstan-ignore`, `NOSONAR`) – napraw przyczynę.
+Quality gate on new code: reliability, security and maintainability rating A, duplication ≤ 3%, all security hotspots reviewed. Write code that passes the common Sonar PHP rules:
+
+- cognitive complexity ≤ 15 per function (`php:S3776`) – extract methods instead of nesting;
+- no string literal repeated 3+ times (`php:S1192`) – use a constant or enum;
+- at most 7 parameters per method (`php:S107`) – pass a DTO;
+- no commented-out code (`php:S125`) and no unused private methods, variables or imports;
+- no duplicated blocks – reuse helpers (e.g. `tests/Trait/ControllerTestTrait.php`) instead of copy-paste.
+
+## Backend conventions
+
+- File structure (every PHP file, including tests and migrations):
+  - starts with `<?php`, a blank line, then `declare(strict_types=1);`;
+  - lines are at most 120 characters (PSR-12, enforced by phpcs) – split long conditions, calls and strings when writing, not after the check;
+  - ends with a single empty line (a final newline, no trailing blank lines).
+- Controllers extend `App\Controller\BaseController`: `Web/` – Twig views + AJAX, `Api/` – JSON endpoints.
+- Validation errors: `throwFormErrors($form)` or `CustomBadRequestException`. A listener turns them into JSON `{ "errors": [{ "message", "field" }] }` – don't build this response by hand.
+- AJAX actions that modify data check CSRF via `validateCsrfToken()`.
+- Don't use `addFlash()` in AJAX responses – the message goes in the JSON.
+- `createdAt` / `modifiedAt` are set by `AbstractEntity` (lifecycle callbacks) – don't set them manually.
+- Schema change = new migration (`php bin/console make:migration`). Don't edit existing files in `migrations/`.
+
+## Frontend conventions
+
+- Every module in `assets/ts/<feature>/` has a `ModalInitializer` with an `init()` method that calls `AppBase.initPendingFlash()`.
+- Message after AJAX + page reload: `AppBase.showFlashAfterReload()`, then `window.location.reload()`.
+
+## Tests
+
+- `tests/Unit`, `tests/Integration`, `tests/Functional` (Web/Api controllers, repositories). Shared helpers in `tests/Trait/ControllerTestTrait.php`.
+- DAMA DoctrineTestBundle rolls back each test in a transaction – tests don't need to clean up the database, but they require loaded fixtures (`make test-db-ide`).
+
+### What to test and what not to
+
+Test behaviour and business rules, not implementation. Don't write tests for:
+
+- plain getters/setters and constructors without logic (entities, DTOs) – they are covered indirectly by controller and validator tests;
+- small domain methods (e.g. `Team::acceptsGender()`) when all their branches are already covered by tests of the validator/service that uses them – don't duplicate coverage;
+- framework and library code (Doctrine mapping, Symfony Form, routing, serializer) – assume it works;
+- trivial form configuration (`buildForm` with only `add()` calls), enums without methods and `EnumLabelTrait` – the controller functional test covers them;
+- private method details – test through the public API;
+- exact message or HTML content – assert the status code, the error field (`field`) and the database state.
+
+Writing guidelines:
+
+- Test repositories through controller functional tests, not with standalone repository tests.
+- Mock only boundaries (validator context, external services); don't mock entities – create real objects.
+- One test = one scenario; the name and `#[TestDox]` describe the expected behaviour. Use `#[DataProvider]` for variants of the same rule.
+- Every new validation rule has a test for the valid and the invalid case (asserting the error field).
+
+## Security
+
+- Don't commit secrets. Keep local values in `api/.env.local`, not in `api/.env`.
+- Don't disable PHPStan / Sonar rules with annotations (`@phpstan-ignore`, `NOSONAR`) – fix the root cause.
