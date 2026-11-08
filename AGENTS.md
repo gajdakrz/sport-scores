@@ -28,6 +28,7 @@ Other targets (`up`, `composer-install`, `db`, `cache-clear`) are in the `Makefi
 
 ## Before you consider a task done
 
+- First, clean up after your changes (before running the checks below): in every file you touched, remove what is no longer used – `use` imports, private methods, properties, constants, test helpers and whole classes or TS modules/exports left without callers (e.g. after a rename or refactor). Search the codebase (`grep`) to confirm nothing still references them.
 - PHPUnit, PHPStan (level 9) and phpcs pass with no errors. phpcs reports line length as a warning – treat warnings as failures too. In CI, lint and PHPStan have `continue-on-error`, so a failure won't stop the pipeline – check locally.
 - `docker exec sport-scores-php php bin/console doctrine:schema:validate --env=test` reports OK in both sections (Mapping and Database) – read the full output, not just the tail. Don't use `doctrine:migrations:diff` as a check – it creates a migration file.
 - For changes in `assets/ts/`, `lint` and `typecheck` pass.
@@ -103,7 +104,14 @@ Writing guidelines:
 - Test repositories through controller functional tests, not with standalone repository tests.
 - Mock only boundaries (validator context, external services); don't mock entities – create real objects.
 - One test = one scenario; the name and `#[TestDox]` describe the expected behaviour. Use `#[DataProvider]` for variants of the same rule.
+- Test method names and `#[TestDox]` describe the behaviour in domain words, never HTTP status codes or their names: `nationalTeamWithCompetitionCountryIsRejected`, not `...Returns400` / `...ReturnsBadRequest`. The status code belongs in the assertion (`assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST)`). Name the subject and the outcome (`...IsRejected`, `...IsCreated`, `...KeepsStoredGender`), and the condition when it matters (`...WithoutTeam...`).
+- Put repeated request setup (building and submitting a form, finding an entity) in private helpers in the test class or in `ControllerTestTrait`, not copy-paste between tests.
 - Every new validation rule has a test for the valid and the invalid case (asserting the error field).
+
+## Git
+
+- Never run `git add` or `git commit` on your own. After changing files, always ask the user whether to stage and commit (and how to split the commits) – wait for an explicit yes.
+- Renames/moves of tracked files (`git mv`) are fine as part of the change, but leave staging the rest of the work to the user's decision.
 
 ## Security
 
