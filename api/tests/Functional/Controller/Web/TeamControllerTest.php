@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\Competition;
+use App\Entity\Country;
 use App\Entity\Person;
 use App\Entity\Season;
 use App\Entity\Team;
@@ -17,6 +18,7 @@ use App\Repository\TeamRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -136,6 +138,67 @@ final class TeamControllerTest extends WebTestCase
         $this->assertEquals($sport->getId(), $team->getSport()?->getId());
         $this->assertTrue($team->isActive());
         $this->assertSame(GenderCategory::MIXED, $team->getGender());
+        // no competition country selected = not applicable (international competitions only)
+        $this->assertNull($team->getCompetitionCountry());
+    }
+
+    #[Test]
+    #[TestDox('Submitting the new form stores a competition country different from the country of origin')]
+    public function submittingNewFormStoresCompetitionCountry(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $origin  = $this->createTestCountry();
+        $playsIn = $this->createTestCountry();
+        $name    = 'Foreign League Team ' . uniqid();
+
+        $this->submitNewTeam($client, $name, TeamType::CLUB, $origin, $playsIn);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $team = $this->findTeamByName($name);
+        $this->assertNotNull($team);
+        $this->assertSame($origin->getId(), $team->getCountry()?->getId());
+        $this->assertSame($playsIn->getId(), $team->getCompetitionCountry()?->getId());
+    }
+
+    #[Test]
+    #[TestDox('National team with a competition country is rejected with an error on "competitionCountry"')]
+    public function nationalTeamWithCompetitionCountryIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $country = $this->createTestCountry();
+        $name    = 'National Team ' . uniqid();
+
+        $this->submitNewTeam($client, $name, TeamType::NATIONAL, $country, $country);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('competitionCountry', array_column($data['errors'], 'field'));
+        $this->assertNull($this->findTeamByName($name));
+    }
+
+    #[Test]
+    #[TestDox('National team without a competition country is created with an empty competition country')]
+    public function nationalTeamWithoutCompetitionCountryIsCreated(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $name = 'National Team ' . uniqid();
+
+        $this->submitNewTeam($client, $name, TeamType::NATIONAL, $this->createTestCountry(), null);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $team = $this->findTeamByName($name);
+        $this->assertNotNull($team);
+        $this->assertNull($team->getCompetitionCountry());
     }
 
     #[Test]
@@ -564,6 +627,32 @@ final class TeamControllerTest extends WebTestCase
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    private function submitNewTeam(
+        KernelBrowser $client,
+        string $name,
+        TeamType $teamType,
+        Country $country,
+        ?Country $competitionCountry
+    ): void {
+        $form = $client->request('GET', '/teams/new')->selectButton('Save')->form();
+
+        $client->submit($form, [
+            'team[name]'               => $name,
+            'team[teamType]'           => $teamType->value,
+            'team[gender]'             => GenderCategory::MALE->value,
+            'team[country]'            => (string) $country->getId(),
+            'team[competitionCountry]' => (string) $competitionCountry?->getId(),
+        ]);
+    }
+
+    private function findTeamByName(string $name): ?Team
+    {
+        /** @var TeamRepository $repository */
+        $repository = static::getContainer()->get(TeamRepository::class);
+
+        return $repository->findOneBy(['name' => $name]);
+    }
 
     private function createTestTeamEntity(Sport $sport): Team
     {

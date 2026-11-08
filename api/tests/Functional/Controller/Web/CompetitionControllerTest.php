@@ -115,6 +115,37 @@ final class CompetitionControllerTest extends WebTestCase
         $this->assertNotNull($competition);
         $this->assertEquals($sport->getId(), $competition->getSport()?->getId());
         $this->assertTrue($competition->isActive());
+        // no country selected = international competition
+        $this->assertNull($competition->getCountry());
+    }
+
+    #[Test]
+    #[TestDox('Submitting the new form with a country creates a national competition')]
+    public function submittingNewFormWithCountryCreatesNationalCompetition(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $country = $this->createTestCountry();
+        $name    = 'National Competition ' . uniqid();
+
+        $client->request('POST', '/competitions/new', [
+            'competition' => [
+                'name'    => $name,
+                'gender'  => GenderCategory::MALE->value,
+                'country' => (string) $country->getId(),
+                '_token'  => $this->getValidCsrfToken($client, '/competitions/new'),
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        /** @var CompetitionRepository $repository */
+        $repository  = static::getContainer()->get(CompetitionRepository::class);
+        $competition = $repository->findOneBy(['name' => $name]);
+
+        $this->assertNotNull($competition);
+        $this->assertSame($country->getId(), $competition->getCountry()?->getId());
     }
 
 

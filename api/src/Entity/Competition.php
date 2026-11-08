@@ -34,6 +34,17 @@ class Competition extends AbstractAuditableEntity
     private GenderCategory $gender;
 
     /**
+     * Null means an international competition (teams from every country may play).
+     */
+    #[ORM\ManyToOne(targetEntity: Country::class)]
+    #[ORM\JoinColumn(
+        name: 'country_id',
+        referencedColumnName: 'id',
+        nullable: true
+    )]
+    private ?Country $country = null;
+
+    /**
      * @var Collection<int, Event>
      */
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'competition', orphanRemoval: true)]
@@ -93,6 +104,33 @@ class Competition extends AbstractAuditableEntity
         $this->gender = $gender;
 
         return $this;
+    }
+
+    public function getCountry(): ?Country
+    {
+        return $this->country;
+    }
+
+    public function setCountry(?Country $country): static
+    {
+        $this->country = $country;
+
+        return $this;
+    }
+
+    public function isInternational(): bool
+    {
+        return $this->country === null;
+    }
+
+    /**
+     * Country rule: an international competition admits every team,
+     * a national one only teams whose competition country is its country
+     * (a team without a competition country, e.g. a national team, is rejected).
+     */
+    public function admitsTeam(Team $team): bool
+    {
+        return $this->isInternational() || $this->country === $team->getCompetitionCountry();
     }
 
     /**

@@ -33,22 +33,8 @@ final class TeamType extends AbstractType
                 'disabled' => true,
                 'data' => $sport?->getName(),
             ])
-            ->add('country', EntityType::class, [
-                'label' => 'Country',
-                'class' => Country::class,
-                'choice_label' => 'name',
-                'placeholder' => 'Select country',
-                'query_builder' =>
-                    fn(CountryRepository $countryRepository) =>$countryRepository->createActiveQueryBuilder(
-                        'name',
-                        'ASC'
-                    ),
-            ])
-            ->add('teamType', EnumType::class, [
-                'label' => 'Team type',
-                'class' => TeamTypeEnum::class,
-                'choice_label' => fn(TeamTypeEnum $enum) => $enum->label(),
-                'placeholder' => 'Select type',
+            ->add('name', TextType::class, [
+                'label' => 'Team name',
             ])
             ->add('gender', EnumType::class, [
                 'label' => 'Gender',
@@ -63,9 +49,26 @@ final class TeamType extends AbstractType
                     }
                 },
             ])
-            ->add('name', TextType::class, [
-                'label' => 'Team name',
+            ->add('country', EntityType::class, self::countryFieldOptions([
+                'label' => 'Country',
+                'placeholder' => 'Select country',
+            ]))
+            ->add('teamType', EnumType::class, [
+                'label' => 'Team type',
+                'class' => TeamTypeEnum::class,
+                'choice_label' => fn(TeamTypeEnum $enum) => $enum->label(),
+                'placeholder' => 'Select type',
+                // the frontend disables "competitionCountry" for this type (TeamCompetitionCountryAllowed)
+                'attr' => ['data-national-value' => TeamTypeEnum::NATIONAL->value],
             ])
+            ->add('competitionCountry', EntityType::class, self::countryFieldOptions([
+                'label' => 'Competition country',
+                'placeholder' => 'Not applicable',
+                'help' => 'Country whose national competitions the team plays in. '
+                    . 'Leave empty for teams that play only international competitions. '
+                    . 'Not available for national teams.',
+                'required' => false,
+            ]))
         ;
     }
 
@@ -77,5 +80,23 @@ final class TeamType extends AbstractType
         ]);
 
         $resolver->setAllowedTypes('current_sport', [Sport::class, 'null']);
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>
+     */
+    private static function countryFieldOptions(array $options): array
+    {
+        return $options + [
+            'class' => Country::class,
+            'choice_label' => 'name',
+            'query_builder' =>
+                fn(CountryRepository $countryRepository) => $countryRepository->createActiveQueryBuilder(
+                    'name',
+                    'ASC'
+                ),
+        ];
     }
 }

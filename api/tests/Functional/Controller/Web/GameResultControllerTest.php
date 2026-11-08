@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\Competition;
+use App\Entity\Country;
 use App\Entity\Event;
 use App\Entity\Game;
 use App\Entity\GameResult;
 use App\Entity\Season;
 use App\Entity\Sport;
 use App\Entity\Team;
-use App\Enum\Gender;
 use App\Enum\GenderCategory;
 use App\Enum\TeamType;
 use App\Repository\GameResultRepository;
@@ -27,6 +27,10 @@ use Symfony\Component\HttpFoundation\Response;
 final class GameResultControllerTest extends WebTestCase
 {
     use ControllerTestTrait;
+
+    // markers for the country data providers (entities can't be created in a static provider)
+    private const string COMPETITION_COUNTRY = 'competition';
+    private const string OTHER_COUNTRY = 'other';
 
     // -------------------------------------------------------------------------
     // index
@@ -548,8 +552,102 @@ final class GameResultControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // new – POST (country validation: team vs competition)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Team countries relative to the national competition country:
+     * [team country of origin, team competition country]
+     *
+     * @return array<string, array{string, ?string}>
+     */
+    public static function rejectedTeamCountriesProvider(): array
+    {
+        return [
+            'team playing in another country'           => [self::OTHER_COUNTRY, self::OTHER_COUNTRY],
+            'national team without a competition country' => [self::COMPETITION_COUNTRY, null],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('rejectedTeamCountriesProvider')]
+    #[TestDox('National competition rejects the team with an error on "team": $_dataName')]
+    public function teamNotPlayingInCompetitionCountryIsRejected(string $origin, ?string $playsIn): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $country     = $this->createTestCountry();
+        $competition = $this->createTestCompetition($sport, country: $country);
+        $team        = $this->createTeamWithCountries($sport, $country, $origin, $playsIn);
+
+        $this->submitNewGameResult($client, $competition, $team);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('team', array_column($data['errors'], 'field'));
+    }
+
+    /**
+     * [competition is national, team country of origin, team competition country]
+     *
+     * @return array<string, array{bool, string, ?string}>
+     */
+    public static function admittedTeamCountriesProvider(): array
+    {
+        return [
+            'national competition, team playing in its country'  => [
+                true,
+                self::COMPETITION_COUNTRY,
+                self::COMPETITION_COUNTRY,
+            ],
+            'national competition, foreign-origin team playing in its country (like AS Monaco)' => [
+                true,
+                self::OTHER_COUNTRY,
+                self::COMPETITION_COUNTRY,
+            ],
+            'international competition, national team' => [false, self::COMPETITION_COUNTRY, null],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('admittedTeamCountriesProvider')]
+    #[TestDox('Submitting a team the competition admits creates the game result: $_dataName')]
+    public function submittingAdmittedTeamCreatesGameResult(bool $national, string $origin, ?string $playsIn): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $country     = $this->createTestCountry();
+        $competition = $this->createTestCompetition($sport, country: $national ? $country : null);
+        $team        = $this->createTeamWithCountries($sport, $country, $origin, $playsIn);
+
+        $this->submitNewGameResult($client, $competition, $team);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    private function submitNewGameResult(KernelBrowser $client, Competition $competition, Team $team): void
+    {
+        $game = $this->createTestGame($this->createTestEvent($competition), $this->createTestSeason());
+
+        $client->request('POST', '/game-results/new', [
+            'game_result' => [
+                'game'       => (string) $game->getId(),
+                'team'       => (string) $team->getId(),
+                'matchScore' => '1',
+                '_token'     => $this->getValidCsrfToken($client, '/game-results/new'),
+            ],
+        ]);
+    }
 
     /**
      * @return list<GameResult>
@@ -574,8 +672,11 @@ final class GameResultControllerTest extends WebTestCase
         return (string) $deleteButton->attr('data-token');
     }
 
-    private function createTestCompetition(Sport $sport, GenderCategory $gender = GenderCategory::MALE): Competition
-    {
+    private function createTestCompetition(
+        Sport $sport,
+        GenderCategory $gender = GenderCategory::MALE,
+        ?Country $country = null
+    ): Competition {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
 
@@ -583,6 +684,7 @@ final class GameResultControllerTest extends WebTestCase
         $competition->setName('Test Competition ' . uniqid());
         $competition->setSport($sport);
         $competition->setGender($gender);
+        $competition->setCountry($country);
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
         $competition->setIsActive(true);
@@ -648,8 +750,30 @@ final class GameResultControllerTest extends WebTestCase
         return $game;
     }
 
-    private function createTestTeam(Sport $sport, GenderCategory $gender = GenderCategory::MALE): Team
-    {
+    /**
+     * Resolves the provider markers: COMPETITION_COUNTRY = $competitionCountry, OTHER_COUNTRY = a new country.
+     */
+    private function createTeamWithCountries(
+        Sport $sport,
+        Country $competitionCountry,
+        string $origin,
+        ?string $playsIn
+    ): Team {
+        $resolve = fn(?string $marker): ?Country => match ($marker) {
+            null                      => null,
+            self::COMPETITION_COUNTRY => $competitionCountry,
+            default                   => $this->createTestCountry(),
+        };
+
+        return $this->createTestTeam($sport, country: $resolve($origin), competitionCountry: $resolve($playsIn));
+    }
+
+    private function createTestTeam(
+        Sport $sport,
+        GenderCategory $gender = GenderCategory::MALE,
+        ?Country $country = null,
+        ?Country $competitionCountry = null
+    ): Team {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
 
@@ -657,6 +781,8 @@ final class GameResultControllerTest extends WebTestCase
         $team->setName('Test Team ' . uniqid());
         $team->setSport($sport);
         $team->setGender($gender);
+        $team->setCountry($country);
+        $team->setCompetitionCountry($competitionCountry);
         $team->setTeamType(TeamType::CLUB);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);

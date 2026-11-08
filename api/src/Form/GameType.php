@@ -54,6 +54,8 @@ final class GameType extends AbstractType
                 'choice_label' => 'name',
                 'choice_attr' => fn(Competition $competition): array => [
                     'data-gender' => $competition->getGender()->value,
+                    // empty = international competition (every country allowed)
+                    'data-country' => (string) $competition->getCountry()?->getId(),
                 ],
                 'mapped' => false,
                 'placeholder' => 'Select competition',

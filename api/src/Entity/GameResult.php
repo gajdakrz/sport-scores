@@ -7,12 +7,14 @@ namespace App\Entity;
 use App\Enum\MatchResultStatus;
 use App\Repository\GameResultRepository;
 use App\Validator\AtLeastOneScore;
+use App\Validator\GameResultTeamCountryMatch;
 use App\Validator\GameResultTeamGenderMatch;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GameResultRepository::class)]
 #[AtLeastOneScore]
 #[GameResultTeamGenderMatch]
+#[GameResultTeamCountryMatch]
 class GameResult extends AbstractAuditableEntity
 {
     #[ORM\Id]

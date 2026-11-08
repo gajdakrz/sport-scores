@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\Competition;
+use App\Entity\Country;
 use App\Entity\Event;
 use App\Entity\Game;
 use App\Entity\GameResult;
@@ -12,7 +13,6 @@ use App\Entity\Team;
 use App\Enum\TeamType;
 use App\Entity\Season;
 use App\Entity\Sport;
-use App\Enum\Gender;
 use App\Enum\GenderCategory;
 use App\Repository\GameRepository;
 use App\Repository\GameResultRepository;
@@ -208,6 +208,39 @@ final class GameControllerTest extends WebTestCase
                 'event'       => (string) $event->getId(),
                 'date'        => date('Y-m-d'),
                 'gameResults' => [['team' => '', 'matchScore' => '3']],
+                '_token'      => $this->getValidCsrfToken($client, '/games/new'),
+            ],
+        ]);
+
+        $this->assertFieldError($client, 'team');
+
+        /** @var GameRepository $repository */
+        $repository = static::getContainer()->get(GameRepository::class);
+        $this->assertNull($repository->findOneBy(['event' => $event->getId()]));
+    }
+
+    #[Test]
+    #[TestDox('National game with a team playing in another country is rejected on "team" and nothing is saved')]
+    public function nationalGameWithTeamPlayingInAnotherCountryIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $country     = $this->createTestCountry();
+        $competition = $this->createTestCompetition($sport, $country);
+        $event       = $this->createTestEvent($competition);
+        $season      = $this->createTestSeason();
+        $localTeam   = $this->createTestTeam($sport, $country);
+        $foreignTeam = $this->createTestTeam($sport, $this->createTestCountry());
+
+        $client->request('POST', '/games/new', [
+            'game' => [
+                'season'      => (string) $season->getId(),
+                'competition' => (string) $competition->getId(),
+                'event'       => (string) $event->getId(),
+                'date'        => date('Y-m-d'),
+                'gameResults' => $this->gameResultsData($localTeam, $foreignTeam),
                 '_token'      => $this->getValidCsrfToken($client, '/games/new'),
             ],
         ]);
@@ -568,7 +601,7 @@ final class GameControllerTest extends WebTestCase
         return $season;
     }
 
-    private function createTestCompetition(Sport $sport): Competition
+    private function createTestCompetition(Sport $sport, ?Country $country = null): Competition
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
@@ -577,6 +610,7 @@ final class GameControllerTest extends WebTestCase
         $competition->setName('Test Competition ' . uniqid());
         $competition->setSport($sport);
         $competition->setGender(GenderCategory::MALE);
+        $competition->setCountry($country);
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
         $competition->setIsActive(true);
@@ -624,7 +658,7 @@ final class GameControllerTest extends WebTestCase
         return $game;
     }
 
-    private function createTestTeam(Sport $sport): Team
+    private function createTestTeam(Sport $sport, ?Country $competitionCountry = null): Team
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
@@ -632,6 +666,7 @@ final class GameControllerTest extends WebTestCase
         $team = new Team();
         $team->setName('Test Team ' . uniqid());
         $team->setSport($sport);
+        $team->setCompetitionCountry($competitionCountry);
         $team->setTeamType(TeamType::CLUB);
         $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);

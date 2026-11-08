@@ -1,5 +1,5 @@
 import { AppBase, ModalFeatureConfig } from '../common/base';
-import { filterTeamOptionsByGender, selectedOptionGender } from '../common/genderFilter';
+import { filterTeamOptions, selectedOptionCriteria } from '../common/teamFilter';
 
 export class ModalInitializer {
     private gameChangeHandler: (() => void) | null = null;
@@ -31,7 +31,7 @@ export class ModalInitializer {
         }
 
         this.gameChangeHandler = (): void => {
-            filterTeamOptionsByGender(teamSelect, selectedOptionGender(gameSelect));
+            filterTeamOptions(teamSelect, selectedOptionCriteria(gameSelect));
         };
 
         gameSelect.addEventListener('change', this.gameChangeHandler);

@@ -1,5 +1,5 @@
 import {AppBase, ModalFeatureConfig} from '../common/base';
-import {filterTeamOptionsByGender, selectedOptionGender} from '../common/genderFilter';
+import {filterTeamOptions, selectedOptionCriteria} from '../common/teamFilter';
 
 export class ModalInitializer {
     private static readonly MIN_RESULTS = 2;
@@ -111,11 +111,11 @@ export class ModalInitializer {
     }
 
     private static filterResultTeams(competitionSelect: HTMLSelectElement): void {
-        const gender = selectedOptionGender(competitionSelect);
+        const criteria = selectedOptionCriteria(competitionSelect);
 
         document
             .querySelectorAll<HTMLSelectElement>('.game-results-list select[id$="_team"]')
-            .forEach(teamSelect => filterTeamOptionsByGender(teamSelect, gender));
+            .forEach(teamSelect => filterTeamOptions(teamSelect, criteria));
     }
 
     private async loadInitialData(

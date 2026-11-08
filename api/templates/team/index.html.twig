@@ -3,7 +3,7 @@
 {% block title %}Teams{% endblock %}
 
 {% block body %}
-    {% set columnCount = 8 %}
+    {% set columnCount = 9 %}
 
     <div class="container mt-5">
 
@@ -69,6 +69,7 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Country</th>
+                <th>Competition Country</th>
                 <th>Type</th>
                 <th>Gender</th>
                 <th>Created At</th>
@@ -82,6 +83,7 @@
                     <td>{{ team.id }}</td>
                     <td>{{ team.name }}</td>
                     <td>{{ team.country.name ?? '' }}</td>
+                    <td>{{ team.competitionCountry.name ?? 'Not applicable' }}</td>
                     <td>{{ team.teamType.name|replace({'_': ' '})|capitalize }}</td>
                     <td>{{ team.gender.label() }}</td>
                     <td>{{ team.createdAt|date(DATETIME_FORMAT) }}</td>

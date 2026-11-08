@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Enum\Gender;
 use App\Enum\GenderCategory;
 use App\Enum\TeamType;
+use App\Validator\TeamCompetitionCountryAllowed;
 use App\Validator\TeamGenderConsistent;
 use App\Repository\TeamRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -15,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
 #[TeamGenderConsistent]
+#[TeamCompetitionCountryAllowed]
 class Team extends AbstractAuditableEntity
 {
     #[ORM\Id]
@@ -32,6 +34,19 @@ class Team extends AbstractAuditableEntity
         nullable: true
     )]
     private ?Country $country = null;
+
+    /**
+     * Country whose national competitions the team plays in – may differ from the country of origin
+     * (e.g. AS Monaco plays in France). Null = not applicable (e.g. a national team):
+     * the team plays only in international competitions.
+     */
+    #[ORM\ManyToOne(targetEntity: Country::class)]
+    #[ORM\JoinColumn(
+        name: 'competition_country_id',
+        referencedColumnName: 'id',
+        nullable: true
+    )]
+    private ?Country $competitionCountry = null;
 
     #[ORM\Column(enumType: TeamType::class)]
     private TeamType $teamType;
@@ -108,6 +123,18 @@ class Team extends AbstractAuditableEntity
         return $this;
     }
 
+    public function getCompetitionCountry(): ?Country
+    {
+        return $this->competitionCountry;
+    }
+
+    public function setCompetitionCountry(?Country $competitionCountry): static
+    {
+        $this->competitionCountry = $competitionCountry;
+
+        return $this;
+    }
+
     public function getTeamType(): TeamType
     {
         return $this->teamType;
@@ -118,6 +145,15 @@ class Team extends AbstractAuditableEntity
         $this->teamType = $teamType;
 
         return $this;
+    }
+
+    /**
+     * National teams play only international competitions, so they have no competition country.
+     */
+    public function isNational(): bool
+    {
+        // teamType is unset on a new team whose form field was empty or invalid
+        return isset($this->teamType) && $this->teamType === TeamType::NATIONAL;
     }
 
     public function getGender(): GenderCategory
