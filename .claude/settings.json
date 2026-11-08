@@ -9,10 +9,23 @@
       "Bash(docker exec sport-scores-node npm run typecheck)"
     ],
     "deny": [
-      "Edit(/api/migrations/**)",
       "Read(/api/.env.local)",
       "Bash(docker compose down -v*)",
       "Bash(git push --force*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-migrations.sh",
+            "onFailure": "block"
+          }
+        ]
+      }
     ]
   }
 }
