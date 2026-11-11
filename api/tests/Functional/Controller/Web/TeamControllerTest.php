@@ -98,7 +98,7 @@ final class TeamControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -323,7 +323,7 @@ final class TeamControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: nieprawidłowy teamType enum → !isValid())
+    // new – POST (validation: invalid teamType enum → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -334,7 +334,7 @@ final class TeamControllerTest extends WebTestCase
         $this->loginAsTestUser($client);
         $this->setCurrentSport($client);
 
-        // EnumType nie znajdzie 'invalid_type' → TransformationFailedException
+        // EnumType won't find 'invalid_type' → TransformationFailedException
         // → isSynchronized()=false → isValid()=false → throwFormErrors() → 400
         $client->request('POST', '/teams/new', [
             'team' => [
@@ -613,14 +613,14 @@ final class TeamControllerTest extends WebTestCase
         $client = self::createClient();
         $this->loginAsTestUser($client);
 
-        // Ustawiamy inny sport w sesji niż sport teamu
+        // Set a different sport in the session than the team's sport
         $this->setCurrentSport($client);
         $otherSport = $this->createTestSport();
         $team       = $this->createTestTeamEntity($otherSport);
 
         $client->request('GET', sprintf('/teams/%d/result-season-index', $team->getId()));
 
-        // Strona renderuje się poprawnie (200), ale team=null w szablonie
+        // The page renders correctly (200), but team=null in the template
         $this->assertResponseIsSuccessful();
     }
 

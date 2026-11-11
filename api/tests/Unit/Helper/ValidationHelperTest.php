@@ -23,7 +23,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // getValidationErrorsAsArray – stan początkowy
+    // getValidationErrorsAsArray – initial state
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -34,7 +34,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – brak naruszeń
+    // prepareValidationErrors – no violations
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -47,7 +47,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – pojedyncze naruszenie (prosta ścieżka)
+    // prepareValidationErrors – single violation (simple path)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -80,7 +80,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – dwa niezależne naruszenia
+    // prepareValidationErrors – two independent violations
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -112,7 +112,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – scalanie (merge) naruszeń tablicowych
+    // prepareValidationErrors – merging array violations
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -175,7 +175,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – mix naruszeń (scalane i niescalane)
+    // prepareValidationErrors – mixed violations (merged and not merged)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -194,7 +194,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // getValidationErrorsAsArray – kolejność i struktura
+    // getValidationErrorsAsArray – order and structure
     // -------------------------------------------------------------------------
 
     #[Test]

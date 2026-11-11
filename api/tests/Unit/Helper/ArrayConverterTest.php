@@ -62,7 +62,7 @@ class ArrayConverterTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Domyślny separator
+    // Default separator
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -80,7 +80,7 @@ class ArrayConverterTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Własny separator
+    // Custom separator
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -98,7 +98,7 @@ class ArrayConverterTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Zagnieżdżone tablice
+    // Nested arrays
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -162,7 +162,7 @@ class ArrayConverterTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Typ nieznanego (resource itp.) – gałąź default
+    // Unknown type (resource etc.) – default branch
     // -------------------------------------------------------------------------
 
     #[Test]

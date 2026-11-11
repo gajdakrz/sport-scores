@@ -95,7 +95,7 @@ class MemberPosition extends AbstractAuditableEntity
 
     public function removeTeamMember(TeamMember $teamMember): static
     {
-        // jezeli dopuszczam w polu null to orphanRemoval: false i ponizej mogę ustawić null
+        // the field is nullable, so orphanRemoval is false and the position can be set to null below
         if ($this->teamMembers->removeElement($teamMember) && $teamMember->getMemberPosition() === $this) {
             $teamMember->setMemberPosition(null);
         }

@@ -93,7 +93,7 @@ final class PersonControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -125,13 +125,13 @@ final class PersonControllerTest extends WebTestCase
         $this->assertTrue($data['success']);
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
 
-        // Uwaga: kontroler zawiera błąd ($em->persist($currentSport) zamiast $em->persist($person)),
-        // więc osoba nie jest zapisywana do bazy mimo zwrócenia 201.
-        // Test weryfikuje faktyczne zachowanie endpointu (zwrot 201 z success=true).
+        /** @var PersonRepository $repository */
+        $repository = static::getContainer()->get(PersonRepository::class);
+        $this->assertNotNull($repository->findOneBy(['firstName' => 'Anna', 'lastName' => 'Nowak']));
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: nieprawidłowy gender enum → !isValid())
+    // new – POST (validation: invalid gender enum → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -142,7 +142,7 @@ final class PersonControllerTest extends WebTestCase
         $this->loginAsTestUser($client);
         $this->setCurrentSport($client);
 
-        // EnumType nie znajdzie 'invalid_gender' → TransformationFailedException
+        // EnumType won't find 'invalid_gender' → TransformationFailedException
         // → isSynchronized()=false → isValid()=false → throwFormErrors() → 400
         $client->request('POST', '/persons/new', [
             'person' => [
@@ -480,7 +480,7 @@ final class PersonControllerTest extends WebTestCase
         $user = $this->getTestUser();
         $sport = $this->createTestSport();
 
-        // Team filtrowany – insidePerson należy do tego teamu
+        // Filtered team – insidePerson belongs to it
         $filteredTeam = new Team();
         $filteredTeam->setName('Filtered Team ' . uniqid());
         $filteredTeam->setSport($sport);
@@ -491,7 +491,7 @@ final class PersonControllerTest extends WebTestCase
         $filteredTeam->setIsActive(true);
         $em->persist($filteredTeam);
 
-        // Inny team – outsidePerson należy do niego
+        // Another team – outsidePerson belongs to it
         $otherTeam = new Team();
         $otherTeam->setName('Other Team ' . uniqid());
         $otherTeam->setSport($sport);
@@ -502,7 +502,7 @@ final class PersonControllerTest extends WebTestCase
         $otherTeam->setIsActive(true);
         $em->persist($otherTeam);
 
-        // Osoba w filtrowanym teamie – powinna być WYKLUCZONA z wyników excluded
+        // Person in the filtered team – must NOT be in the excluded results
         $insidePerson = new Person();
         $insidePerson->setFirstName('Inside');
         $insidePerson->setLastName('Member');
@@ -514,7 +514,7 @@ final class PersonControllerTest extends WebTestCase
         $insidePerson->setIsActive(true);
         $em->persist($insidePerson);
 
-        // Osoba w innym teamie – powinna być w wynikach excluded
+        // Person in another team – must be in the excluded results
         $outsidePerson = new Person();
         $outsidePerson->setFirstName('Outside');
         $outsidePerson->setLastName('Member');
@@ -526,8 +526,8 @@ final class PersonControllerTest extends WebTestCase
         $outsidePerson->setIsActive(true);
         $em->persist($outsidePerson);
 
-        // Osoba bez teamu – też powinna być w wynikach excluded
-        // (repozytorium musi jawnie dodać IS NULL, bo NULL != X daje w SQL NULL, a nie true)
+        // Person without a team – must also be in the excluded results
+        // (the repository has to add IS NULL explicitly, because NULL != X is NULL in SQL, not true)
         $teamlessPerson = new Person();
         $teamlessPerson->setFirstName('Teamless');
         $teamlessPerson->setLastName('Member');
@@ -540,19 +540,19 @@ final class PersonControllerTest extends WebTestCase
         $em->persist($teamlessPerson);
         $em->flush();
 
-        // Celowo NIE ustawiamy sportu w sesji – currentSportProvider->getSport() zwróci null,
-        // repozytorium pominie filtr sportowy, liczy się tylko filtr teamowy.
+        // Deliberately NO sport in the session – currentSportProvider->getSport() returns null,
+        // so the repository skips the sport filter and only the team filter applies.
         $client->request('GET', sprintf('/persons/person-by-current-team/%d/excluded', $filteredTeam->getId()));
 
         $data = $this->assertJsonSuccessResponse($client);
 
         $ids = array_column($data, 'id');
 
-        // Osoba z filtrowanego teamu NIE powinna być w wynikach
+        // Person from the filtered team must NOT be in the results
         $this->assertNotContains($insidePerson->getId(), $ids);
-        // Osoba z innego teamu POWINNA być w wynikach
+        // Person from another team MUST be in the results
         $this->assertContains($outsidePerson->getId(), $ids);
-        // Osoba bez teamu POWINNA być w wynikach
+        // Person without a team MUST be in the results
         $this->assertContains($teamlessPerson->getId(), $ids);
     }
 

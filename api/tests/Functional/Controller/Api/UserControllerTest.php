@@ -121,7 +121,7 @@ final class UserControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // Nieprawidłowy JSON – 400 Bad Request
+    // Invalid JSON – 400 Bad Request
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -168,7 +168,7 @@ final class UserControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // Błędy walidacji – 400 Bad Request
+    // Validation errors – 400 Bad Request
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -295,7 +295,7 @@ final class UserControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // Nagłówki odpowiedzi
+    // Response headers
     // -------------------------------------------------------------------------
 
     #[Test]

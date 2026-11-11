@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.querySelector<HTMLTableSectionElement>('#gameResultTable tbody');
 
     if (!tableBody) {
-        console.warn('Nie znaleziono tbody tabeli #gameResultTable');
+        console.warn('tbody of the #gameResultTable table not found');
         return;
     }
 
@@ -16,25 +16,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const container = document.getElementById('teamSeasonDetailsModalContainer');
         if (!container) {
-            console.error('Nie znaleziono kontenera #teamSeasonDetailsModalContainer');
+            console.error('#teamSeasonDetailsModalContainer container not found');
             return;
         }
 
         if (modalInstance) {
-            // Paginacja — tylko aktualizujemy body
+            // Pagination – update the body only
             const modalBody = container.querySelector<HTMLElement>('.modal-body');
             const fetchedModalBody = doc.querySelector('.modal-body');
             if (!modalBody || !fetchedModalBody) {
-                console.error('Nie znaleziono .modal-body');
+                console.error('.modal-body not found');
                 return;
             }
             modalBody.innerHTML = fetchedModalBody.innerHTML;
         } else {
-            // Pierwsze otwarcie — wstawiamy cały HTML i tworzymy instancję modala
+            // First open – insert the whole HTML and create the modal instance
             container.innerHTML = html;
             const modalEl = container.querySelector<HTMLElement>('.modal');
             if (!modalEl) {
-                console.error('Nie znaleziono elementu .modal w kontenerze');
+                console.error('.modal element not found in the container');
                 return;
             }
             modalInstance = new Modal(modalEl);
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(url)
             .then((res) => res.text())
             .then((html: string) => renderModal(html))
-            .catch((err) => console.error('Błąd fetch:', err));
+            .catch((err) => console.error('Fetch error:', err));
     }
 
     function bindPaginationLinks(container: HTMLElement): void {
@@ -70,11 +70,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const { teamId, seasonId, competitionId } = btn.dataset;
         if (!teamId || !seasonId || !competitionId) {
-            console.error('Brak danych w dataset przycisku season-details', btn.dataset);
+            console.error('Missing data in the season-details button dataset', btn.dataset);
             return;
         }
 
-        modalInstance = null; // reset przy każdym nowym otwarciu
+        modalInstance = null; // reset on every new open
         loadContent(`/teams/${teamId}/seasons/${seasonId}/competitions/${competitionId}/details`);
     });
 });

@@ -27,7 +27,7 @@ class ValidationErrorTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // setField – prosta ścieżka (bez nawiasów)
+    // setField – simple path (no brackets)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -49,7 +49,7 @@ class ValidationErrorTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // setField – ścieżka z nawiasem (element kolekcji)
+    // setField – path with brackets (collection item)
     // -------------------------------------------------------------------------
 
     #[Test]

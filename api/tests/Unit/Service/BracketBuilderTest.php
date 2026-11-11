@@ -267,7 +267,7 @@ class BracketBuilderTest extends TestCase
         $bracket = $this->builder->build($competition, $season);
 
         $games = $bracket->stages[0]->getGames();
-        $this->assertEquals(2, $games[0]->getId()); // niższe ID zespołów → pierwsze
+        $this->assertEquals(2, $games[0]->getId()); // lower team IDs → first
         $this->assertEquals(1, $games[1]->getId());
     }
 

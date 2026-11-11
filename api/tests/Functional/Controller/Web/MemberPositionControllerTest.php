@@ -95,7 +95,7 @@ final class MemberPositionControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -134,7 +134,7 @@ final class MemberPositionControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: nieprawidłowy CSRF → !isValid())
+    // new – POST (validation: invalid CSRF → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -145,8 +145,8 @@ final class MemberPositionControllerTest extends WebTestCase
         $this->loginAsTestAdmin($client);
         $this->setCurrentSport($client);
 
-        // MemberPositionType ma tylko TextType – jedyna droga do isValid()=false
-        // to nieprawidłowy token CSRF. Surowy POST omija walidację DomCrawlera.
+        // MemberPositionType has only a TextType – the only way to isValid()=false
+        // is an invalid CSRF token. A raw POST bypasses DomCrawler validation.
         $client->request('POST', '/member-positions/new', [
             'member_position' => [
                 'name'   => 'Valid Name',
@@ -241,7 +241,7 @@ final class MemberPositionControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // edit – POST (walidacja: nieprawidłowy CSRF → !isValid())
+    // edit – POST (validation: invalid CSRF → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]

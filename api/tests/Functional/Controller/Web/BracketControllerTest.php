@@ -51,7 +51,7 @@ final class BracketControllerTest extends WebTestCase
         $competition = $this->createTestCompetition();
         $season      = $this->createTestSeason();
 
-        // Ustaw current sport zgodny z competition
+        // Set the current sport matching the competition
         $sport = $this->assertSport($competition->getSport());
         $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
 
@@ -99,12 +99,12 @@ final class BracketControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
         $content = $client->getResponse()->getContent();
         $this->assertIsString($content);
-        // bracketJson jest wstrzykiwany do szablonu – weryfikujemy że strona się wyrenderowała
+        // bracketJson is injected into the template – check that the page rendered
         $this->assertNotEmpty($content);
     }
 
     // -------------------------------------------------------------------------
-    // Niezgodność sportu – team
+    // Sport mismatch – team
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -119,7 +119,7 @@ final class BracketControllerTest extends WebTestCase
         $otherSport    = $this->createTestSport();
         $teamOtherSport = $this->createTestTeamForSport($otherSport);
 
-        // current sport = sport competitionu, team należy do innego sportu
+        // current sport = the competition's sport, the team belongs to another sport
         $sport = $this->assertSport($competition->getSport());
         $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
 
@@ -153,7 +153,7 @@ final class BracketControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // Niezgodność sportu – competition
+    // Sport mismatch – competition
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -167,7 +167,7 @@ final class BracketControllerTest extends WebTestCase
         $season      = $this->createTestSeason();
         $otherSport  = $this->createTestSport();
 
-        // current sport = inny sport niż sport competitionu
+        // current sport = a different sport than the competition's sport
         $client->request('POST', sprintf('/sports/set/%d', $otherSport->getId()));
 
         $client->request('GET', $this->buildUrl($competition, $season));
@@ -198,7 +198,7 @@ final class BracketControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // Kolejność sprawdzania – team vs competition
+    // Check order – team vs competition
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -213,7 +213,7 @@ final class BracketControllerTest extends WebTestCase
         $otherSport     = $this->createTestSport();
         $teamOtherSport = $this->createTestTeamForSport($otherSport);
 
-        // Oba (team i competition) mają inny sport niż current – team sprawdzany pierwszy
+        // Both (team and competition) have a different sport than the current one – the team is checked first
         $thirdSport = $this->createTestSport();
         $client->request('POST', sprintf('/sports/set/%d', $thirdSport->getId()));
 

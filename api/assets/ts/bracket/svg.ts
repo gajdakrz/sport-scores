@@ -162,9 +162,9 @@ function calculateGamePosition(
 
     let offset = (svgHeight - totalGames * (BOX_HEIGHT + V_GAP)) / 2;
 
-    // zmniejsz odstęp jeśli poprzednia gra to te same drużyny i ta sama data
+    // reduce the gap if the previous game has the same teams and the same date
     if (gameIndex > 0 && areSameTeams(stageDto.games[gameIndex], stageDto.games[gameIndex - 1])) {
-        offset -= V_GAP + 2; // zmniejszenie odstępu między nimi
+        offset -= V_GAP + 2; // smaller gap between them
     }
 
     const y = offset + gameIndex * (BOX_HEIGHT + V_GAP);
@@ -200,10 +200,10 @@ function drawConnectionLines(
     prevStageGames.forEach((prevGame, i) => {
         if (processed.has(i)) return;
 
-        // ← kluczowa zmiana: tylko gry dzielące drużynę z bieżącą
+        // only games that share a team with the current one
         if (!teamsOverlap(prevGame, currentGame)) return;
 
-        // znajdź grupę "sklejonych" meczów (te same drużyny + ta sama data)
+        // find the group of "merged" games (same teams + same date)
         const group = prevStageGames
             .map((g, idx) => ({ game: g, pos: prevPositions[idx], idx }))
             .filter(({ game }) => areSameTeams(game, prevGame));
@@ -215,7 +215,7 @@ function drawConnectionLines(
             containsHighlightedTeam(currentGame);
 
         if (group.length > 1) {
-            // jedna linia ze środka grupy sklejonych ramek
+            // a single line from the middle of the merged boxes group
             const minY = Math.min(...group.map(p => p.pos.y));
             const maxY = Math.max(...group.map(p => p.pos.y));
             const midY = minY + (maxY - minY + BOX_HEIGHT) / 2;

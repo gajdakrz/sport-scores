@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 class MatchStatTest extends TestCase
 {
     // -------------------------------------------------------------------------
-    // Konstruktor – wartości domyślne
+    // Constructor – default values
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -30,7 +30,7 @@ class MatchStatTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Niemutowalność
+    // Immutability
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -198,7 +198,7 @@ class MatchStatTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Akumulacja – łańcuchowanie wywołań
+    // Accumulation – chained calls
     // -------------------------------------------------------------------------
 
     #[Test]

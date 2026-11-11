@@ -57,8 +57,8 @@ final class RegistrationControllerTest extends WebTestCase
     {
         $client = self::createClient();
 
-        // RegistrationFormType nie ma pola role → domyślnie Role::USER.
-        // Rejestracja usera wymaga istniejącego admina.
+        // RegistrationFormType has no role field → Role::USER by default.
+        // Registering a user requires an existing admin.
         $this->ensureAdminExists();
 
         $crawler = $client->request('GET', '/register');
@@ -108,7 +108,7 @@ final class RegistrationControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // POST /register – formularz nieprawidłowy (!isValid())
+    // POST /register – invalid form (!isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -117,8 +117,8 @@ final class RegistrationControllerTest extends WebTestCase
     {
         $client = self::createClient();
 
-        // RegistrationFormType ma tylko EmailType i PasswordType – żadnych enumów.
-        // Jedyna droga do !isValid() (poza walidacją DTO) to nieprawidłowy CSRF.
+        // RegistrationFormType has only EmailType and PasswordType – no enums.
+        // The only way to !isValid() (apart from DTO validation) is an invalid CSRF token.
         $client->request('POST', '/register', [
             'registration_form' => [
                 'email'         => 'test@example.com',
@@ -127,7 +127,7 @@ final class RegistrationControllerTest extends WebTestCase
             ],
         ]);
 
-        // Formularz nieprawidłowy → kontroler renderuje stronę ponownie (nie redirect)
+        // Invalid form → the controller renders the page again (no redirect)
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
         $this->assertSelectorExists('form');
     }
@@ -153,10 +153,10 @@ final class RegistrationControllerTest extends WebTestCase
 
         $client->submit($form, $formData);
 
-        // Walidacja DTO (NotBlank na email) → isValid()=false → re-render strony
+        // DTO validation (NotBlank on email) → isValid()=false → page re-rendered
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
         $this->assertSelectorExists('form');
-        $this->assertResponseIsSuccessful(); // brak redirect = 200
+        $this->assertResponseIsSuccessful(); // no redirect = 200
     }
 
     #[Test]
@@ -180,14 +180,14 @@ final class RegistrationControllerTest extends WebTestCase
 
         $client->submit($form, $formData);
 
-        // Walidacja DTO (Length min=6) → isValid()=false → re-render strony
+        // DTO validation (Length min=6) → isValid()=false → page re-rendered
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
         $this->assertSelectorExists('form');
         $this->assertResponseIsSuccessful();
     }
 
     // -------------------------------------------------------------------------
-    // Dostępność dla zalogowanych
+    // Access for logged-in users
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -208,8 +208,8 @@ final class RegistrationControllerTest extends WebTestCase
 
     /**
      * Rejestracja usera wymaga istnienia admina (RegistrationUserService::register()).
-     * POST /api/v1/user nie przyjmuje już roli od klienta (mass-assignment fix), więc
-     * admina tworzymy bezpośrednio przez EntityManager, tak jak robi to app:create-user.
+     * POST /api/v1/user no longer accepts a role from the client (mass-assignment fix), so
+     * the admin is created directly through the EntityManager, the same way app:create-user does it.
      */
     private function ensureAdminExists(): void
     {

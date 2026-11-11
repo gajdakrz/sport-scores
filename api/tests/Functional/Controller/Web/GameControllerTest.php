@@ -101,7 +101,7 @@ final class GameControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -253,7 +253,7 @@ final class GameControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: brak event → !isValid())
+    // new – POST (validation: no event → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -267,13 +267,13 @@ final class GameControllerTest extends WebTestCase
         $competition = $this->createTestCompetition($sport);
         $season      = $this->createTestSeason();
 
-        // event jest required=true – brak wyboru → null → "This value should not be null"
+        // event is required=true – no choice → null → "This value should not be null"
         // → form->isValid()=false → throwFormErrors() → 400
         $client->request('POST', '/games/new', [
             'game' => [
                 'season'      => (string) $season->getId(),
                 'competition' => (string) $competition->getId(),
-                // Nieistniejące ID → EntityType nie znajdzie encji w choices
+                // Non-existent ID → EntityType won't find the entity in the choices
                 // → TransformationFailedException → isSynchronized()=false → isValid()=false
                 'event'       => '999999',
                 'date'        => date('Y-m-d'),
@@ -377,7 +377,7 @@ final class GameControllerTest extends WebTestCase
             'game' => [
                 'season'      => (string) $season->getId(),
                 'competition' => (string) $competition->getId(),
-                // Nieistniejące ID → EntityType nie znajdzie encji w choices
+                // Non-existent ID → EntityType won't find the entity in the choices
                 // → TransformationFailedException → isSynchronized()=false → isValid()=false
                 'event'       => '999999',
                 'date'        => date('Y-m-d'),
