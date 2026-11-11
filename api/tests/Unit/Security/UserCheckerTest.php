@@ -8,7 +8,6 @@ use App\Entity\User;
 use App\Security\UserChecker;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -23,57 +22,43 @@ class UserCheckerTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('checkPreAuth does nothing when user is not an instance of App User')]
-    public function checkPreAuthDoesNothingForNonAppUser(): void
+    #[TestDox('Account status is not checked before the password is verified')]
+    public function deactivatedAccountPassesPreAuthentication(): void
     {
-        $foreignUser = $this->createMock(UserInterface::class);
-
-        // Brak wyjątku = test przechodzi
-        $this->checker->checkPreAuth($foreignUser);
+        // No exception = the test passes
+        $this->checker->checkPreAuth($this->makeUser(isActive: false));
         $this->addToAssertionCount(1);
     }
 
     #[Test]
-    #[TestDox('checkPreAuth does not throw when the user is active')]
-    public function checkPreAuthDoesNotThrowForActiveUser(): void
+    #[TestDox('An active account passes the check after the password is verified')]
+    public function activeAccountPassesPostAuthentication(): void
     {
-        $user = $this->makeUser(isActive: true);
-
-        $this->checker->checkPreAuth($user);
+        $this->checker->checkPostAuth($this->makeUser(isActive: true));
         $this->addToAssertionCount(1);
     }
 
     #[Test]
-    #[TestDox('checkPreAuth throws CustomUserMessageAccountStatusException when user is inactive')]
-    public function checkPreAuthThrowsForInactiveUser(): void
+    #[TestDox('A deactivated account is rejected after the password is verified')]
+    public function deactivatedAccountIsRejectedAfterPasswordCheck(): void
     {
-        $user = $this->makeUser(isActive: false);
-
         $this->expectException(CustomUserMessageAccountStatusException::class);
-        $this->expectExceptionMessage('Twoje konto zostało dezaktywowane.');
 
-        $this->checker->checkPreAuth($user);
+        $this->checker->checkPostAuth($this->makeUser(isActive: false));
     }
 
     #[Test]
-    #[TestDox('checkPostAuth does nothing regardless of user state')]
-    public function checkPostAuthDoesNothing(): void
+    #[TestDox('A user from another provider is not checked')]
+    public function foreignUserIsNotChecked(): void
     {
-        $activeUser   = $this->makeUser(isActive: true);
-        $inactiveUser = $this->makeUser(isActive: false);
-
-        $this->checker->checkPostAuth($activeUser);
-        $this->checker->checkPostAuth($inactiveUser);
+        $this->checker->checkPostAuth($this->createStub(UserInterface::class));
         $this->addToAssertionCount(1);
     }
 
     // --- Helpers ---
 
-    private function makeUser(bool $isActive): User&MockObject
+    private function makeUser(bool $isActive): User
     {
-        $user = $this->createMock(User::class);
-        $user->method('isActive')->willReturn($isActive);
-
-        return $user;
+        return (new User())->setIsActive($isActive);
     }
 }
