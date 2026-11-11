@@ -1,5 +1,5 @@
 ---
-name: pr-description
+name: pull-request-description
 description: Write a pull request title and description for this repo in the owner's preferred style – short keyword bullets grouped by area, no filler. Use when asked to prepare/write a PR description or title ("przygotuj opis PR", "opis pull request", "PR description"), or right after pushing a branch that needs a PR to main.
 ---
 
