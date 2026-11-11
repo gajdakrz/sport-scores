@@ -604,7 +604,7 @@ final class GameResultControllerTest extends WebTestCase
                 self::COMPETITION_COUNTRY,
                 self::COMPETITION_COUNTRY,
             ],
-            'national competition, foreign-origin team playing in its country (like AS Monaco)' => [
+            'national competition, foreign-origin team playing in its country (like AS Ukraine)' => [
                 true,
                 self::OTHER_COUNTRY,
                 self::COMPETITION_COUNTRY,

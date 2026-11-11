@@ -37,8 +37,8 @@ class Team extends AbstractAuditableEntity
 
     /**
      * Country whose national competitions the team plays in – may differ from the country of origin
-     * (e.g. AS Monaco plays in France). Null = not applicable (e.g. a national team):
-     * the team plays only in international competitions.
+     * (e.g. AS Ukraine Jastrzębie Barkom plays in Poland volleyball league).
+     * Null = not applicable (e.g. a national team): the team plays only in international competitions.
      */
     #[ORM\ManyToOne(targetEntity: Country::class)]
     #[ORM\JoinColumn(

@@ -59,13 +59,13 @@ final class GameResultTeamCountryMatchValidatorTest extends TestCase
     {
         $poland  = self::country('Poland');
         $germany = self::country('Germany');
-        $monaco  = self::country('Monaco');
+        $ukraine  = self::country('Ukraine');
 
         yield 'national competition, team playing in its country' => [
             self::gameResult($poland, self::team($poland, $poland)),
         ];
-        yield 'national competition, foreign-origin team playing in its country (like AS Monaco)' => [
-            self::gameResult($poland, self::team($monaco, $poland)),
+        yield 'national competition, foreign-origin team playing in its country (like AS Ukraine)' => [
+            self::gameResult($poland, self::team($ukraine, $poland)),
         ];
         yield 'international competition, team playing elsewhere' => [
             self::gameResult(null, self::team($germany, $germany)),
