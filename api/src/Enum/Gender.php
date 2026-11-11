@@ -6,7 +6,7 @@ namespace App\Enum;
 
 enum Gender: string
 {
-    use EnumLabelTrait; // Enumy nie mogą używać dziedziczenia, ale mozna użyć trait
+    use EnumLabelTrait; // enums can't use inheritance, but they can use traits
 
     case MALE = 'male';
     case FEMALE = 'female';

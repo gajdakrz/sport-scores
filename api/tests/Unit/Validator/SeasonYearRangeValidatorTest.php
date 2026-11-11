@@ -36,8 +36,9 @@ class SeasonYearRangeValidatorTest extends TestCase
     public function throwsExceptionForInvalidConstraintType(): void
     {
         $this->expectException(UnexpectedTypeException::class);
+        $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate(new Season(), $this->createMock(Constraint::class));
+        $this->validator->validate(new Season(), $this->createStub(Constraint::class));
     }
 
     #[Test]
@@ -108,6 +109,7 @@ class SeasonYearRangeValidatorTest extends TestCase
         $violationBuilder->method('addViolation');
 
         $this->context
+            ->expects($this->once())
             ->method('buildViolation')
             ->willReturn($violationBuilder);
 
@@ -120,11 +122,11 @@ class SeasonYearRangeValidatorTest extends TestCase
     {
         $season = $this->createSeason(startYear: 2024, endYear: 2020);
 
-        $violationBuilder = $this->createMock(ConstraintViolationBuilderInterface::class);
+        $violationBuilder = $this->createStub(ConstraintViolationBuilderInterface::class);
         $violationBuilder->method('setParameter')->willReturnSelf();
-        $violationBuilder->method('addViolation');
 
         $this->context
+            ->expects($this->once())
             ->method('buildViolation')
             ->with('End year: {{ endYear }} cannot be before start year: {{ startYear }}.')
             ->willReturn($violationBuilder);
@@ -141,11 +143,11 @@ class SeasonYearRangeValidatorTest extends TestCase
         $customConstraint = new SeasonYearRange();
         $customConstraint->message = 'Custom range error.';
 
-        $violationBuilder = $this->createMock(ConstraintViolationBuilderInterface::class);
+        $violationBuilder = $this->createStub(ConstraintViolationBuilderInterface::class);
         $violationBuilder->method('setParameter')->willReturnSelf();
-        $violationBuilder->method('addViolation');
 
         $this->context
+            ->expects($this->once())
             ->method('buildViolation')
             ->with('Custom range error.')
             ->willReturn($violationBuilder);
@@ -157,12 +159,8 @@ class SeasonYearRangeValidatorTest extends TestCase
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function createSeason(int $startYear, int $endYear): Season&MockObject
+    private function createSeason(int $startYear, int $endYear): Season
     {
-        $season = $this->createMock(Season::class);
-        $season->method('getStartYear')->willReturn($startYear);
-        $season->method('getEndYear')->willReturn($endYear);
-
-        return $season;
+        return (new Season())->setStartYear($startYear)->setEndYear($endYear);
     }
 }

@@ -10,6 +10,14 @@
 
     <rule ref="PSR12"/>
 
+    <!-- unused `use` imports: reported by phpcs, removed by phpcbf (make fix) -->
+    <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">
+        <properties>
+            <!-- imports used only in PHPDoc (@var, @param, @return) count as used -->
+            <property name="searchAnnotations" value="true"/>
+        </properties>
+    </rule>
+
     <file>bin/</file>
     <file>config/</file>
     <file>public/</file>

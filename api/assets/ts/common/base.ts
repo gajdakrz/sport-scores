@@ -80,7 +80,7 @@ export class AppBase {
             const modalEl = document.getElementById(modalId);
             if (!modalEl) return;
 
-            // Tworzymy kontroler powiązany z tym konkretnym modelem
+            // Controller bound to this particular modal
             const formAbortController = new AbortController();
 
             const form = container.querySelector<HTMLFormElement>('form');
@@ -139,7 +139,7 @@ export class AppBase {
             }, { once: true });
 
             modalEl.addEventListener('hidden.bs.modal', () => {
-                formAbortController.abort(); // ← czyścimy listener przy zamknięciu
+                formAbortController.abort(); // remove the submit listener on close
                 container.innerHTML = '';
                 currentModal = null;
                 isLoading = false;

@@ -104,7 +104,7 @@ final class GameResultControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -145,7 +145,7 @@ final class GameResultControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: nieistniejący team → !isValid())
+    // new – POST (validation: non-existent team → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -161,7 +161,7 @@ final class GameResultControllerTest extends WebTestCase
         $season      = $this->createTestSeason();
         $game        = $this->createTestGame($event, $season);
 
-        // Nieistniejące ID → EntityType nie znajdzie encji w choices
+        // Non-existent ID → EntityType won't find the entity in the choices
         // → TransformationFailedException → isSynchronized()=false → isValid()=false
         $client->request('POST', '/game-results/new', [
             'game_result' => [
@@ -256,8 +256,8 @@ final class GameResultControllerTest extends WebTestCase
         $team        = $this->createTestTeam($sport);
         $gameResult  = $this->createTestGameResult($game, $team);
 
-        // DomCrawler zamiast surowego POST – form->handleRequest() poprawnie
-        // mapuje encję (game zostaje niezmienione, bo nie ma go w formularzu)
+        // DomCrawler instead of a raw POST – form->handleRequest() maps the entity
+        // correctly (game stays unchanged, because it isn't in the form)
         $crawler = $client->request('GET', sprintf('/game-results/%d/edit', $gameResult->getId()));
         $form    = $crawler->selectButton('Save')->form();
 
@@ -383,7 +383,7 @@ final class GameResultControllerTest extends WebTestCase
         $client = self::createClient();
         $this->loginAsTestUser($client);
 
-        // setCurrentSport ustawia sport w sesji I zwraca ten sam sport
+        // setCurrentSport sets the sport in the session AND returns the same sport
         $sport       = $this->setCurrentSport($client);
         $competition = $this->createTestCompetition($sport);
         $game        = $this->createTestGame($this->createTestEvent($competition), $this->createTestSeason());
@@ -468,7 +468,7 @@ final class GameResultControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja płci: drużyna vs rozgrywki)
+    // new – POST (gender validation: team vs competition)
     // -------------------------------------------------------------------------
 
     #[Test]

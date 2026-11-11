@@ -22,7 +22,7 @@ enum MatchResultStatus: string
     }
 
     /**
-     * Zwraca wszystkie wartości enuma
+     * Returns all enum values.
      * @return array<string>
      */
     public static function getValues(): array

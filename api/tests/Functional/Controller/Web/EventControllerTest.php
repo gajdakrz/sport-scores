@@ -7,7 +7,6 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Entity\Competition;
 use App\Entity\Event;
 use App\Entity\Sport;
-use App\Enum\Gender;
 use App\Enum\GenderCategory;
 use App\Repository\EventRepository;
 use App\Tests\Trait\ControllerTestTrait;
@@ -92,7 +91,7 @@ final class EventControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie – competition nie-bracket)
+    // new – POST (create – non-bracket competition)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -134,7 +133,7 @@ final class EventControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie – competition bracket z orderIndex)
+    // new – POST (create – bracket competition with orderIndex)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -147,9 +146,9 @@ final class EventControllerTest extends WebTestCase
 
         $competition = $this->createTestCompetition($sport, true);
 
-        // orderIndex jest disabled w HTML dla nowych eventów – DomCrawler nie wysyła
-        // disabled pól, więc musimy użyć surowego POST. PRE_SUBMIT włączy pole gdy
-        // wykryje bracket competition i przetworzy wartość z requestu.
+        // orderIndex is disabled in the HTML for new events – DomCrawler doesn't send
+        // disabled fields, so a raw POST is needed. PRE_SUBMIT enables the field when
+        // it detects a bracket competition and processes the value from the request.
         $client->request('POST', '/events/new', [
             'event' => [
                 'name'        => 'Bracket Event',
@@ -165,7 +164,7 @@ final class EventControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: bracket bez orderIndex → !isValid())
+    // new – POST (validation: bracket without orderIndex → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -178,7 +177,7 @@ final class EventControllerTest extends WebTestCase
 
         $competition = $this->createTestCompetition($sport, true);
 
-        // POST_SUBMIT listener dodaje błąd gdy bracket competition i brak orderIndex
+        // the POST_SUBMIT listener adds an error for a bracket competition without orderIndex
         $client->request('POST', '/events/new', [
             'event' => [
                 'name'        => 'Bracket Event',
@@ -474,7 +473,7 @@ final class EventControllerTest extends WebTestCase
         $client = self::createClient();
         $this->loginAsTestUser($client);
 
-        $this->setCurrentSport($client);                   // ustaw jakikolwiek sport w sesji
+        $this->setCurrentSport($client);                   // set any sport in the session
         $otherSport  = $this->createTestSport();           // inny sport
         $competition = $this->createTestCompetition($otherSport); // competition z innym sportem
         $event       = $this->createTestEvent($competition);      // event z tym competition

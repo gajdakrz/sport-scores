@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class TeamMemberServiceTest extends TestCase
@@ -50,6 +51,8 @@ class TeamMemberServiceTest extends TestCase
             ->method('persist')
             ->with($teamMember);
 
+        $this->teamMemberRepository->expects($this->never())->method('findOneBy');
+
         $this->service->saveTeamMember($teamMember);
     }
 
@@ -68,6 +71,8 @@ class TeamMemberServiceTest extends TestCase
             ->expects($this->never())
             ->method('persist');
 
+        $this->teamMemberRepository->expects($this->never())->method('findOneBy');
+
         $this->service->saveTeamMember($teamMember);
     }
 
@@ -78,6 +83,7 @@ class TeamMemberServiceTest extends TestCase
         $teamMember = $this->createTeamMember(id: null, isCurrentMember: false);
 
         $this->em
+            ->expects($this->once())
             ->method('wrapInTransaction')
             ->willReturnCallback(fn(callable $callback) => $callback());
 
@@ -92,17 +98,19 @@ class TeamMemberServiceTest extends TestCase
     #[TestDox('Sets current team on person when no current member exists')]
     public function saveTeamMemberSetsCurrentTeamWhenNoCurrentMemberExists(): void
     {
-        $team = $this->createMock(Team::class);
+        $team = $this->createStub(Team::class);
         $person = $this->createMock(Person::class);
         $person->expects($this->once())->method('setCurrentTeam')->with($team);
 
         $teamMember = $this->createTeamMember(id: null, isCurrentMember: true, person: $person, team: $team);
 
         $this->teamMemberRepository
+            ->expects($this->once())
             ->method('findOneBy')
             ->willReturn(null);
 
         $this->em
+            ->expects($this->once())
             ->method('wrapInTransaction')
             ->willReturnCallback(fn(callable $callback) => $callback());
 
@@ -113,17 +121,19 @@ class TeamMemberServiceTest extends TestCase
     #[TestDox('Sets current team when existing current member is the same object')]
     public function saveTeamMemberSetsCurrentTeamWhenCurrentMemberIsSameObject(): void
     {
-        $team = $this->createMock(Team::class);
+        $team = $this->createStub(Team::class);
         $person = $this->createMock(Person::class);
         $person->expects($this->once())->method('setCurrentTeam')->with($team);
 
         $teamMember = $this->createTeamMember(id: 1, isCurrentMember: true, person: $person, team: $team);
 
         $this->teamMemberRepository
+            ->expects($this->once())
             ->method('findOneBy')
             ->willReturn($teamMember);
 
         $this->em
+            ->expects($this->once())
             ->method('wrapInTransaction')
             ->willReturnCallback(fn(callable $callback) => $callback());
 
@@ -134,9 +144,9 @@ class TeamMemberServiceTest extends TestCase
     #[TestDox('Throws CustomBadRequestException when current member exists for same team and season')]
     public function saveTeamMemberThrowsWhenCurrentMemberExistsForSameTeamAndSeason(): void
     {
-        $team = $this->createMock(Team::class);
-        $season = $this->createMock(Season::class);
-        $person = $this->createMock(Person::class);
+        $team = $this->createStub(Team::class);
+        $season = $this->createStub(Season::class);
+        $person = $this->createStub(Person::class);
 
         $existingMember = $this->createTeamMember(
             id: 99,
@@ -154,10 +164,12 @@ class TeamMemberServiceTest extends TestCase
         );
 
         $this->teamMemberRepository
+            ->expects($this->once())
             ->method('findOneBy')
             ->willReturn($existingMember);
 
         $this->em
+            ->expects($this->once())
             ->method('wrapInTransaction')
             ->willReturnCallback(fn(callable $callback) => $callback());
 
@@ -170,8 +182,8 @@ class TeamMemberServiceTest extends TestCase
     #[TestDox('Deactivates old current member and sets new one when team differs')]
     public function saveTeamMemberDeactivatesOldCurrentMemberAndSetsNewOne(): void
     {
-        $oldTeam = $this->createMock(Team::class);
-        $newTeam = $this->createMock(Team::class);
+        $oldTeam = $this->createStub(Team::class);
+        $newTeam = $this->createStub(Team::class);
         $person = $this->createMock(Person::class);
         $person->expects($this->once())->method('setCurrentTeam')->with($newTeam);
 
@@ -183,10 +195,12 @@ class TeamMemberServiceTest extends TestCase
         $newMember = $this->createTeamMember(id: null, isCurrentMember: true, person: $person, team: $newTeam);
 
         $this->teamMemberRepository
+            ->expects($this->once())
             ->method('findOneBy')
             ->willReturn($existingMember);
 
         $this->em
+            ->expects($this->once())
             ->method('wrapInTransaction')
             ->willReturnCallback(fn(callable $callback) => $callback());
 
@@ -203,12 +217,12 @@ class TeamMemberServiceTest extends TestCase
         ?Person $person = null,
         ?Team $team = null,
         ?Season $season = null,
-    ): TeamMember&MockObject {
-        $teamMember = $this->createMock(TeamMember::class);
+    ): TeamMember&Stub {
+        $teamMember = $this->createStub(TeamMember::class);
         $teamMember->method('getId')->willReturn($id);
         $teamMember->method('isCurrentMember')->willReturn($isCurrentMember);
-        $teamMember->method('getPerson')->willReturn($person ?? $this->createMock(Person::class));
-        $teamMember->method('getTeam')->willReturn($team ?? $this->createMock(Team::class));
+        $teamMember->method('getPerson')->willReturn($person ?? $this->createStub(Person::class));
+        $teamMember->method('getTeam')->willReturn($team ?? $this->createStub(Team::class));
         $teamMember->method('getStartSeason')->willReturn($season);
 
         return $teamMember;

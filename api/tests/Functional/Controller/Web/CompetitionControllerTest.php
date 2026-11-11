@@ -78,7 +78,7 @@ final class CompetitionControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -160,9 +160,9 @@ final class CompetitionControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/competitions/new');
         $form    = $crawler->selectButton('Save')->form();
 
-        // DomCrawler->submit() waliduje wartości przed wysłaniem, więc nieprawidłowy
-        // gender trzeba wysłać surowym POST-em. Wyciągamy token CSRF z formularza
-        // i budujemy request ręcznie, omijając walidację po stronie klienta.
+        // DomCrawler->submit() validates values before sending, so an invalid
+        // gender has to be sent as a raw POST. We take the CSRF token from the form
+        // and build the request by hand, bypassing client-side validation.
         $csrfToken = null;
         foreach ($form->all() as $field) {
             if (str_contains($field->getName(), '[_token]')) {
@@ -173,7 +173,7 @@ final class CompetitionControllerTest extends WebTestCase
         $client->request('POST', '/competitions/new', [
             'competition' => [
                 'name'      => 'Valid Name',
-                'gender'    => 'invalid_enum_value', // nie istnieje w Gender → isSynchronized() = false
+                'gender'    => 'invalid_enum_value', // not a Gender value → isSynchronized() = false
                 'isBracket' => false,
                 '_token'    => $csrfToken,
             ],
@@ -261,7 +261,7 @@ final class CompetitionControllerTest extends WebTestCase
         $crawler = $client->request('GET', sprintf('/competitions/%d/edit', $competition->getId()));
         $form    = $crawler->selectButton('Save')->form();
 
-        // Analogicznie jak w new: surowy POST omija walidację DomCrawlera.
+        // Same as in new: a raw POST bypasses DomCrawler validation.
         $csrfToken = null;
         foreach ($form->all() as $field) {
             if (str_contains($field->getName(), '[_token]')) {
@@ -272,7 +272,7 @@ final class CompetitionControllerTest extends WebTestCase
         $client->request('POST', sprintf('/competitions/%d/edit', $competition->getId()), [
             'competition' => [
                 'name'      => 'Valid Name',
-                'gender'    => 'invalid_enum_value', // nie istnieje w Gender → isSynchronized() = false
+                'gender'    => 'invalid_enum_value', // not a Gender value → isSynchronized() = false
                 'isBracket' => false,
                 '_token'    => $csrfToken,
             ],

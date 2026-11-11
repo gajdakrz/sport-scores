@@ -34,9 +34,9 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[ORM\Column]
     private string $password;
 
-// zostawiam jako ciekawostkę
-//    php 8.4 wspiera takie rozwiązanie (hooks)
-//  ale Doctrine(ORM) W tym przypaduk plainPassword nie jest zapisywane do bazy
+// kept as a curiosity
+//    PHP 8.4 supports this approach (property hooks),
+//  but with Doctrine ORM plainPassword is not persisted to the database in this case
 //    public ?string $plainPassword = null {
 //        get {
 //            return $this->plainPassword;
@@ -133,6 +133,6 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
 
     public function eraseCredentials(): void
     {
-        // zostawione tylko dla zgodności z UserInterface
+        // kept only for UserInterface compatibility
     }
 }

@@ -73,7 +73,7 @@ final class SportControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -108,7 +108,7 @@ final class SportControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: nieprawidłowy CSRF → !isValid())
+    // new – POST (validation: invalid CSRF → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -118,8 +118,8 @@ final class SportControllerTest extends WebTestCase
         $client = self::createClient();
         $this->loginAsTestAdmin($client);
 
-        // SportType ma tylko TextType – jedyna droga do isValid()=false
-        // to nieprawidłowy token CSRF
+        // SportType has only a TextType – the only way to isValid()=false
+        // is an invalid CSRF token
         $client->request('POST', '/sports/new', [
             'sport' => [
                 'name'   => 'Valid Sport',
@@ -344,9 +344,9 @@ final class SportControllerTest extends WebTestCase
         $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
 
-        // Weryfikujemy że sport jest w sesji przez endpoint który go odczytuje
-        // setCurrentSport używa tego samego mechanizmu – sprawdzamy przez /sports/new
-        // który wywołuje requireSport() – jeśli sport nie jest ustawiony, zwraca 400
+        // Check that the sport is in the session through an endpoint that reads it:
+        // setCurrentSport uses the same mechanism, so we call /sports/new,
+        // which runs requireSport() – without a sport set it returns 400
         $client->request('GET', '/sports/new');
         $this->assertResponseIsSuccessful();
     }

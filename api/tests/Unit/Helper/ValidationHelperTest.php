@@ -7,7 +7,7 @@ namespace App\Tests\Helper;
 use App\Helper\ValidationHelper;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
@@ -23,7 +23,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // getValidationErrorsAsArray – stan początkowy
+    // getValidationErrorsAsArray – initial state
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -34,7 +34,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – brak naruszeń
+    // prepareValidationErrors – no violations
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -47,7 +47,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – pojedyncze naruszenie (prosta ścieżka)
+    // prepareValidationErrors – single violation (simple path)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -80,7 +80,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – dwa niezależne naruszenia
+    // prepareValidationErrors – two independent violations
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -112,7 +112,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – scalanie (merge) naruszeń tablicowych
+    // prepareValidationErrors – merging array violations
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -175,7 +175,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // prepareValidationErrors – mix naruszeń (scalane i niescalane)
+    // prepareValidationErrors – mixed violations (merged and not merged)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -194,7 +194,7 @@ class ValidationHelperTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // getValidationErrorsAsArray – kolejność i struktura
+    // getValidationErrorsAsArray – order and structure
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -249,8 +249,8 @@ class ValidationHelperTest extends TestCase
         string $message,
         string $propertyPath,
         mixed $invalidValue = null,
-    ): ConstraintViolationInterface&MockObject {
-        $violation = $this->createMock(ConstraintViolationInterface::class);
+    ): ConstraintViolationInterface&Stub {
+        $violation = $this->createStub(ConstraintViolationInterface::class);
         $violation->method('getMessage')->willReturn($message);
         $violation->method('getPropertyPath')->willReturn($propertyPath);
         $violation->method('getInvalidValue')->willReturn($invalidValue);
@@ -258,11 +258,11 @@ class ValidationHelperTest extends TestCase
         return $violation;
     }
 
-    private function makeException(ConstraintViolationInterface ...$violations): ValidationFailedException&MockObject
+    private function makeException(ConstraintViolationInterface ...$violations): ValidationFailedException&Stub
     {
         $list = new ConstraintViolationList($violations);
 
-        $exception = $this->createMock(ValidationFailedException::class);
+        $exception = $this->createStub(ValidationFailedException::class);
         $exception->method('getViolations')->willReturn($list);
 
         return $exception;

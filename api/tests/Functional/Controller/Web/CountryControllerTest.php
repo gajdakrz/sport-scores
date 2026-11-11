@@ -72,7 +72,7 @@ final class CountryControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -113,9 +113,9 @@ final class CountryControllerTest extends WebTestCase
         $client = self::createClient();
         $this->loginAsTestAdmin($client);
 
-        // CountryType ma tylko TextType – żadnych enumów ani constraints, więc
-        // jedyną drogą do form->isValid() = false jest nieprawidłowy token CSRF.
-        // Surowy POST omija walidację DomCrawlera i wysyła błędny _token.
+        // CountryType has only a TextType – no enums or constraints, so
+        // the only way to form->isValid() = false is an invalid CSRF token.
+        // A raw POST bypasses DomCrawler validation and sends a wrong _token.
         $client->request('POST', '/countries/new', [
             'country' => [
                 'name'   => 'Valid Name',

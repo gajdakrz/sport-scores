@@ -35,8 +35,9 @@ class AtLeastOneScoreValidatorTest extends TestCase
     public function throwsExceptionForInvalidConstraintType(): void
     {
         $this->expectException(UnexpectedTypeException::class);
+        $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate(new GameResult(), $this->createMock(Constraint::class));
+        $this->validator->validate(new GameResult(), $this->createStub(Constraint::class));
     }
 
     #[Test]
@@ -107,10 +108,10 @@ class AtLeastOneScoreValidatorTest extends TestCase
     {
         $gameResult = $this->createGameResult(matchScore: null, rankingScore: null);
 
-        $violationBuilder = $this->createMock(ConstraintViolationBuilderInterface::class);
-        $violationBuilder->method('addViolation');
+        $violationBuilder = $this->createStub(ConstraintViolationBuilderInterface::class);
 
         $this->context
+            ->expects($this->once())
             ->method('buildViolation')
             ->with('At least score: "matchScore" or "rankingScore" should be set.')
             ->willReturn($violationBuilder);
@@ -127,10 +128,10 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $customConstraint = new AtLeastOneScore();
         $customConstraint->message = 'Custom error message.';
 
-        $violationBuilder = $this->createMock(ConstraintViolationBuilderInterface::class);
-        $violationBuilder->method('addViolation');
+        $violationBuilder = $this->createStub(ConstraintViolationBuilderInterface::class);
 
         $this->context
+            ->expects($this->once())
             ->method('buildViolation')
             ->with('Custom error message.')
             ->willReturn($violationBuilder);
@@ -142,12 +143,8 @@ class AtLeastOneScoreValidatorTest extends TestCase
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function createGameResult(?int $matchScore, ?int $rankingScore): GameResult&MockObject
+    private function createGameResult(?int $matchScore, ?int $rankingScore): GameResult
     {
-        $gameResult = $this->createMock(GameResult::class);
-        $gameResult->method('getMatchScore')->willReturn($matchScore);
-        $gameResult->method('getRankingScore')->willReturn($rankingScore);
-
-        return $gameResult;
+        return (new GameResult())->setMatchScore($matchScore)->setRankingScore($rankingScore);
     }
 }

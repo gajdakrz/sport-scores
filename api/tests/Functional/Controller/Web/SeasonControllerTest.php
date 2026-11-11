@@ -73,7 +73,7 @@ final class SeasonControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -113,7 +113,7 @@ final class SeasonControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: startYear > endYear → SeasonYearRange → !isValid())
+    // new – POST (validation: startYear > endYear → SeasonYearRange → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -125,7 +125,7 @@ final class SeasonControllerTest extends WebTestCase
 
         $currentYear = (int) date('Y');
 
-        // Obie wartości są w zakresie choices, ale startYear > endYear narusza SeasonYearRange
+        // Both values are within the choices, but startYear > endYear violates SeasonYearRange
         // → form->isValid()=false → throwFormErrors() → 400
         $client->request('POST', '/seasons/new', [
             'season' => [

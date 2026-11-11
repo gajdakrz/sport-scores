@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Web;
 
+use App\Entity\User;
+use App\Enum\Role;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Exception\BadCredentialsException;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
 
 final class SecurityControllerTest extends WebTestCase
 {
     use ControllerTestTrait;
+
+    private const string DEACTIVATED_USER_PASSWORD = 'password';
 
     // -------------------------------------------------------------------------
     // login – GET
@@ -47,19 +56,52 @@ final class SecurityControllerTest extends WebTestCase
     {
         $client = self::createClient();
 
-        // Symulujemy nieudane logowanie przez POST – Symfony zapamięta email w sesji
+        // Simulate a failed login via POST – Symfony keeps the email in the session
         $client->request('POST', '/login', [
             '_username' => 'wrong@example.com',
             '_password' => 'wrongpassword',
         ]);
 
-        // Po nieudanej próbie Symfony redirectuje z powrotem na /login
+        // After a failed attempt Symfony redirects back to /login
         $client->followRedirect();
 
-        // last_username powinien być widoczny w formularzu
+        // last_username should be shown in the form
         $content = $client->getResponse()->getContent();
         $this->assertIsString($content);
         $this->assertStringContainsString('wrong@example.com', $content);
+    }
+
+    // -------------------------------------------------------------------------
+    // login – deactivated account
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Deactivated account with a wrong password gets the same error as unknown credentials')]
+    public function deactivatedAccountWithWrongPasswordDoesNotRevealAccountStatus(): void
+    {
+        $client = self::createClient();
+        $email  = $this->createDeactivatedUser();
+
+        $this->submitLoginForm($client, $email, 'wrong-password');
+
+        $this->assertResponseRedirects('/login');
+        $this->assertInstanceOf(BadCredentialsException::class, $this->lastAuthenticationError($client));
+    }
+
+    #[Test]
+    #[TestDox('Deactivated account with the correct password is rejected as deactivated')]
+    public function deactivatedAccountWithCorrectPasswordIsRejected(): void
+    {
+        $client = self::createClient();
+        $email  = $this->createDeactivatedUser();
+
+        $this->submitLoginForm($client, $email, self::DEACTIVATED_USER_PASSWORD);
+
+        $this->assertResponseRedirects('/login');
+        $this->assertInstanceOf(
+            CustomUserMessageAccountStatusException::class,
+            $this->lastAuthenticationError($client)
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -75,8 +117,8 @@ final class SecurityControllerTest extends WebTestCase
 
         $client->request('GET', '/logout');
 
-        // Symfony firewall przechwytuje /logout zanim trafi do kontrolera
-        // i wykonuje redirect (LogicException nigdy nie jest wyrzucany)
+        // The Symfony firewall intercepts /logout before it reaches the controller
+        // and redirects (the LogicException is never thrown)
         $this->assertResponseRedirects();
     }
 
@@ -88,7 +130,45 @@ final class SecurityControllerTest extends WebTestCase
 
         $client->request('GET', '/logout');
 
-        // Niezalogowany użytkownik dostaje redirect (np. na /login lub /)
+        // An anonymous user is redirected (e.g. to /login or /)
         $this->assertResponseRedirects();
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return string the email of the created user
+     */
+    private function createDeactivatedUser(): string
+    {
+        /** @var UserPasswordHasherInterface $passwordHasher */
+        $passwordHasher = static::getContainer()->get(UserPasswordHasherInterface::class);
+
+        $user = new User();
+        $user->setEmail('deactivated-' . uniqid() . '@example.com');
+        $user->setRoles([Role::USER->value]);
+        $user->setPassword($passwordHasher->hashPassword($user, self::DEACTIVATED_USER_PASSWORD));
+        $user->setIsActive(false);
+
+        $em = $this->getEntityManager();
+        $em->persist($user);
+        $em->flush();
+
+        return (string) $user->getEmail();
+    }
+
+    private function submitLoginForm(KernelBrowser $client, string $email, string $password): void
+    {
+        // the real form, so the CSRF token (enable_csrf: true) is sent as well
+        $form = $client->request('GET', '/login')->selectButton('Sign in')->form();
+
+        $client->submit($form, ['_username' => $email, '_password' => $password]);
+    }
+
+    private function lastAuthenticationError(KernelBrowser $client): mixed
+    {
+        return $client->getRequest()->getSession()->get(SecurityRequestAttributes::AUTHENTICATION_ERROR);
     }
 }

@@ -19,7 +19,7 @@ readonly class TeamMemberService
     }
 
     /**
-     * @throws RuntimeException jeśli current member już istnieje dla tego teamu
+     * @throws RuntimeException if a current member already exists for this team
      */
     public function saveTeamMember(TeamMember $teamMember): void
     {

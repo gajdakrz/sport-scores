@@ -45,9 +45,12 @@ class RegistrationUserServiceTest extends TestCase
         $dto = $this->createDto('existing@example.com', Role::ADMIN, 'password123');
 
         $this->userRepository
+            ->expects($this->once())
             ->method('findOneByEmail')
             ->with('existing@example.com')
             ->willReturn(new User());
+        $this->passwordHasher->expects($this->never())->method('hashPassword');
+        $this->em->expects($this->never())->method('persist');
 
         $this->expectException(HttpConflictException::class);
         $this->expectExceptionMessage('Email already exists.');
@@ -66,8 +69,11 @@ class RegistrationUserServiceTest extends TestCase
             ->willReturn(null);
 
         $this->userRepository
+            ->expects($this->once())
             ->method('isAdminExists')
             ->willReturn(false);
+        $this->passwordHasher->expects($this->never())->method('hashPassword');
+        $this->em->expects($this->never())->method('persist');
 
         $this->expectException(HttpConflictException::class);
         $this->expectExceptionMessage('Admin should be registered first');
@@ -88,11 +94,11 @@ class RegistrationUserServiceTest extends TestCase
             ->method('findOneByEmail')
             ->willReturn(null);
 
-        $this->userRepository
-            ->method('isAdminExists')
-            ->willReturn(false);
+        // registering an admin doesn't check whether an admin already exists
+        $this->userRepository->expects($this->never())->method('isAdminExists');
 
         $this->passwordHasher
+            ->expects($this->once())
             ->method('hashPassword')
             ->willReturn('hashed_secret');
 
@@ -118,10 +124,12 @@ class RegistrationUserServiceTest extends TestCase
             ->willReturn(null);
 
         $this->userRepository
+            ->expects($this->once())
             ->method('isAdminExists')
             ->willReturn(true);
 
         $this->passwordHasher
+            ->expects($this->once())
             ->method('hashPassword')
             ->willReturn('hashed_password');
 
@@ -140,8 +148,9 @@ class RegistrationUserServiceTest extends TestCase
     {
         $dto = $this->createDto('user@example.com', Role::ADMIN, 'plaintext');
 
-        $this->userRepository->method('findOneByEmail')->willReturn(null);
-        $this->userRepository->method('isAdminExists')->willReturn(true);
+        $this->userRepository->expects($this->once())->method('findOneByEmail')->willReturn(null);
+        $this->userRepository->expects($this->never())->method('isAdminExists');
+        $this->em->expects($this->once())->method('persist');
 
         $this->passwordHasher
             ->expects($this->once())
@@ -163,7 +172,8 @@ class RegistrationUserServiceTest extends TestCase
     {
         $dto = $this->createDto('existing@example.com', Role::ADMIN, 'password');
 
-        $this->userRepository->method('findOneByEmail')->willReturn(new User());
+        $this->userRepository->expects($this->once())->method('findOneByEmail')->willReturn(new User());
+        $this->passwordHasher->expects($this->never())->method('hashPassword');
 
         $this->em->expects($this->never())->method('persist');
         $this->em->expects($this->never())->method('flush');
@@ -179,12 +189,9 @@ class RegistrationUserServiceTest extends TestCase
 
     private function createDto(string $email, Role $role, string $plainPassword): RegistrationUserRequest
     {
-        $dto = $this->createMock(RegistrationUserRequest::class);
-        $dto->email = $email;
-        $dto->method('getEmail')->willReturn($email);
-        $dto->method('getRole')->willReturn($role);
-        $dto->method('getPlainPassword')->willReturn($plainPassword);
-
-        return $dto;
+        return (new RegistrationUserRequest())
+            ->setEmail($email)
+            ->setRole($role)
+            ->setPlainPassword($plainPassword);
     }
 }

@@ -38,7 +38,7 @@ class CreateUserCommandTest extends KernelTestCase
 
     protected function tearDown(): void
     {
-        // Czyszczenie po każdym teście
+        // Clean up after each test
         $users = $this->userRepository->findBy(['email' => [
             'integration-admin@example.com',
             'integration-user@example.com',
@@ -82,7 +82,7 @@ class CreateUserCommandTest extends KernelTestCase
         $this->assertInstanceOf(KernelInterface::class, $kernel);
         $application = new Application($kernel);
 
-        // Utwórz admina
+        // Create an admin
         $adminTester = new CommandTester($application->find('app:create-user'));
         $adminTester->execute([
             'email'    => 'integration-admin@example.com',
@@ -90,10 +90,10 @@ class CreateUserCommandTest extends KernelTestCase
             'role'     => Role::ADMIN->value,
         ]);
 
-        // Wyczyść cache EM żeby drugi command widział nowego admina
+        // Clear the EM so the second command sees the new admin
         $this->em->clear();
 
-        // Utwórz usera z domyślną rolą
+        // Create a user with the default role
         $userTester = new CommandTester($application->find('app:create-user'));
         $exitCode = $userTester->execute([
             'email'    => 'integration-user@example.com',
@@ -117,7 +117,7 @@ class CreateUserCommandTest extends KernelTestCase
             'role'     => Role::ADMIN->value,
         ]);
 
-        // Próba rejestracji tego samego emaila
+        // Try to register the same email again
         $exitCode = $this->commandTester->execute([
             'email'    => 'integration-duplicate@example.com',
             'password' => 'AnotherPass123!',

@@ -52,15 +52,15 @@ class BracketBuilder
         /** @var Game[] $games */
         $games = $event->getGames()->toArray();
 
-        // Sortowanie po dacie DESC, potem po ID zespołów ASC
+        // Sort by date DESC, then by team IDs ASC
         usort($games, function (Game $a, Game $b) {
-            // Porównanie dat
+            // Compare dates
             $dateComparison = $b->getDate() <=> $a->getDate(); // DESC
             if ($dateComparison !== 0) {
                 return $dateComparison;
             }
 
-            // Pobranie ID zespołów
+            // Collect team IDs
             $teamIdsA = array_map(fn($gr) => $gr->getTeam()?->getId() ?? 0, $a->getGameResults()->toArray());
             $teamIdsB = array_map(fn($gr) => $gr->getTeam()?->getId() ?? 0, $b->getGameResults()->toArray());
 

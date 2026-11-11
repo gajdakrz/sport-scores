@@ -10,7 +10,6 @@ use App\Entity\User;
 use App\Form\SeasonType;
 use App\Repository\SeasonRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

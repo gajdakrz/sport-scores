@@ -95,7 +95,7 @@ final class TeamMemberControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (tworzenie)
+    // new – POST (create)
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -120,7 +120,7 @@ final class TeamMemberControllerTest extends WebTestCase
         $team->setIsActive(true);
         $em->persist($team);
 
-        // Person z tym sportem, currentTeam=null (żeby PRE_SUBMIT go znalazł dla nowego membera)
+        // Person with this sport, currentTeam=null (so PRE_SUBMIT finds it for a new member)
         $person = new Person();
         $person->setFirstName('Form');
         $person->setLastName('Person');
@@ -149,7 +149,7 @@ final class TeamMemberControllerTest extends WebTestCase
 
         $em->flush();
 
-        // PRE_SUBMIT listener odbudowuje choices dla person na podstawie teamId
+        // the PRE_SUBMIT listener rebuilds the person choices based on teamId
         $client->request('POST', '/team-members/new', [
             'team_member' => [
                 'team'            => (string) $team->getId(),
@@ -174,7 +174,7 @@ final class TeamMemberControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja: nieistniejący team → !isValid())
+    // new – POST (validation: non-existent team → !isValid())
     // -------------------------------------------------------------------------
 
     #[Test]
@@ -185,7 +185,7 @@ final class TeamMemberControllerTest extends WebTestCase
         $this->loginAsTestUser($client);
         $this->setCurrentSport($client);
 
-        // Nieistniejące ID → EntityType TransformationFailed → isSynchronized=false → isValid=false
+        // Non-existent ID → EntityType TransformationFailed → isSynchronized=false → isValid=false
         $client->request('POST', '/team-members/new', [
             'team_member' => [
                 'team'   => '999999',
@@ -203,7 +203,7 @@ final class TeamMemberControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
-    // new – POST (walidacja płci: osoba vs drużyna)
+    // new – POST (gender validation: person vs team)
     // -------------------------------------------------------------------------
 
     #[Test]
