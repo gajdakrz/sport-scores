@@ -1,6 +1,6 @@
 PHP_CONTAINER=sport-scores-php
 
-.PHONY: up down bash composer-install cache-clear db test-db test-db-ide test
+.PHONY: up down bash composer-install cache-clear fix db test-db test-db-ide test
 
 up:
 	docker compose up -d
@@ -16,6 +16,12 @@ composer-install:
 
 cache-clear:
 	docker exec $(PHP_CONTAINER) php bin/console cache:clear
+
+# Auto-fix code style, incl. removing unused `use` imports (phpcbf exits 1 when it fixed something),
+# then report what can't be fixed automatically
+fix:
+	docker exec $(PHP_CONTAINER) vendor/bin/phpcbf || [ $$? -eq 1 ]
+	docker exec $(PHP_CONTAINER) vendor/bin/phpcs
 
 # Dev database: create (if missing) -> migrate -> load fixtures
 db:

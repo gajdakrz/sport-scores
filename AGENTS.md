@@ -19,7 +19,8 @@ make test-db-ide                                                      # rebuild 
 docker exec sport-scores-php sh -c "APP_ENV=test php bin/phpunit"     # all tests
 docker exec sport-scores-php sh -c "APP_ENV=test php bin/phpunit tests/Unit/Service/BracketBuilderTest.php"  # single file
 docker exec sport-scores-php vendor/bin/phpstan analyse --no-progress --memory-limit=1G # PHPStan, level 9 (the default 128M is not enough)
-docker exec sport-scores-php vendor/bin/phpcs                         # PSR-12
+docker exec sport-scores-php vendor/bin/phpcs                         # PSR-12 + unused `use` imports
+make fix                                                              # phpcbf: auto-fix style, remove unused `use` imports
 docker exec sport-scores-node npm run lint                            # ESLint (assets/ts)
 docker exec sport-scores-node npm run typecheck                       # tsc --noEmit
 ```
@@ -28,7 +29,10 @@ Other targets (`up`, `composer-install`, `db`, `cache-clear`) are in the `Makefi
 
 ## Before you consider a task done
 
-- First, clean up after your changes (before running the checks below): in every file you touched, remove what is no longer used – `use` imports, private methods, properties, constants, test helpers and whole classes or TS modules/exports left without callers (e.g. after a rename or refactor). Search the codebase (`grep`) to confirm nothing still references them.
+- First, clean up after your changes (before running the checks below):
+  - run `make fix` – it removes unused `use` imports and fixes code style automatically; don't hunt for unused imports by hand;
+  - unused private methods, properties and constants are reported by PHPStan, unused TS imports/variables by ESLint – fix what they report;
+  - tools don't catch whole classes, public methods, test helpers or TS exports left without callers (e.g. after a rename or refactor) – check those in the files you touched with `grep`.
 - PHPUnit, PHPStan (level 9) and phpcs pass with no errors. phpcs reports line length as a warning – treat warnings as failures too. In CI, lint and PHPStan have `continue-on-error`, so a failure won't stop the pipeline – check locally.
 - `docker exec sport-scores-php php bin/console doctrine:schema:validate --env=test` reports OK in both sections (Mapping and Database) – read the full output, not just the tail. Don't use `doctrine:migrations:diff` as a check – it creates a migration file.
 - For changes in `assets/ts/`, `lint` and `typecheck` pass.
