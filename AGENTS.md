@@ -116,6 +116,7 @@ Writing guidelines:
 
 - Never run `git add` or `git commit` on your own. After changing files, always ask the user whether to stage and commit (and how to split the commits) – wait for an explicit yes.
 - Renames/moves of tracked files (`git mv`) are fine as part of the change, but leave staging the rest of the work to the user's decision.
+- PR descriptions: English, short keyword bullets grouped by area, no filler – template and example in `.claude/skills/pr-description/SKILL.md`.
 
 ## Security
 
