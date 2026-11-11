@@ -250,7 +250,10 @@ export class AppBase {
                     if (json.success) {
                         AppBase.showFlashAfterReload('success', json.message ?? 'Deleted successfully.');
                     } else {
-                        AppBase.showFlashAfterReload('danger', json.error ?? 'An error occurred.');
+                        AppBase.showFlashAfterReload(
+                            'danger',
+                            json.error ?? json.errors?.[0]?.message ?? 'An error occurred.'
+                        );
                     }
                     globalThis.location.reload();
                 }, { once: true });

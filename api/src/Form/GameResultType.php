@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\Event;
 use App\Entity\Game;
 use App\Entity\GameResult;
 use App\Entity\Sport;
@@ -15,9 +14,8 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 final class GameResultType extends AbstractType
 {
@@ -33,6 +31,11 @@ final class GameResultType extends AbstractType
                 'label' => 'Game',
                 'class' => Game::class,
                 'choice_label' => fn (Game $game) => $game->getDate()->format('Y-m-d'),
+                'choice_attr' => fn(Game $game): array => [
+                    'data-gender' => $game->getEvent()?->getCompetition()?->getGender()->value ?? '',
+                    // empty = international competition (every country allowed)
+                    'data-country' => (string) $game->getEvent()?->getCompetition()?->getCountry()?->getId(),
+                ],
                 'placeholder' => 'Select game date',
                 'query_builder' =>
                     fn(GameRepository $gameRepository) => $gameRepository->createActiveQueryBuilder(
@@ -48,7 +51,15 @@ final class GameResultType extends AbstractType
                 'label' => 'Team',
                 'class' => Team::class,
                 'choice_label' => 'name',
+                'choice_attr' => fn(Team $team): array => [
+                    'data-gender' => $team->getGender()->value,
+                    // empty = the team plays only in international competitions
+                    'data-country' => (string) $team->getCompetitionCountry()?->getId(),
+                ],
                 'placeholder' => 'Select team',
+                // this form records team results only, so a team is required
+                // (the database check chk_team_or_person would otherwise fail with a 500)
+                'constraints' => [new NotNull(message: 'Select a team for every result.')],
                 'query_builder' =>
                     fn(TeamRepository $teamRepository) => $teamRepository->createActiveQueryBuilder(
                         'name',

@@ -3,7 +3,7 @@
 {% block title %}Competitions{% endblock %}
 
 {% block body %}
-    {% set columnCount = 7 %}
+    {% set columnCount = 8 %}
 
     <div class="container mt-5">
 
@@ -20,6 +20,7 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Gender</th>
+                <th>Country</th>
                 <th>Is Bracket</th>
                 <th>Created At</th>
                 <th>Modified At</th>
@@ -32,6 +33,7 @@
                     <td>{{ competition.id }}</td>
                     <td>{{ competition.name }}</td>
                     <td>{{ competition.gender.value|capitalize }}</td>
+                    <td>{{ competition.international ? 'International' : competition.country.name }}</td>
                     <td>
                         <div class="form-check form-switch">
                             <input type="checkbox" class="form-check-input"

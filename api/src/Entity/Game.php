@@ -15,6 +15,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: GameRepository::class)]
 class Game extends AbstractAuditableEntity
 {
+    public const MIN_RESULTS = 2;
+    public const MIN_RESULTS_MESSAGE = 'A game must have at least two results.';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -108,11 +111,21 @@ class Game extends AbstractAuditableEntity
     /**
      * @return Collection<int, GameResult>
      */
+    #[Assert\Count(min: self::MIN_RESULTS, minMessage: self::MIN_RESULTS_MESSAGE)]
     public function getGameResults(): Collection
     {
         return $this->gameResults->filter(
             fn(GameResult $gameResult) => $gameResult->isActive()
         );
+    }
+
+    /**
+     * Whether one active result can be taken away (deleted or moved to another game)
+     * without dropping below MIN_RESULTS.
+     */
+    public function canLoseResult(): bool
+    {
+        return $this->getGameResults()->count() > self::MIN_RESULTS;
     }
 
     /**

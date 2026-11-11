@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType;
+use App\Validator\TeamCompetitionCountryAllowed;
+use App\Validator\TeamGenderConsistent;
 use App\Repository\TeamRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
+#[TeamGenderConsistent]
+#[TeamCompetitionCountryAllowed]
 class Team extends AbstractAuditableEntity
 {
     #[ORM\Id]
@@ -21,7 +27,7 @@ class Team extends AbstractAuditableEntity
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\ManyToOne(targetEntity: Country::class, inversedBy: 'persons')]
+    #[ORM\ManyToOne(targetEntity: Country::class, inversedBy: 'teams')]
     #[ORM\JoinColumn(
         name: 'country_id',
         referencedColumnName: 'id',
@@ -29,8 +35,24 @@ class Team extends AbstractAuditableEntity
     )]
     private ?Country $country = null;
 
+    /**
+     * Country whose national competitions the team plays in – may differ from the country of origin
+     * (e.g. AS Ukraine Jastrzębie Barkom plays in Poland volleyball league).
+     * Null = not applicable (e.g. a national team): the team plays only in international competitions.
+     */
+    #[ORM\ManyToOne(targetEntity: Country::class)]
+    #[ORM\JoinColumn(
+        name: 'competition_country_id',
+        referencedColumnName: 'id',
+        nullable: true
+    )]
+    private ?Country $competitionCountry = null;
+
     #[ORM\Column(enumType: TeamType::class)]
     private TeamType $teamType;
+
+    #[ORM\Column(enumType: GenderCategory::class)]
+    private GenderCategory $gender;
 
     /**
      * @var Collection<int, TeamMember>
@@ -47,10 +69,10 @@ class Team extends AbstractAuditableEntity
     /**
      * @var Collection<int, Person>
      */
-    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'person', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'currentTeam')]
     private Collection $persons;
 
-    #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'teams')]
+    #[ORM\ManyToOne(targetEntity: Sport::class)]
     #[ORM\JoinColumn(
         name: 'sport_id',
         referencedColumnName: 'id',
@@ -101,6 +123,18 @@ class Team extends AbstractAuditableEntity
         return $this;
     }
 
+    public function getCompetitionCountry(): ?Country
+    {
+        return $this->competitionCountry;
+    }
+
+    public function setCompetitionCountry(?Country $competitionCountry): static
+    {
+        $this->competitionCountry = $competitionCountry;
+
+        return $this;
+    }
+
     public function getTeamType(): TeamType
     {
         return $this->teamType;
@@ -111,6 +145,43 @@ class Team extends AbstractAuditableEntity
         $this->teamType = $teamType;
 
         return $this;
+    }
+
+    /**
+     * National teams play only international competitions, so they have no competition country.
+     */
+    public function isNational(): bool
+    {
+        // teamType is unset on a new team whose form field was empty or invalid
+        return isset($this->teamType) && $this->teamType === TeamType::NATIONAL;
+    }
+
+    public function getGender(): GenderCategory
+    {
+        return $this->gender;
+    }
+
+    public function setGender(GenderCategory $gender): static
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
+    /**
+     * Membership rule: a MIXED team accepts persons of every gender.
+     */
+    public function acceptsGender(Gender $gender): bool
+    {
+        return $this->gender->accepts($gender);
+    }
+
+    /**
+     * Competition rule: exact match – a MIXED team plays only in a MIXED competition.
+     */
+    public function canPlayIn(Competition $competition): bool
+    {
+        return $this->gender === $competition->getGender();
     }
 
     /**

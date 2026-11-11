@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 $_ENV['APP_ENV'] = 'test';
 $_SERVER['APP_ENV'] = 'test';
 

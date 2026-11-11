@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\Competition;
+use App\Entity\Country;
+use App\Entity\Person;
 use App\Entity\Season;
 use App\Entity\Team;
 use App\Entity\Sport;
+use App\Entity\TeamMember;
 use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType;
 use App\Repository\TeamRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -114,6 +119,8 @@ final class TeamControllerTest extends WebTestCase
                 $formData[$name] = 'New Team';
             } elseif (str_contains($name, '[teamType]')) {
                 $formData[$name] = TeamType::CLUB->value;
+            } elseif (str_contains($name, '[gender]')) {
+                $formData[$name] = GenderCategory::MIXED->value;
             }
         }
 
@@ -130,6 +137,189 @@ final class TeamControllerTest extends WebTestCase
         $this->assertNotNull($team);
         $this->assertEquals($sport->getId(), $team->getSport()?->getId());
         $this->assertTrue($team->isActive());
+        $this->assertSame(GenderCategory::MIXED, $team->getGender());
+        // no competition country selected = not applicable (international competitions only)
+        $this->assertNull($team->getCompetitionCountry());
+    }
+
+    #[Test]
+    #[TestDox('Submitting the new form stores a competition country different from the country of origin')]
+    public function submittingNewFormStoresCompetitionCountry(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $origin  = $this->createTestCountry();
+        $playsIn = $this->createTestCountry();
+        $name    = 'Foreign League Team ' . uniqid();
+
+        $this->submitNewTeam($client, $name, TeamType::CLUB, $origin, $playsIn);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $team = $this->findTeamByName($name);
+        $this->assertNotNull($team);
+        $this->assertSame($origin->getId(), $team->getCountry()?->getId());
+        $this->assertSame($playsIn->getId(), $team->getCompetitionCountry()?->getId());
+    }
+
+    #[Test]
+    #[TestDox('National team with a competition country is rejected with an error on "competitionCountry"')]
+    public function nationalTeamWithCompetitionCountryIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $country = $this->createTestCountry();
+        $name    = 'National Team ' . uniqid();
+
+        $this->submitNewTeam($client, $name, TeamType::NATIONAL, $country, $country);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('competitionCountry', array_column($data['errors'], 'field'));
+        $this->assertNull($this->findTeamByName($name));
+    }
+
+    #[Test]
+    #[TestDox('National team without a competition country is created with an empty competition country')]
+    public function nationalTeamWithoutCompetitionCountryIsCreated(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $name = 'National Team ' . uniqid();
+
+        $this->submitNewTeam($client, $name, TeamType::NATIONAL, $this->createTestCountry(), null);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $team = $this->findTeamByName($name);
+        $this->assertNotNull($team);
+        $this->assertNull($team->getCompetitionCountry());
+    }
+
+    #[Test]
+    #[TestDox('Submitting the new form without gender returns 400 with error on "gender"')]
+    public function submittingNewFormWithoutGenderReturns400(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+
+        $crawler = $client->request('GET', '/teams/new');
+        $form    = $crawler->selectButton('Save')->form();
+
+        $client->submit($form, [
+            'team[name]'     => 'No Gender Team ' . uniqid(),
+            'team[teamType]' => TeamType::CLUB->value,
+            'team[gender]'   => '',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('gender', array_column($data['errors'], 'field'));
+    }
+
+    #[Test]
+    #[TestDox('Submitting the new form with gender stores the team gender')]
+    public function submittingNewFormWithGenderStoresGender(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+
+        $crawler = $client->request('GET', '/teams/new');
+        $form    = $crawler->selectButton('Save')->form();
+        $name    = 'Female Team ' . uniqid();
+
+        $client->submit($form, [
+            'team[name]'     => $name,
+            'team[teamType]' => TeamType::CLUB->value,
+            'team[gender]'   => GenderCategory::FEMALE->value,
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        /** @var TeamRepository $repository */
+        $repository = static::getContainer()->get(TeamRepository::class);
+        $team       = $repository->findOneBy(['name' => $name]);
+
+        $this->assertNotNull($team);
+        $this->assertSame(GenderCategory::FEMALE, $team->getGender());
+    }
+
+    #[Test]
+    #[TestDox('Changing team gender to one that conflicts with active members returns 400 with error on "gender"')]
+    public function editingGenderConflictingWithMembersReturns400(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $em    = $this->getEntityManager();
+        $user  = $this->getTestUser();
+        $sport = $this->createTestSport();
+        $team  = $this->createTestTeamEntity($sport);
+
+        $person = new Person();
+        $person->setFirstName('Anna');
+        $person->setLastName('Member ' . uniqid());
+        $person->setGender(Gender::FEMALE);
+        $person->setSport($sport);
+        $person->setCreatedBy($user);
+        $person->setModifiedBy($user);
+        $em->persist($person);
+
+        $season = new Season();
+        $season->setStartYear(2024);
+        $season->setEndYear(2025);
+        $season->setCreatedBy($user);
+        $season->setModifiedBy($user);
+        $em->persist($season);
+
+        $member = new TeamMember();
+        $member->setPerson($person);
+        $member->setStartSeason($season);
+        $member->setCreatedBy($user);
+        $member->setModifiedBy($user);
+        $team->addTeamMember($member);
+        $em->persist($member);
+        $em->flush();
+
+        $crawler = $client->request('GET', sprintf('/teams/%d/edit', $team->getId()));
+        $form    = $crawler->selectButton('Save')->form();
+
+        $client->submit($form, ['team[gender]' => GenderCategory::MALE->value]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('gender', array_column($data['errors'], 'field'));
+    }
+
+    #[Test]
+    #[TestDox('Index filtered by gender lists only teams of that gender')]
+    public function indexFilteredByGenderListsMatchingTeams(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $female = $this->createTestTeamEntity($sport)->setGender(GenderCategory::FEMALE);
+        $male   = $this->createTestTeamEntity($sport)->setGender(GenderCategory::MALE);
+        $this->getEntityManager()->flush();
+
+        $client->request('GET', '/teams', ['gender' => GenderCategory::FEMALE->value, 'limit' => 100]);
+
+        $this->assertResponseIsSuccessful();
+        $content = (string) $client->getResponse()->getContent();
+        $this->assertStringContainsString((string) $female->getName(), $content);
+        $this->assertStringNotContainsString((string) $male->getName(), $content);
     }
 
     // -------------------------------------------------------------------------
@@ -248,6 +438,34 @@ final class TeamControllerTest extends WebTestCase
 
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
+    }
+
+    #[Test]
+    #[TestDox('Clearing gender in the edit form returns 400 with error on "gender" and keeps the stored gender')]
+    public function submittingEditFormWithoutGenderReturns400(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $sport = $this->createTestSport();
+        $team  = $this->createTestTeamEntity($sport);
+        $originalGender = $team->getGender();
+
+        $crawler = $client->request('GET', sprintf('/teams/%d/edit', $team->getId()));
+        $form    = $crawler->selectButton('Save')->form();
+
+        $client->submit($form, ['team[gender]' => '']);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains('gender', array_column($data['errors'], 'field'));
+
+        $this->getEntityManager()->clear();
+        /** @var TeamRepository $repository */
+        $repository = static::getContainer()->get(TeamRepository::class);
+        $this->assertSame($originalGender, $repository->find($team->getId())?->getGender());
     }
 
     // -------------------------------------------------------------------------
@@ -410,6 +628,32 @@ final class TeamControllerTest extends WebTestCase
     // Helpers
     // -------------------------------------------------------------------------
 
+    private function submitNewTeam(
+        KernelBrowser $client,
+        string $name,
+        TeamType $teamType,
+        Country $country,
+        ?Country $competitionCountry
+    ): void {
+        $form = $client->request('GET', '/teams/new')->selectButton('Save')->form();
+
+        $client->submit($form, [
+            'team[name]'               => $name,
+            'team[teamType]'           => $teamType->value,
+            'team[gender]'             => GenderCategory::MALE->value,
+            'team[country]'            => (string) $country->getId(),
+            'team[competitionCountry]' => (string) $competitionCountry?->getId(),
+        ]);
+    }
+
+    private function findTeamByName(string $name): ?Team
+    {
+        /** @var TeamRepository $repository */
+        $repository = static::getContainer()->get(TeamRepository::class);
+
+        return $repository->findOneBy(['name' => $name]);
+    }
+
     private function createTestTeamEntity(Sport $sport): Team
     {
         $em   = $this->getEntityManager();
@@ -419,6 +663,7 @@ final class TeamControllerTest extends WebTestCase
         $team->setName('Test Team ' . uniqid());
         $team->setSport($sport);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);
@@ -437,7 +682,7 @@ final class TeamControllerTest extends WebTestCase
         $competition = new Competition();
         $competition->setName('Test Competition ' . uniqid());
         $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
+        $competition->setGender(GenderCategory::MALE);
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
         $competition->setIsActive(true);

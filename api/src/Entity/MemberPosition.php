@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\MemberPositionRepository;
@@ -29,7 +31,7 @@ class MemberPosition extends AbstractAuditableEntity
     /**
      * @var Collection<int, TeamMember>
      */
-    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'MemberPosition', orphanRemoval: false)]
+    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'memberPosition', orphanRemoval: false)]
     private Collection $teamMembers;
 
     public function __construct()

@@ -8,6 +8,7 @@ use App\Entity\Competition;
 use App\Entity\Event;
 use App\Entity\Sport;
 use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Repository\EventRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
@@ -517,7 +518,7 @@ final class EventControllerTest extends WebTestCase
         $competition = new Competition();
         $competition->setName('Test Competition ' . uniqid());
         $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
+        $competition->setGender(GenderCategory::MALE);
         $competition->setIsBracket($isBracket);
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);

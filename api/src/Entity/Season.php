@@ -35,7 +35,7 @@ class Season extends AbstractAuditableEntity
     /**
      * @var Collection<int, TeamMember>
      */
-    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'season', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: TeamMember::class, mappedBy: 'startSeason')]
     private Collection $teamMembers;
 
     public function __construct()

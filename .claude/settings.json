@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make test-db-ide)",
+      "Bash(docker exec sport-scores-php vendor/bin/phpstan *)",
+      "Bash(docker exec sport-scores-php vendor/bin/phpcs *)",
+      "Bash(docker exec sport-scores-php sh -c \"APP_ENV=test php bin/phpunit*)",
+      "Bash(docker exec sport-scores-node npm run lint*)",
+      "Bash(docker exec sport-scores-node npm run typecheck)"
+    ],
+    "deny": [
+      "Read(/api/.env.local)",
+      "Bash(docker compose down -v*)",
+      "Bash(git push --force*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-migrations.sh",
+            "onFailure": "block"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -8,6 +8,7 @@ use App\Entity\Competition;
 use App\Entity\Season;
 use App\Entity\Team;
 use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Enum\TeamType;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
@@ -235,7 +236,7 @@ final class BracketControllerTest extends WebTestCase
         $competition = new Competition();
         $competition->setName('Test Competition ' . uniqid());
         $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
+        $competition->setGender(GenderCategory::MALE);
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
         $competition->setIsActive(true);
@@ -273,6 +274,7 @@ final class BracketControllerTest extends WebTestCase
         $team->setName('Test Team ' . uniqid());
         $team->setSport($sport);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);

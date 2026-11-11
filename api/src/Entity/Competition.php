@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Repository\CompetitionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -30,8 +30,19 @@ class Competition extends AbstractAuditableEntity
     )]
     private ?Sport $sport = null;
 
-    #[ORM\Column(enumType: Gender::class)]
-    private Gender $gender;
+    #[ORM\Column(enumType: GenderCategory::class)]
+    private GenderCategory $gender;
+
+    /**
+     * Null means an international competition (teams from every country may play).
+     */
+    #[ORM\ManyToOne(targetEntity: Country::class)]
+    #[ORM\JoinColumn(
+        name: 'country_id',
+        referencedColumnName: 'id',
+        nullable: true
+    )]
+    private ?Country $country = null;
 
     /**
      * @var Collection<int, Event>
@@ -83,16 +94,43 @@ class Competition extends AbstractAuditableEntity
         return $this;
     }
 
-    public function getGender(): Gender
+    public function getGender(): GenderCategory
     {
         return $this->gender;
     }
 
-    public function setGender(Gender $gender): static
+    public function setGender(GenderCategory $gender): static
     {
         $this->gender = $gender;
 
         return $this;
+    }
+
+    public function getCountry(): ?Country
+    {
+        return $this->country;
+    }
+
+    public function setCountry(?Country $country): static
+    {
+        $this->country = $country;
+
+        return $this;
+    }
+
+    public function isInternational(): bool
+    {
+        return $this->country === null;
+    }
+
+    /**
+     * Country rule: an international competition admits every team,
+     * a national one only teams whose competition country is its country
+     * (a team without a competition country, e.g. a national team, is rejected).
+     */
+    public function admitsTeam(Team $team): bool
+    {
+        return $this->isInternational() || $this->country === $team->getCompetitionCountry();
     }
 
     /**

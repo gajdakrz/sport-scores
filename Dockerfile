@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y \
         fastcgi_pass 127.0.0.1:9000;\n\
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\
         fastcgi_param DOCUMENT_ROOT $document_root;\n\
+        fastcgi_param HTTP_HOST $http_host;\n\
     }\n\
 \n\
     location ~ /\.ht {\n\

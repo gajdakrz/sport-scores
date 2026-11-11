@@ -20,7 +20,7 @@ No local PHP or Node.js installation required — everything runs inside contain
 
 - **PHP** 8.4 + **Symfony** 7
 - **Doctrine ORM** + migrations
-- **PostgreSQL** 16
+- **PostgreSQL** 18
 - **TypeScript** + Webpack Encore
 - **PHPUnit** + **Xdebug** (coverage)
 - **Docker** / **Docker Compose**
@@ -40,15 +40,15 @@ cd sport-scores
 ### 2. Configure environment
 
 ```bash
-cp .env .env.local
+cp api/.env api/.env.local
 ```
 
-Fill in `.env.local` with your local values (database credentials, secrets, etc.).
+Fill in `api/.env.local` with your local values (database credentials, secrets, etc.).
 
 ### 3. Start containers
 
 ```bash
-docker compose up -d
+make up
 ```
 
 This starts three services:
@@ -56,7 +56,7 @@ This starts three services:
 | Container               | Description                                              | Port          |
 |-------------------------|----------------------------------------------------------|---------------|
 | `sport-scores-php`      | PHP 8.4-fpm + Nginx                                      | `8080 → 80`   |
-| `sport-scores-postgres` | PostgreSQL 16                                            | `5432 → 5432` |
+| `sport-scores-postgres` | PostgreSQL 18                                            | `5432 → 5432` |
 | `sport-scores-node`     | Node 20 — runs `npm install && npm run watch` on startup | —             |
 
 ### 4. Install PHP dependencies
@@ -89,7 +89,14 @@ The application will be available at: **http://localhost:8080**
 
 ### Docker & Application
 
-> Commands for managing containers and the application (e.g. `make up`, `make bash`, `make cache-clear`) — update this section with your actual Makefile targets.
+| Command                 | Description                                                       |
+|-------------------------|-------------------------------------------------------------------|
+| `make up`               | Start all containers in the background (`docker compose up -d`)   |
+| `make down`             | Stop and remove containers (database volume is kept)              |
+| `make bash`             | Open a shell in the PHP container                                 |
+| `make composer-install` | Install PHP dependencies inside the PHP container                 |
+| `make cache-clear`      | Clear the Symfony cache                                           |
+| `make db`               | Create dev database (if missing) → migrate → load fixtures        |
 
 ### Testing
 
@@ -190,7 +197,7 @@ assets/
 Example `.env.local`:
 
 ```dotenv
-DATABASE_URL="postgresql://app:!ChangeMe!@127.0.0.1:5432/app?serverVersion=16&charset=utf8"
+DATABASE_URL="postgresql://app:!ChangeMe!@127.0.0.1:5432/app?serverVersion=18&charset=utf8"
 APP_SECRET=your-secret-here
 ```
 
@@ -244,7 +251,7 @@ sport-scores/
 │   ├── templates/
 │   ├── tests/
 │   └── .env
-├── docker-compose.yml
+├── docker-compose.yaml
 └── Makefile
 ```
 

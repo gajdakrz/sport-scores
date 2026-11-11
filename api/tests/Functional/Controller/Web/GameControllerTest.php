@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\Competition;
+use App\Entity\Country;
 use App\Entity\Event;
 use App\Entity\Game;
 use App\Entity\GameResult;
@@ -12,13 +13,15 @@ use App\Entity\Team;
 use App\Enum\TeamType;
 use App\Entity\Season;
 use App\Entity\Sport;
-use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Repository\GameRepository;
 use App\Repository\GameResultRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -112,6 +115,8 @@ final class GameControllerTest extends WebTestCase
         $competition = $this->createTestCompetition($sport);
         $event       = $this->createTestEvent($competition);
         $season      = $this->createTestSeason();
+        $home        = $this->createTestTeam($sport);
+        $away        = $this->createTestTeam($sport);
 
         $client->request('POST', '/games/new', [
             'game' => [
@@ -119,7 +124,7 @@ final class GameControllerTest extends WebTestCase
                 'competition' => (string) $competition->getId(),
                 'event'       => (string) $event->getId(),
                 'date'        => date('Y-m-d'),
-                'gameResults' => [],
+                'gameResults' => $this->gameResultsData($home, $away),
                 '_token'      => $this->getValidCsrfToken($client, '/games/new'),
             ],
         ]);
@@ -134,6 +139,117 @@ final class GameControllerTest extends WebTestCase
 
         $this->assertNotNull($game);
         $this->assertTrue($game->isActive());
+        $this->assertCount(2, $game->getGameResults());
+    }
+
+    /**
+     * @return array<string, array{int}>
+     */
+    public static function tooFewResultsProvider(): array
+    {
+        return [
+            'no results' => [0],
+            'one result' => [1],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('tooFewResultsProvider')]
+    #[TestDox('Submitting the new form with $resultCount result(s) returns 400 with error on "gameResults"')]
+    public function submittingNewFormWithTooFewResultsReturnsBadRequest(int $resultCount): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $competition = $this->createTestCompetition($sport);
+        $event       = $this->createTestEvent($competition);
+        $season      = $this->createTestSeason();
+
+        $teams = [];
+        for ($i = 0; $i < $resultCount; $i++) {
+            $teams[] = $this->createTestTeam($sport);
+        }
+
+        $client->request('POST', '/games/new', [
+            'game' => [
+                'season'      => (string) $season->getId(),
+                'competition' => (string) $competition->getId(),
+                'event'       => (string) $event->getId(),
+                'date'        => date('Y-m-d'),
+                'gameResults' => $this->gameResultsData(...$teams),
+                '_token'      => $this->getValidCsrfToken($client, '/games/new'),
+            ],
+        ]);
+
+        $this->assertFieldError($client, 'gameResults');
+
+        /** @var GameRepository $repository */
+        $repository = static::getContainer()->get(GameRepository::class);
+        $this->assertNull($repository->findOneBy(['event' => $event->getId()]));
+    }
+
+    #[Test]
+    #[TestDox('Submitting the new form with a result without a team returns 400 with error on "team"')]
+    public function submittingNewFormWithResultWithoutTeamReturnsBadRequest(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $competition = $this->createTestCompetition($sport);
+        $event       = $this->createTestEvent($competition);
+        $season      = $this->createTestSeason();
+
+        $client->request('POST', '/games/new', [
+            'game' => [
+                'season'      => (string) $season->getId(),
+                'competition' => (string) $competition->getId(),
+                'event'       => (string) $event->getId(),
+                'date'        => date('Y-m-d'),
+                'gameResults' => [['team' => '', 'matchScore' => '3']],
+                '_token'      => $this->getValidCsrfToken($client, '/games/new'),
+            ],
+        ]);
+
+        $this->assertFieldError($client, 'team');
+
+        /** @var GameRepository $repository */
+        $repository = static::getContainer()->get(GameRepository::class);
+        $this->assertNull($repository->findOneBy(['event' => $event->getId()]));
+    }
+
+    #[Test]
+    #[TestDox('National game with a team playing in another country is rejected on "team" and nothing is saved')]
+    public function nationalGameWithTeamPlayingInAnotherCountryIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $country     = $this->createTestCountry();
+        $competition = $this->createTestCompetition($sport, $country);
+        $event       = $this->createTestEvent($competition);
+        $season      = $this->createTestSeason();
+        $localTeam   = $this->createTestTeam($sport, $country);
+        $foreignTeam = $this->createTestTeam($sport, $this->createTestCountry());
+
+        $client->request('POST', '/games/new', [
+            'game' => [
+                'season'      => (string) $season->getId(),
+                'competition' => (string) $competition->getId(),
+                'event'       => (string) $event->getId(),
+                'date'        => date('Y-m-d'),
+                'gameResults' => $this->gameResultsData($localTeam, $foreignTeam),
+                '_token'      => $this->getValidCsrfToken($client, '/games/new'),
+            ],
+        ]);
+
+        $this->assertFieldError($client, 'team');
+
+        /** @var GameRepository $repository */
+        $repository = static::getContainer()->get(GameRepository::class);
+        $this->assertNull($repository->findOneBy(['event' => $event->getId()]));
     }
 
     // -------------------------------------------------------------------------
@@ -214,6 +330,8 @@ final class GameControllerTest extends WebTestCase
         $event       = $this->createTestEvent($competition);
         $season      = $this->createTestSeason();
         $game        = $this->createTestGame($event, $season);
+        $home        = $this->createTestTeam($sport);
+        $away        = $this->createTestTeam($sport);
 
         $newDate = date('Y-m-d', strtotime('+1 day'));
 
@@ -223,7 +341,7 @@ final class GameControllerTest extends WebTestCase
                 'competition' => (string) $competition->getId(),
                 'event'       => (string) $event->getId(),
                 'date'        => $newDate,
-                'gameResults' => [],
+                'gameResults' => $this->gameResultsData($home, $away),
                 '_token'      => $this->getValidCsrfToken($client, sprintf('/games/%d/edit', $game->getId())),
             ],
         ]);
@@ -272,6 +390,42 @@ final class GameControllerTest extends WebTestCase
 
         $data = $this->assertJsonSuccessResponse($client);
         $this->assertArrayHasKey('errors', $data);
+    }
+
+    #[Test]
+    #[TestDox('Leaving a single result in the edit form returns 400 with error on "gameResults" and keeps both')]
+    public function submittingEditFormWithOneResultReturnsBadRequest(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $sport       = $this->createTestSport();
+        $competition = $this->createTestCompetition($sport);
+        $event       = $this->createTestEvent($competition);
+        $season      = $this->createTestSeason();
+        $game        = $this->createTestGame($event, $season);
+        $home        = $this->createTestTeam($sport);
+        $homeResult  = $this->createTestGameResult($game, $home);
+        $awayResult  = $this->createTestGameResult($game, $this->createTestTeam($sport));
+
+        $client->request('POST', sprintf('/games/%d/edit', $game->getId()), [
+            'game' => [
+                'season'      => (string) $season->getId(),
+                'competition' => (string) $competition->getId(),
+                'event'       => (string) $event->getId(),
+                'date'        => date('Y-m-d'),
+                'gameResults' => $this->gameResultsData($home),
+                '_token'      => $this->getValidCsrfToken($client, sprintf('/games/%d/edit', $game->getId())),
+            ],
+        ]);
+
+        $this->assertFieldError($client, 'gameResults');
+
+        $this->getEntityManager()->clear();
+        /** @var GameResultRepository $repository */
+        $repository = static::getContainer()->get(GameResultRepository::class);
+        $this->assertTrue($repository->find($homeResult->getId())?->isActive());
+        $this->assertTrue($repository->find($awayResult->getId())?->isActive());
     }
 
     // -------------------------------------------------------------------------
@@ -409,6 +563,26 @@ final class GameControllerTest extends WebTestCase
     // Helpers
     // -------------------------------------------------------------------------
 
+    /**
+     * @return array<int, array<string, string>>
+     */
+    private function gameResultsData(Team ...$teams): array
+    {
+        return array_values(array_map(
+            fn(Team $team): array => ['team' => (string) $team->getId(), 'matchScore' => '3'],
+            $teams
+        ));
+    }
+
+    private function assertFieldError(KernelBrowser $client, string $field): void
+    {
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains($field, array_column($data['errors'], 'field'));
+    }
+
     private function createTestSeason(): Season
     {
         $em   = $this->getEntityManager();
@@ -427,7 +601,7 @@ final class GameControllerTest extends WebTestCase
         return $season;
     }
 
-    private function createTestCompetition(Sport $sport): Competition
+    private function createTestCompetition(Sport $sport, ?Country $country = null): Competition
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
@@ -435,7 +609,8 @@ final class GameControllerTest extends WebTestCase
         $competition = new Competition();
         $competition->setName('Test Competition ' . uniqid());
         $competition->setSport($sport);
-        $competition->setGender(Gender::MALE);
+        $competition->setGender(GenderCategory::MALE);
+        $competition->setCountry($country);
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
         $competition->setIsActive(true);
@@ -483,7 +658,7 @@ final class GameControllerTest extends WebTestCase
         return $game;
     }
 
-    private function createTestTeam(Sport $sport): Team
+    private function createTestTeam(Sport $sport, ?Country $competitionCountry = null): Team
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
@@ -491,7 +666,9 @@ final class GameControllerTest extends WebTestCase
         $team = new Team();
         $team->setName('Test Team ' . uniqid());
         $team->setSport($sport);
+        $team->setCompetitionCountry($competitionCountry);
         $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $team->setIsActive(true);

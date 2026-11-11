@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Trait;
 
+use App\Entity\Country;
 use App\Entity\Sport;
 use App\Entity\User;
 use App\Repository\SportRepository;
@@ -57,6 +58,23 @@ trait ControllerTestTrait
         $em->flush();
 
         return $sport;
+    }
+
+    protected function createTestCountry(): Country
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $country = new Country();
+        $country->setName('Test Country ' . uniqid());
+        $country->setCreatedBy($user);
+        $country->setModifiedBy($user);
+        $country->setIsActive(true);
+
+        $em->persist($country);
+        $em->flush();
+
+        return $country;
     }
 
     protected function setCurrentSport(KernelBrowser $client): Sport

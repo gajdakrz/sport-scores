@@ -8,7 +8,7 @@ use App\Controller\BaseController;
 use App\Dto\Filter\GameFilterDto;
 use App\Entity\Game;
 use App\Entity\User;
-use App\Enum\Gender;
+use App\Enum\GenderCategory;
 use App\Exception\CustomBadRequestException;
 use App\Form\GameType;
 use App\Repository\CompetitionRepository;
@@ -58,7 +58,7 @@ final class GameController extends BaseController
             'competitions' => $competitionRepository->findActiveSortedBy('name', 'ASC', $currentSport),
             'events' => $eventRepository->findActiveSortedBy('name', 'ASC'),
             'seasons' => $seasonRepository->findActiveSortedBy('startYear'),
-            'genders' => Gender::cases(),
+            'genders' => GenderCategory::cases(),
         ]);
     }
 

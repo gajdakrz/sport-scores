@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Web;
 
-use App\Entity\Country;
 use App\Repository\CountryRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
@@ -314,26 +313,5 @@ final class CountryControllerTest extends WebTestCase
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
-    }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    private function createTestCountry(): Country
-    {
-        $em   = $this->getEntityManager();
-        $user = $this->getTestUser();
-
-        $country = new Country();
-        $country->setName('Test Country ' . uniqid());
-        $country->setCreatedBy($user);
-        $country->setModifiedBy($user);
-        $country->setIsActive(true);
-
-        $em->persist($country);
-        $em->flush();
-
-        return $country;
     }
 }

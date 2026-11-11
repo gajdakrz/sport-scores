@@ -1,6 +1,9 @@
 import {AppBase, ModalFeatureConfig} from '../common/base';
+import {filterTeamOptions, selectedOptionCriteria} from '../common/teamFilter';
 
 export class ModalInitializer {
+    private static readonly MIN_RESULTS = 2;
+
     private competitionChangeHandler: ((this: HTMLSelectElement) => Promise<void>) | null = null;
 
     private readonly config: ModalFeatureConfig = {
@@ -33,6 +36,9 @@ export class ModalInitializer {
         }
 
         this.competitionChangeHandler = async function (this: HTMLSelectElement) {
+            ModalInitializer.removeAllResults();
+            ModalInitializer.updateButtons(competitionSelect);
+
             if (!this.value) {
                 eventSelect.innerHTML = '<option value="">Select event</option>';
                 return;
@@ -70,8 +76,47 @@ export class ModalInitializer {
             void this.loadInitialData(initialCompetitionId, initialEventId, competitionSelect, eventSelect);
         }
 
-        this.initGameResultsCollection();
+        this.initGameResultsCollection(competitionSelect);
+        ModalInitializer.filterResultTeams(competitionSelect);
+        ModalInitializer.updateButtons(competitionSelect);
     };
+
+    /**
+     * Results are chosen from teams of the selected competition, so they can be added only once a competition is set.
+     * A game needs at least MIN_RESULTS results, so it can be saved only once there are enough
+     * (the server enforces the same rule on Game::getGameResults()).
+     */
+    private static updateButtons(competitionSelect: HTMLSelectElement): void {
+        const addButton = document.getElementById('addGameResult') as HTMLButtonElement | null;
+        const saveButton = document.querySelector<HTMLButtonElement>('#gameModal button[type="submit"]');
+        const resultCount = document.querySelectorAll('.game-results-list .game-result-item').length;
+
+        if (addButton) {
+            addButton.disabled = competitionSelect.value === '';
+        }
+
+        if (saveButton) {
+            saveButton.disabled = resultCount < ModalInitializer.MIN_RESULTS;
+        }
+    }
+
+    /**
+     * A competition change invalidates every chosen team, so all results are removed,
+     * the same way as with their Remove button (nothing is deleted until the form is saved).
+     */
+    private static removeAllResults(): void {
+        document
+            .querySelectorAll<HTMLElement>('.game-results-list .game-result-item')
+            .forEach(item => item.remove());
+    }
+
+    private static filterResultTeams(competitionSelect: HTMLSelectElement): void {
+        const criteria = selectedOptionCriteria(competitionSelect);
+
+        document
+            .querySelectorAll<HTMLSelectElement>('.game-results-list select[id$="_team"]')
+            .forEach(teamSelect => filterTeamOptions(teamSelect, criteria));
+    }
 
     private async loadInitialData(
         initialCompetitionId: string,
@@ -81,6 +126,8 @@ export class ModalInitializer {
     ): Promise<void> {
         try {
             competitionSelect.value = initialCompetitionId;
+            ModalInitializer.filterResultTeams(competitionSelect);
+            ModalInitializer.updateButtons(competitionSelect);
 
             const urlTemplate = competitionSelect.dataset.url;
             if (!urlTemplate) return;
@@ -109,7 +156,7 @@ export class ModalInitializer {
         }
     }
 
-    private initGameResultsCollection(): void {
+    private initGameResultsCollection(competitionSelect: HTMLSelectElement): void {
         const container = document.querySelector('.game-results-list') as HTMLElement | null;
         const addButton = document.getElementById('addGameResult');
 
@@ -119,7 +166,7 @@ export class ModalInitializer {
 
         addButton.addEventListener('click', () => {
             const prototype = container.dataset.prototype;
-            if (!prototype) return;
+            if (!prototype || competitionSelect.value === '') return;
 
             const newForm = prototype.replace(/__name__/g, index.toString());
 
@@ -169,6 +216,8 @@ export class ModalInitializer {
             }
 
             container.appendChild(div);
+            ModalInitializer.filterResultTeams(competitionSelect);
+            ModalInitializer.updateButtons(competitionSelect);
             index++;
             container.dataset.index = index.toString();
         });
@@ -176,68 +225,11 @@ export class ModalInitializer {
         container.addEventListener('click', (e: Event) => {
             const target = e.target as HTMLElement;
 
-            const removeBtn = target.closest('.remove-result') as HTMLElement | null;
+            const item = target.closest('.remove-result')?.closest('.game-result-item');
 
-            if (removeBtn) {
-                const item = removeBtn.closest('.game-result-item') as HTMLElement | null;
-                if (!item) return;
-
-                const idInput = item.querySelector<HTMLInputElement>('input[id$="_id"]');
-                const hasId = idInput?.value;
-
-                if (hasId) {
-                    item.style.opacity = '0.5';
-                    item.style.textDecoration = 'line-through';
-
-                    const form = item.querySelector('.card-body') as HTMLElement | null;
-                    if (!form) return;
-
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-
-                    const firstField = item.querySelector<HTMLInputElement>('select, input');
-                    if (!firstField) return;
-
-                    hiddenInput.name = firstField.name.replace(/\[[^\]]*]$/, '[isActive]');
-                    hiddenInput.value = '0';
-
-                    form.appendChild(hiddenInput);
-
-                    item.querySelectorAll<HTMLInputElement | HTMLSelectElement>('select, input').forEach(field => {
-                        if (field !== hiddenInput) {
-                            field.disabled = true;
-                        }
-                    });
-
-                    removeBtn.classList.remove('btn-danger', 'remove-result');
-                    removeBtn.classList.add('btn-success', 'restore-result');
-                    removeBtn.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i>';
-                } else {
-                    item.remove();
-                }
-
-                return;
-            }
-
-            const restoreBtn = target.closest('.restore-result') as HTMLElement | null;
-
-            if (restoreBtn) {
-                const item = restoreBtn.closest('.game-result-item') as HTMLElement | null;
-                if (!item) return;
-
-                item.style.opacity = '1';
-                item.style.textDecoration = 'none';
-
-                const hiddenInput = item.querySelector<HTMLInputElement>('input[name$="[isActive]"]');
-                hiddenInput?.remove();
-
-                item.querySelectorAll<HTMLInputElement | HTMLSelectElement>('select, input').forEach(field => {
-                    field.disabled = false;
-                });
-
-                restoreBtn.classList.remove('btn-success', 'restore-result');
-                restoreBtn.classList.add('btn-danger', 'remove-result');
-                restoreBtn.innerHTML = '<i class="bi bi-trash"></i>';
+            if (item) {
+                item.remove();
+                ModalInitializer.updateButtons(competitionSelect);
             }
         });
     }

@@ -10,10 +10,12 @@ use App\Entity\Season;
 use App\Entity\Sport;
 use App\Entity\Team;
 use App\Entity\TeamMember;
+use App\Enum\Gender;
 use App\Repository\MemberPositionRepository;
 use App\Repository\PersonRepository;
 use App\Repository\SeasonRepository;
 use App\Repository\TeamRepository;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -26,7 +28,8 @@ use Symfony\Component\Routing\RouterInterface;
 final class TeamMemberType extends AbstractType
 {
     public function __construct(
-        private readonly RouterInterface $router
+        private readonly RouterInterface $router,
+        private readonly TeamRepository $teamRepository,
     ) {
     }
 
@@ -155,8 +158,9 @@ final class TeamMemberType extends AbstractType
         bool $isEdit,
         bool $isCurrentMember,
         ?int $originalPersonId
-    ): \Doctrine\ORM\QueryBuilder {
+    ): QueryBuilder {
         $qb = $personRepository->createQueryBuilder('p');
+        $teamGender = $this->teamRepository->find($teamId)?->getGender()->toGender();
 
         if ($isEdit) {
             $qb->where('p.currentTeam = :teamId')
@@ -168,16 +172,29 @@ final class TeamMemberType extends AbstractType
                     ->setParameter('originalPersonId', $originalPersonId);
             }
 
-            return $qb;
+            return $this->applyGender($qb, $teamGender);
         }
 
         if ($isCurrentMember) {
-            return $qb->where('p.currentTeam != :teamId')
+            $qb->where('p.currentTeam != :teamId')
                 ->orWhere('p.currentTeam IS NULL')
                 ->setParameter('teamId', $teamId);
         }
 
-        return $qb;
+        return $this->applyGender($qb, $teamGender);
+    }
+
+    /**
+     * andWhere() wraps the previous OR conditions in parentheses, so the gender rule applies to all of them.
+     */
+    private function applyGender(QueryBuilder $qb, ?Gender $teamGender): QueryBuilder
+    {
+        if ($teamGender === null) {
+            return $qb;
+        }
+
+        return $qb->andWhere('p.gender = :teamGender')
+            ->setParameter('teamGender', $teamGender);
     }
 
     private function personChoiceLabel(Person $person): string

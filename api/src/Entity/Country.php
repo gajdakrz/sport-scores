@@ -23,13 +23,13 @@ class Country extends AbstractAuditableEntity
     /**
      * @var Collection<int, Person>
      */
-    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'country', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Person::class, mappedBy: 'originCountry')]
     private Collection $persons;
 
     /**
      * @var Collection<int, Team>
      */
-    #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'country', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'country')]
     private Collection $teams;
 
     public function __construct()

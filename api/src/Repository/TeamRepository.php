@@ -76,6 +76,7 @@ class TeamRepository extends AbstractRepository
         $this->applyFilter($qb, 'team.sport', $sport);
         $this->applyFilter($qb, 'team.country', $filter->getCountryId());
         $this->applyFilter($qb, 'team.teamType', $filter->getTeamType());
+        $this->applyFilter($qb, 'team.gender', $filter->getGender());
         $this->applyLikeFilter($qb, 'team.name', $filter->getName());
 
         return $qb;
