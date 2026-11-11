@@ -7,7 +7,6 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Entity\Competition;
 use App\Entity\Event;
 use App\Entity\Sport;
-use App\Enum\Gender;
 use App\Enum\GenderCategory;
 use App\Repository\EventRepository;
 use App\Tests\Trait\ControllerTestTrait;

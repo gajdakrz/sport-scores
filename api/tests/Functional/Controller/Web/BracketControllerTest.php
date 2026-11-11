@@ -7,7 +7,6 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Entity\Competition;
 use App\Entity\Season;
 use App\Entity\Team;
-use App\Enum\Gender;
 use App\Enum\GenderCategory;
 use App\Enum\TeamType;
 use App\Tests\Trait\ControllerTestTrait;
