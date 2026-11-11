@@ -21,7 +21,7 @@ class GameResultHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->handler = new GameResultHandler();
-        $this->user = $this->createMock(User::class);
+        $this->user = new User();
     }
 
     #[Test]
@@ -89,7 +89,7 @@ class GameResultHandlerTest extends TestCase
      */
     private function createGameWithResults(array $results): Game
     {
-        $game = $this->createMock(Game::class);
+        $game = $this->createStub(Game::class);
         $game->method('getGameResults')->willReturn(new ArrayCollection($results));
 
         return $game;

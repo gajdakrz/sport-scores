@@ -7,7 +7,7 @@ namespace App\Tests\Helper;
 use App\Helper\ValidationError;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 
@@ -276,8 +276,8 @@ class ValidationErrorTest extends TestCase
         string $message,
         string $propertyPath,
         mixed $invalidValue = null,
-    ): ConstraintViolationInterface&MockObject {
-        $violation = $this->createMock(ConstraintViolationInterface::class);
+    ): ConstraintViolationInterface&Stub {
+        $violation = $this->createStub(ConstraintViolationInterface::class);
         $violation->method('getMessage')->willReturn($message);
         $violation->method('getPropertyPath')->willReturn($propertyPath);
         $violation->method('getInvalidValue')->willReturn($invalidValue);

@@ -22,7 +22,7 @@ class CurrentSportProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        $requestStack = $this->createMock(RequestStack::class);
+        $requestStack = $this->createStub(RequestStack::class);
         $this->sportRepository = $this->createMock(SportRepository::class);
         $this->session = $this->createMock(SessionInterface::class);
 
@@ -51,7 +51,7 @@ class CurrentSportProviderTest extends TestCase
     #[TestDox('Returns Sport when sport ID exists in session and sport is found')]
     public function getSportReturnsSportWhenFoundById(): void
     {
-        $sport = $this->createMock(Sport::class);
+        $sport = $this->createStub(Sport::class);
 
         $this->session->method('get')->with('current_sport_id')->willReturn(1);
         $this->sportRepository->method('find')->with(1)->willReturn($sport);
@@ -74,6 +74,7 @@ class CurrentSportProviderTest extends TestCase
     public function getSportIdReturnsNullWhenNoSportInSession(): void
     {
         $this->session->method('get')->with('current_sport_id')->willReturn(null);
+        $this->sportRepository->expects($this->never())->method('find');
 
         $this->assertNull($this->provider->getSportId());
     }
@@ -82,7 +83,7 @@ class CurrentSportProviderTest extends TestCase
     #[TestDox('Returns sport ID when sport exists')]
     public function getSportIdReturnsSportId(): void
     {
-        $sport = $this->createMock(Sport::class);
+        $sport = $this->createStub(Sport::class);
         $sport->method('getId')->willReturn(5);
 
         $this->session->method('get')->with('current_sport_id')->willReturn(5);
@@ -96,6 +97,7 @@ class CurrentSportProviderTest extends TestCase
     public function getSportNameReturnsNullWhenNoSportInSession(): void
     {
         $this->session->method('get')->with('current_sport_id')->willReturn(null);
+        $this->sportRepository->expects($this->never())->method('find');
 
         $this->assertNull($this->provider->getSportName());
     }
@@ -104,7 +106,7 @@ class CurrentSportProviderTest extends TestCase
     #[TestDox('Returns sport name when sport exists')]
     public function getSportNameReturnsSportName(): void
     {
-        $sport = $this->createMock(Sport::class);
+        $sport = $this->createStub(Sport::class);
         $sport->method('getName')->willReturn('Football');
 
         $this->session->method('get')->with('current_sport_id')->willReturn(3);

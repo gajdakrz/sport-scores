@@ -18,7 +18,7 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class BracketBuilderTest extends TestCase
@@ -35,9 +35,9 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Returns empty bracket when competition has no events')]
     public function buildEmptyCompetition(): void
     {
-        $competition = $this->createMock(Competition::class);
+        $competition = $this->createStub(Competition::class);
         $competition->method('getEvents')->willReturn(new ArrayCollection());
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
 
         $bracket = $this->builder->build($competition, $season);
 
@@ -50,7 +50,7 @@ class BracketBuilderTest extends TestCase
     {
         $event = $this->createEvent(name: 'Quarterfinal', orderIndex: 1, games: []);
         $competition = $this->createCompetition([$event]);
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
 
         $bracket = $this->builder->build($competition, $season);
 
@@ -65,7 +65,7 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Builds correct GameDto with team results')]
     public function buildWithGamesAndResults(): void
     {
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
 
         $game = $this->createGame(id: 42, season: $season, date: new DateTimeImmutable(), gameResults: [
             $this->createGameResult('Team A', 3, true),
@@ -97,7 +97,7 @@ class BracketBuilderTest extends TestCase
     {
         $event = $this->createEvent(name: null, orderIndex: 0, games: []);
         $competition = $this->createCompetition([$event]);
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
 
         $bracket = $this->builder->build($competition, $season);
 
@@ -108,7 +108,7 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Sorts events by orderIndex ascending')]
     public function buildSortsEventsByOrderIndex(): void
     {
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
         $competition = $this->createCompetition([
             $this->createEvent(name: 'Final', orderIndex: 2, games: []),
             $this->createEvent(name: 'Group Stage', orderIndex: 0, games: []),
@@ -127,8 +127,8 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Skips games from different season')]
     public function buildSkipsGamesFromDifferentSeason(): void
     {
-        $season = $this->createMock(Season::class);
-        $otherSeason = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
+        $otherSeason = $this->createStub(Season::class);
 
         $game = $this->createGame(id: 1, season: $otherSeason, date: new DateTimeImmutable(), gameResults: [
             $this->createGameResult('Team A', 1, true),
@@ -147,7 +147,7 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Skips games with null ID')]
     public function buildSkipsGamesWithNullId(): void
     {
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
 
         $game = $this->createGame(id: null, season: $season, date: new DateTimeImmutable(), gameResults: [
             $this->createGameResult('Team A', 1, true),
@@ -166,9 +166,9 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Skips games where all team results are incomplete')]
     public function buildSkipsGamesWithEmptyTeamResults(): void
     {
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
 
-        $incompleteResult = $this->createMock(GameResult::class);
+        $incompleteResult = $this->createStub(GameResult::class);
         $incompleteResult->method('getTeam')->willReturn(null);
         $incompleteResult->method('getMatchScore')->willReturn(null);
         $incompleteResult->method('isWin')->willReturn(false);
@@ -191,12 +191,12 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Skips game result when matchScore is null')]
     public function buildSkipsGameResultWithNullMatchScore(): void
     {
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
 
-        $team = $this->createMock(Team::class);
+        $team = $this->createStub(Team::class);
         $team->method('getName')->willReturn('Team A');
 
-        $nullScoreResult = $this->createMock(GameResult::class);
+        $nullScoreResult = $this->createStub(GameResult::class);
         $nullScoreResult->method('getTeam')->willReturn($team);
         $nullScoreResult->method('getMatchScore')->willReturn(null);
         $nullScoreResult->method('isWin')->willReturn(false);
@@ -219,7 +219,7 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Sorts games by date descending')]
     public function buildSortsGamesByDateDescending(): void
     {
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
 
         $olderGame = $this->createGame(
             id: 1,
@@ -255,7 +255,7 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Sorts games by team IDs ascending when dates are equal')]
     public function buildSortsGamesByTeamIdsWhenDatesAreEqual(): void
     {
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
         $date = new DateTimeImmutable('2024-03-15');
 
         $gameHighIds = $this->createGameWithTeamIds(id: 1, season: $season, date: $date, teamIds: [10, 20]);
@@ -275,7 +275,7 @@ class BracketBuilderTest extends TestCase
     #[TestDox('Uses 0 as fallback when team ID is null during sort')]
     public function buildUsesZeroAsFallbackForNullTeamIdDuringSort(): void
     {
-        $season = $this->createMock(Season::class);
+        $season = $this->createStub(Season::class);
         $date = new DateTimeImmutable('2024-03-15');
 
         $gameNullTeam = $this->createGameWithTeamIds(id: 1, season: $season, date: $date, teamIds: [null, 5]);
@@ -296,12 +296,12 @@ class BracketBuilderTest extends TestCase
     // -------------------------------------------------------------------------
 
     /**
-     * @param array<MockObject&Event> $events
-     * @return Competition&MockObject
+     * @param array<Stub&Event> $events
+     * @return Competition&Stub
      */
-    private function createCompetition(array $events): MockObject&Competition
+    private function createCompetition(array $events): Stub&Competition
     {
-        $competition = $this->createMock(Competition::class);
+        $competition = $this->createStub(Competition::class);
         $competition->method('getEvents')->willReturn(new ArrayCollection($events));
 
         return $competition;
@@ -310,12 +310,12 @@ class BracketBuilderTest extends TestCase
     /**
      * @param ?string $name
      * @param int $orderIndex
-     * @param array<MockObject&Game> $games
-     * @return Event&MockObject
+     * @param array<Stub&Game> $games
+     * @return Event&Stub
      */
-    private function createEvent(?string $name, int $orderIndex, array $games): MockObject&Event
+    private function createEvent(?string $name, int $orderIndex, array $games): Stub&Event
     {
-        $event = $this->createMock(Event::class);
+        $event = $this->createStub(Event::class);
         $event->method('getName')->willReturn($name);
         $event->method('getOrderIndex')->willReturn($orderIndex);
         $event->method('getGames')->willReturn(new ArrayCollection($games));
@@ -327,12 +327,12 @@ class BracketBuilderTest extends TestCase
      * @param ?int $id
      * @param Season $season
      * @param ?DateTimeImmutable $date
-     * @param array<MockObject&GameResult> $gameResults
-     * @return MockObject&Game
+     * @param array<Stub&GameResult> $gameResults
+     * @return Stub&Game
      */
-    private function createGame(?int $id, Season $season, ?DateTimeImmutable $date, array $gameResults): MockObject&Game
+    private function createGame(?int $id, Season $season, ?DateTimeImmutable $date, array $gameResults): Stub&Game
     {
-        $game = $this->createMock(Game::class);
+        $game = $this->createStub(Game::class);
         $game->method('getId')->willReturn($id);
         $game->method('getSeason')->willReturn($season);
         $game->method('getDate')->willReturn($date);
@@ -341,13 +341,13 @@ class BracketBuilderTest extends TestCase
         return $game;
     }
 
-    private function createGameResult(string $teamName, int $matchScore, bool $isWin): GameResult&MockObject
+    private function createGameResult(string $teamName, int $matchScore, bool $isWin): GameResult&Stub
     {
-        $team = $this->createMock(Team::class);
+        $team = $this->createStub(Team::class);
         $team->method('getName')->willReturn($teamName);
         $team->method('getId')->willReturn(++self::$idCounter);
 
-        $gameResult = $this->createMock(GameResult::class);
+        $gameResult = $this->createStub(GameResult::class);
         $gameResult->method('getTeam')->willReturn($team);
         $gameResult->method('getMatchScore')->willReturn($matchScore);
         $gameResult->method('isWin')->willReturn($isWin);
@@ -360,20 +360,20 @@ class BracketBuilderTest extends TestCase
      * @param Season $season,
      * @param ?DateTimeImmutable $date,
      * @param array<?int> $teamIds
-     * @return Game&MockObject
+     * @return Game&Stub
      */
     private function createGameWithTeamIds(
         ?int $id,
         Season $season,
         ?DateTimeImmutable $date,
         array $teamIds,
-    ): Game&MockObject {
+    ): Game&Stub {
         $gameResults = array_map(function (?int $teamId) {
-            $team = $this->createMock(Team::class);
+            $team = $this->createStub(Team::class);
             $team->method('getId')->willReturn($teamId);
             $team->method('getName')->willReturn('Team ' . ($teamId ?? 'null'));
 
-            $gameResult = $this->createMock(GameResult::class);
+            $gameResult = $this->createStub(GameResult::class);
             $gameResult->method('getTeam')->willReturn($teamId !== null ? $team : null);
             $gameResult->method('getMatchScore')->willReturn(1);
             $gameResult->method('isWin')->willReturn(false);
