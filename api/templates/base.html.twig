@@ -96,6 +96,9 @@
             {% endfor %}
         {% endfor %}
     </div>
+    {% if app.user %}
+        <div id="profileModalContainer"></div>
+    {% endif %}
     {% include '_modal_confirm.html.twig' %}
     {% block javascripts %}
         {{ encore_entry_script_tags('app') }}
