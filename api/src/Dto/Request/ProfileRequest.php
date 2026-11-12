@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto\Request;
 
+use App\Dto\Request\Trait\UserNameTrait;
 use App\Entity\User;
 
 class ProfileRequest

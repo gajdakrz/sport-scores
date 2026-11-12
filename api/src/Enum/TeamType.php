@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enum;
 
+use App\Enum\Trait\EnumLabelTrait;
+
 enum TeamType: string
 {
     use EnumLabelTrait;

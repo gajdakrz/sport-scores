@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto\Request;
 
+use App\Dto\Request\Trait\UserNameTrait;
 use App\Enum\Role;
 use Symfony\Component\Validator\Constraints as Assert;
 
