@@ -81,6 +81,7 @@ Quality gate on new code: reliability, security and maintainability rating A, du
 - Don't use `addFlash()` in AJAX responses – the message goes in the JSON.
 - `createdAt` / `modifiedAt` are set by `AbstractEntity` (lifecycle callbacks) – don't set them manually.
 - Schema change = new migration (`php bin/console make:migration`). Don't edit existing files in `migrations/`.
+- Traits live in a `Trait/` subdirectory of the layer that uses them (e.g. `src/Dto/Request/Trait/`, `src/Enum/Trait/`), not in a global `src/Trait/`. Prefer composition or inheritance; use a trait only for small, single-purpose code shared by several classes.
 
 ## Frontend conventions
 
