@@ -29,6 +29,8 @@ final class GameControllerTest extends WebTestCase
 {
     use ControllerTestTrait;
 
+    private const string CLEAR_LINK = 'a[data-test="filter-clear"]';
+
     // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
@@ -66,6 +68,61 @@ final class GameControllerTest extends WebTestCase
         $client->request('GET', '/games', ['page' => 1, 'limit' => 10]);
 
         $this->assertResponseIsSuccessful();
+    }
+
+    /**
+     * @return array<string, array{array<string, string|int>}>
+     */
+    public static function activeFilterProvider(): array
+    {
+        return [
+            'gender filter'          => [['gender' => GenderCategory::MALE->value, 'page' => 1]],
+        ];
+    }
+
+    /**
+     * @param array<string, string|int> $query
+     */
+    #[Test]
+    #[DataProvider('activeFilterProvider')]
+    #[TestDox('Clear link leads to the unfiltered list with $_dataName applied')]
+    public function clearLinkResetsAppliedFilters(array $query): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $client->request('GET', '/games', $query);
+
+        $this->assertSelectorExists(self::CLEAR_LINK . '[href="/games"]');
+        $this->assertSelectorNotExists(self::CLEAR_LINK . '.disabled');
+    }
+
+    /**
+     * @return array<string, array{array<string, string|int>}>
+     */
+    public static function noActiveFilterProvider(): array
+    {
+        return [
+            'no query'             => [[]],
+            'only pagination'      => [['page' => 1, 'limit' => 10]],
+            'filter fields as All' => [['seasonId' => '', 'gender' => '', 'competitionId' => '']],
+        ];
+    }
+
+    /**
+     * @param array<string, string|int> $query
+     */
+    #[Test]
+    #[DataProvider('noActiveFilterProvider')]
+    #[TestDox('Clear link is disabled with $_dataName')]
+    public function clearLinkIsDisabledWithoutActiveFilter(array $query): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $client->request('GET', '/games', $query);
+
+        $this->assertSelectorExists(self::CLEAR_LINK . '.disabled[aria-disabled="true"]');
     }
 
     // -------------------------------------------------------------------------
