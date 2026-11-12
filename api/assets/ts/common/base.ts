@@ -7,6 +7,7 @@ import { Polish } from "flatpickr/dist/l10n/pl.js";
 flatpickr.localize(Polish);
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.min.css";
 import {Modal, Alert} from "bootstrap";
 
 export interface BootstrapModalEvent extends Event {

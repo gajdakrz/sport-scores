@@ -185,7 +185,7 @@ export class ModalInitializer {
 
             if (fields.length >= 3) {
                 const row = document.createElement('div');
-                row.classList.add('row', 'g-2');
+                row.classList.add('row', 'g-2', 'align-items-end');
 
                 const createCol = (size: string, field: HTMLElement): HTMLElement => {
                     const col = document.createElement('div');
@@ -199,10 +199,10 @@ export class ModalInitializer {
                 row.appendChild(createCol('col-md-2', fields[2]));
 
                 const buttonCol = document.createElement('div');
-                buttonCol.classList.add('col-md-2', 'd-flex', 'align-items-center', 'pb-3');
+                buttonCol.classList.add('col-md-2', 'mb-3', 'd-flex', 'align-items-center', 'game-result-actions');
                 buttonCol.innerHTML = `
                     <button type="button" class="btn btn-danger btn-sm remove-result">
-                        <i class="bi bi-plus-circle"></i>Remove
+                        <i class="bi bi-trash" aria-hidden="true"></i> Remove
                     </button>
                 `;
 

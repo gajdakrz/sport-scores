@@ -27,3 +27,8 @@ select.form-select:has(option:not([value=""]):checked) {
     z-index: 1100;
     width: min(600px, 95vw);
 }
+
+/* game result row: the action column is as tall as a form input, so the button is centred on the fields */
+.game-result-actions {
+    height: calc(1.5em + 0.75rem + calc(var(--bs-border-width) * 2));
+}

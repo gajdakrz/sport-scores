@@ -44,15 +44,19 @@
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="{{ path('app_home') }}">Home</a>
+                            <a class="nav-link active d-flex align-items-center gap-2" aria-current="page" href="{{ path('app_home') }}">
+                                <i class="bi bi-house-door" aria-hidden="true"></i>
+                                Home
+                            </a>
                         </li>
                         <li class="nav-item dropdown">
                             <button
-                                class="nav-link dropdown-toggle"
+                                class="nav-link dropdown-toggle d-flex align-items-center gap-2"
                                 type="button"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
                             >
+                                <i class="bi bi-grid" aria-hidden="true"></i>
                                 Services
                             </button>
                             <ul class="dropdown-menu dropdown-menu-dark">
