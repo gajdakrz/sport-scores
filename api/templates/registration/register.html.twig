@@ -3,9 +3,22 @@
 {% block title %}Registration Form{% endblock %}
 
 {% block body %}
-    <h1 class="mb-4">Formularz rejestracji</h1>
+    <h1 class="mb-4">Registration form</h1>
 
     {{ form_start(registrationForm, {'attr': {'class': 'needs-validation'}}) }}
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            {{ form_label(registrationForm.firstName, 'First name', {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(registrationForm.firstName, {'attr': {'class': 'form-control', 'autocomplete': 'given-name', 'maxlength': 100}}) }}
+            {{ form_errors(registrationForm.firstName) }}
+        </div>
+        <div class="col-md-6">
+            {{ form_label(registrationForm.lastName, 'Last name', {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(registrationForm.lastName, {'attr': {'class': 'form-control', 'autocomplete': 'family-name', 'maxlength': 100}}) }}
+            {{ form_errors(registrationForm.lastName) }}
+        </div>
+    </div>
 
     <div class="mb-3">
         {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label'}}) }}

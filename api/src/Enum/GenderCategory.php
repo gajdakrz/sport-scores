@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enum;
 
+use App\Enum\Trait\EnumLabelTrait;
+
 /**
  * Gender category of a team or competition (men's, women's, mixed).
  * Persons use {@see Gender}; enums can't extend each other, so the two are linked by composition.

@@ -63,6 +63,8 @@ class CreateUserCommandTest extends KernelTestCase
         $exitCode = $this->commandTester->execute([
             'email'    => 'integration-admin@example.com',
             'password' => 'SecurePass123!',
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
             'role'     => Role::ADMIN->value,
         ]);
 
@@ -72,6 +74,7 @@ class CreateUserCommandTest extends KernelTestCase
         $user = $this->userRepository->findOneBy(['email' => 'integration-admin@example.com']);
         $this->assertNotNull($user);
         $this->assertContains(Role::ADMIN->value, $user->getRoles());
+        $this->assertSame('Jan Kowalski', $user->getFullName());
     }
 
     #[Test]
@@ -87,6 +90,8 @@ class CreateUserCommandTest extends KernelTestCase
         $adminTester->execute([
             'email'    => 'integration-admin@example.com',
             'password' => 'SecurePass123!',
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
             'role'     => Role::ADMIN->value,
         ]);
 
@@ -98,6 +103,8 @@ class CreateUserCommandTest extends KernelTestCase
         $exitCode = $userTester->execute([
             'email'    => 'integration-user@example.com',
             'password' => 'SecurePass123!',
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -114,6 +121,8 @@ class CreateUserCommandTest extends KernelTestCase
         $this->commandTester->execute([
             'email'    => 'integration-duplicate@example.com',
             'password' => 'SecurePass123!',
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
             'role'     => Role::ADMIN->value,
         ]);
 
@@ -121,6 +130,8 @@ class CreateUserCommandTest extends KernelTestCase
         $exitCode = $this->commandTester->execute([
             'email'    => 'integration-duplicate@example.com',
             'password' => 'AnotherPass123!',
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
             'role'     => Role::ADMIN->value,
         ]);
 
@@ -135,6 +146,8 @@ class CreateUserCommandTest extends KernelTestCase
         $exitCode = $this->commandTester->execute([
             'email'    => 'integration-invalid-email',
             'password' => 'SecurePass123!',
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
             'role'     => Role::ADMIN->value,
         ]);
 
@@ -152,6 +165,8 @@ class CreateUserCommandTest extends KernelTestCase
         $exitCode = $this->commandTester->execute([
             'email'    => 'integration-admin@example.com',
             'password' => '123',
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
             'role'     => Role::ADMIN->value,
         ]);
 
@@ -159,6 +174,23 @@ class CreateUserCommandTest extends KernelTestCase
 
         $user = $this->userRepository->findOneBy(['email' => 'integration-admin@example.com']);
         $this->assertNull($user);
+    }
+
+    #[Test]
+    #[TestDox('Fails with exit code 1 and does not persist user when first name is blank')]
+    public function failsWhenFirstNameIsBlank(): void
+    {
+        $exitCode = $this->commandTester->execute([
+            'email'     => 'integration-admin@example.com',
+            'password'  => 'SecurePass123!',
+            'firstName' => ' ',
+            'lastName'  => 'Kowalski',
+            'role'      => Role::ADMIN->value,
+        ]);
+
+        $this->assertEquals(1, $exitCode);
+        $this->assertStringContainsString('firstName', $this->commandTester->getDisplay());
+        $this->assertNull($this->userRepository->findOneBy(['email' => 'integration-admin@example.com']));
     }
 
     #[Test]
@@ -170,6 +202,8 @@ class CreateUserCommandTest extends KernelTestCase
         $this->commandTester->execute([
             'email'    => 'integration-admin@example.com',
             'password' => $plainTextInput,
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
             'role'     => Role::ADMIN->value,
         ]);
 
@@ -186,6 +220,8 @@ class CreateUserCommandTest extends KernelTestCase
         $this->commandTester->execute([
             'email'    => 'integration-admin@example.com',
             'password' => 'SecurePass123!',
+            'firstName' => 'Jan',
+            'lastName' => 'Kowalski',
             'role'     => Role::ADMIN->value,
         ]);
 

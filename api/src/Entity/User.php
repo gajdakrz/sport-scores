@@ -34,6 +34,12 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[ORM\Column]
     private string $password;
 
+    #[ORM\Column(length: 100)]
+    private string $firstName = '';
+
+    #[ORM\Column(length: 100)]
+    private string $lastName = '';
+
 // kept as a curiosity
 //    PHP 8.4 supports this approach (property hooks),
 //  but with Doctrine ORM plainPassword is not persisted to the database in this case
@@ -68,6 +74,65 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
         $this->email = $email;
 
         return $this;
+    }
+
+    public function getFirstName(): string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): static
+    {
+        $this->firstName = $firstName;
+
+        return $this;
+    }
+
+    public function getLastName(): string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): static
+    {
+        $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    /**
+     * Sets both name parts at once, without surrounding whitespace.
+     */
+    public function changeName(string $firstName, string $lastName): static
+    {
+        $this->firstName = trim($firstName);
+        $this->lastName = trim($lastName);
+
+        return $this;
+    }
+
+    public function getFullName(): string
+    {
+        return implode(' ', $this->getNameParts());
+    }
+
+    public function getInitials(): string
+    {
+        return mb_strtoupper(implode('', array_map(
+            static fn(string $part): string => mb_substr($part, 0, 1),
+            $this->getNameParts()
+        )));
+    }
+
+    /**
+     * @return list<string> trimmed, non-empty first and last name
+     */
+    private function getNameParts(): array
+    {
+        return array_values(array_filter(
+            [trim($this->firstName), trim($this->lastName)],
+            static fn(string $part): bool => $part !== ''
+        ));
     }
 
     /**

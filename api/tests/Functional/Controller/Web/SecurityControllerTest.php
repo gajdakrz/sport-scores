@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
@@ -109,29 +110,34 @@ final class SecurityControllerTest extends WebTestCase
     // -------------------------------------------------------------------------
 
     #[Test]
-    #[TestDox('Logout redirects authenticated user and invalidates session')]
-    public function logoutRedirectsAuthenticatedUser(): void
+    #[TestDox('Logout link from the navbar ends the session')]
+    public function logoutFromNavbarEndsSession(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $crawler = $client->request('GET', '/');
+        $client->click($crawler->filter('#user-menu [data-test="logout-link"]')->link());
+
+        $this->assertResponseRedirects();
+
+        $client->request('GET', '/');
+        $this->assertResponseRedirects('/login');
+    }
+
+    #[Test]
+    #[TestDox('Logout without a CSRF token is rejected and the user stays logged in')]
+    public function logoutWithoutCsrfTokenIsRejected(): void
     {
         $client = self::createClient();
         $this->loginAsTestUser($client);
 
         $client->request('GET', '/logout');
 
-        // The Symfony firewall intercepts /logout before it reaches the controller
-        // and redirects (the LogicException is never thrown)
-        $this->assertResponseRedirects();
-    }
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
 
-    #[Test]
-    #[TestDox('Logout is accessible without authentication')]
-    public function logoutIsAccessibleWithoutAuthentication(): void
-    {
-        $client = self::createClient();
-
-        $client->request('GET', '/logout');
-
-        // An anonymous user is redirected (e.g. to /login or /)
-        $this->assertResponseRedirects();
+        $client->request('GET', '/');
+        $this->assertResponseIsSuccessful();
     }
 
     // -------------------------------------------------------------------------

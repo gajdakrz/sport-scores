@@ -140,6 +140,8 @@ class RegistrationUserServiceTest extends TestCase
 
         $this->assertEquals('user@example.com', $user->getEmail());
         $this->assertContains(Role::USER->value, $user->getRoles());
+        $this->assertSame('Jan', $user->getFirstName());
+        $this->assertSame('Kowalski', $user->getLastName());
     }
 
     #[Test]
@@ -192,6 +194,8 @@ class RegistrationUserServiceTest extends TestCase
         return (new RegistrationUserRequest())
             ->setEmail($email)
             ->setRole($role)
-            ->setPlainPassword($plainPassword);
+            ->setPlainPassword($plainPassword)
+            ->setFirstName('  Jan ')
+            ->setLastName(' Kowalski');
     }
 }

@@ -24,6 +24,8 @@ class TestUserFixture extends Fixture
     {
         $user = new User();
         $user->setEmail(self::USER_EMAIL_TEST);
+        $user->setFirstName('User');
+        $user->setLastName('Test');
         $user->setRoles([Role::USER->value]);
         $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
 

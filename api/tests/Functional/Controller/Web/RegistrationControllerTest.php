@@ -9,8 +9,10 @@ use App\Enum\Role;
 use App\Repository\UserRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -36,7 +38,7 @@ final class RegistrationControllerTest extends WebTestCase
     }
 
     #[Test]
-    #[TestDox('Register page contains email and password fields')]
+    #[TestDox('Register page contains name, email and password fields')]
     public function registerPageContainsRequiredFields(): void
     {
         $client = self::createClient();
@@ -45,6 +47,8 @@ final class RegistrationControllerTest extends WebTestCase
 
         $this->assertSelectorExists('input[type="email"], input[name*="email"]');
         $this->assertSelectorExists('input[type="password"]');
+        $this->assertSelectorExists('input[name="registration_form[firstName]"]');
+        $this->assertSelectorExists('input[name="registration_form[lastName]"]');
     }
 
     // -------------------------------------------------------------------------
@@ -61,20 +65,7 @@ final class RegistrationControllerTest extends WebTestCase
         // Registering a user requires an existing admin.
         $this->ensureAdminExists();
 
-        $crawler = $client->request('GET', '/register');
-        $form    = $crawler->selectButton('Register')->form();
-
-        $formData = [];
-        foreach ($form->all() as $field) {
-            $name = $field->getName();
-            if (str_contains($name, '[email]')) {
-                $formData[$name] = 'user_' . uniqid() . '@example.com';
-            } elseif (str_contains($name, '[plainPassword]')) {
-                $formData[$name] = 'Secret123!';
-            }
-        }
-
-        $client->submit($form, $formData);
+        $this->submitRegistrationForm($client);
 
         $this->assertResponseRedirects('/login');
     }
@@ -86,25 +77,28 @@ final class RegistrationControllerTest extends WebTestCase
         $client = self::createClient();
         $this->ensureAdminExists();
 
-        $crawler = $client->request('GET', '/register');
-        $form    = $crawler->selectButton('Register')->form();
-
-        $formData = [];
-        foreach ($form->all() as $field) {
-            $name = $field->getName();
-            if (str_contains($name, '[email]')) {
-                $formData[$name] = 'user_' . uniqid() . '@example.com';
-            } elseif (str_contains($name, '[plainPassword]')) {
-                $formData[$name] = 'Secret123!';
-            }
-        }
-
-        $client->submit($form, $formData);
+        $this->submitRegistrationForm($client);
         $this->assertResponseRedirects('/login');
 
         $client->followRedirect();
 
         $this->assertSelectorTextContains('[class*="flash"], .alert, .notice', 'Account created!');
+    }
+
+    #[Test]
+    #[TestDox('Registered user is stored with the first and last name from the form')]
+    public function userIsCreatedWithFirstAndLastName(): void
+    {
+        $client = self::createClient();
+        $this->ensureAdminExists();
+
+        $email = $this->submitRegistrationForm($client, ['firstName' => ' Łukasz ', 'lastName' => 'Śliwa']);
+
+        $this->assertResponseRedirects('/login');
+        $user = $this->findUserByEmail($email);
+        $this->assertNotNull($user);
+        $this->assertSame('Łukasz', $user->getFirstName());
+        $this->assertSame('Śliwa', $user->getLastName());
     }
 
     // -------------------------------------------------------------------------
@@ -117,10 +111,11 @@ final class RegistrationControllerTest extends WebTestCase
     {
         $client = self::createClient();
 
-        // RegistrationFormType has only EmailType and PasswordType – no enums.
-        // The only way to !isValid() (apart from DTO validation) is an invalid CSRF token.
+        // The only way to !isValid() apart from DTO validation is an invalid CSRF token.
         $client->request('POST', '/register', [
             'registration_form' => [
+                'firstName'     => 'Jan',
+                'lastName'      => 'Kowalski',
                 'email'         => 'test@example.com',
                 'plainPassword' => 'Secret123!',
                 '_token'        => 'invalid_csrf_token',
@@ -132,58 +127,36 @@ final class RegistrationControllerTest extends WebTestCase
         $this->assertSelectorExists('form');
     }
 
-    #[Test]
-    #[TestDox('Submitting the form with an empty email re-renders the registration form')]
-    public function submittingFormWithEmptyEmailRendersFormAgain(): void
+    /**
+     * @return array<string, array{array<string, string>}>
+     */
+    public static function invalidRegistrationDataProvider(): array
     {
-        $client = self::createClient();
-
-        $crawler = $client->request('GET', '/register');
-        $form    = $crawler->selectButton('Register')->form();
-
-        $formData = [];
-        foreach ($form->all() as $field) {
-            $name = $field->getName();
-            if (str_contains($name, '[email]')) {
-                $formData[$name] = '';
-            } elseif (str_contains($name, '[plainPassword]')) {
-                $formData[$name] = 'Secret123!';
-            }
-        }
-
-        $client->submit($form, $formData);
-
-        // DTO validation (NotBlank on email) → isValid()=false → page re-rendered
-        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
-        $this->assertSelectorExists('form');
-        $this->assertResponseIsSuccessful(); // no redirect = 200
+        return [
+            'empty email'        => [['email' => '']],
+            'too short password' => [['plainPassword' => '123']],
+            'blank first name'   => [['firstName' => '  ']],
+            'blank last name'    => [['lastName' => '']],
+        ];
     }
 
+    /**
+     * @param array<string, string> $overrides
+     */
     #[Test]
-    #[TestDox('Submitting the form with a password shorter than 6 characters re-renders the registration form')]
-    public function submittingFormWithTooShortPasswordRendersFormAgain(): void
+    #[DataProvider('invalidRegistrationDataProvider')]
+    #[TestDox('Registration with $_dataName is rejected and the form is re-rendered')]
+    public function registrationWithInvalidDataIsRejected(array $overrides): void
     {
         $client = self::createClient();
+        $this->ensureAdminExists();
 
-        $crawler = $client->request('GET', '/register');
-        $form    = $crawler->selectButton('Register')->form();
+        $email = $this->submitRegistrationForm($client, $overrides);
 
-        $formData = [];
-        foreach ($form->all() as $field) {
-            $name = $field->getName();
-            if (str_contains($name, '[email]')) {
-                $formData[$name] = 'test_' . uniqid() . '@example.com';
-            } elseif (str_contains($name, '[plainPassword]')) {
-                $formData[$name] = '123';
-            }
-        }
-
-        $client->submit($form, $formData);
-
-        // DTO validation (Length min=6) → isValid()=false → page re-rendered
+        // DTO validation → isValid()=false → page re-rendered, nothing stored
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
         $this->assertSelectorExists('form');
-        $this->assertResponseIsSuccessful();
+        $this->assertNull($this->findUserByEmail($email));
     }
 
     // -------------------------------------------------------------------------
@@ -205,6 +178,41 @@ final class RegistrationControllerTest extends WebTestCase
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Fills the real registration form (CSRF token included) with valid data, overridden by $overrides.
+     *
+     * @param array<string, string> $overrides keyed by field name, e.g. ['firstName' => '']
+     * @return string the submitted email
+     */
+    private function submitRegistrationForm(KernelBrowser $client, array $overrides = []): string
+    {
+        $data = [
+            'firstName'     => 'Jan',
+            'lastName'      => 'Kowalski',
+            'email'         => 'user_' . uniqid() . '@example.com',
+            'plainPassword' => 'Secret123!',
+            ...$overrides,
+        ];
+
+        $form = $client->request('GET', '/register')->selectButton('Register')->form();
+
+        $formData = [];
+        foreach ($data as $field => $value) {
+            $formData['registration_form[' . $field . ']'] = $value;
+        }
+        $client->submit($form, $formData);
+
+        return $data['email'];
+    }
+
+    private function findUserByEmail(string $email): ?User
+    {
+        /** @var UserRepository $userRepository */
+        $userRepository = static::getContainer()->get(UserRepository::class);
+
+        return $userRepository->findOneBy(['email' => $email]);
+    }
 
     /**
      * Rejestracja usera wymaga istnienia admina (RegistrationUserService::register()).

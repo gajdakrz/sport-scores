@@ -33,9 +33,14 @@
                     {% endfor %}
                 </select>
             </div>
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                {% if app.user %}
+                    {% include '_user_menu.html.twig' with {user: app.user} only %}
+                {% endif %}
+                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
             <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">SportScores</h5>
@@ -44,15 +49,19 @@
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="{{ path('app_home') }}">Home</a>
+                            <a class="nav-link active d-flex align-items-center gap-2" aria-current="page" href="{{ path('app_home') }}">
+                                <i class="bi bi-house-door" aria-hidden="true"></i>
+                                Home
+                            </a>
                         </li>
                         <li class="nav-item dropdown">
                             <button
-                                class="nav-link dropdown-toggle"
+                                class="nav-link dropdown-toggle d-flex align-items-center gap-2"
                                 type="button"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
                             >
+                                <i class="bi bi-grid" aria-hidden="true"></i>
                                 Services
                             </button>
                             <ul class="dropdown-menu dropdown-menu-dark">
@@ -87,6 +96,9 @@
             {% endfor %}
         {% endfor %}
     </div>
+    {% if app.user %}
+        <div id="profileModalContainer"></div>
+    {% endif %}
     {% include '_modal_confirm.html.twig' %}
     {% block javascripts %}
         {{ encore_entry_script_tags('app') }}

@@ -4,22 +4,46 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller\Web;
 
-use App\Repository\UserRepository;
+use App\Tests\Trait\ControllerTestTrait;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class HomeControllerTest extends WebTestCase
 {
-    private const string USER_EMAIL_TEST = 'test@example.com';
+    use ControllerTestTrait;
 
     public function testIndex(): void
     {
         $client = static::createClient();
-        /** @var UserRepository $userRepository */
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy(['email' => self::USER_EMAIL_TEST]);
-        $this->assertNotNull($user);
-        $client->loginUser($user);
+        $this->loginAsTestUser($client);
         $client->request('GET', '/');
         self::assertResponseIsSuccessful();
+    }
+
+    #[Test]
+    #[TestDox('Navbar shows the logged-in user name, initials, profile edit and a CSRF-protected logout link')]
+    public function navbarShowsLoggedInUserWithLogoutLink(): void
+    {
+        $client = static::createClient();
+        $user   = $this->loginAsTestUser($client);
+
+        $client->request('GET', '/');
+
+        self::assertSelectorTextContains('#user-menu', $user->getFullName());
+        self::assertSelectorTextContains('#user-menu .user-avatar', $user->getInitials());
+        self::assertSelectorExists('#user-menu #editProfileBtn');
+        self::assertSelectorExists('#user-menu a[href^="/logout?_csrf_token="]');
+    }
+
+    #[Test]
+    #[TestDox('Navbar has no user menu for an anonymous visitor')]
+    public function navbarHasNoUserMenuForAnonymousVisitor(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/login');
+
+        self::assertSelectorNotExists('#user-menu');
     }
 }

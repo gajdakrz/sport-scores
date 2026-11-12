@@ -7,6 +7,7 @@ import { Polish } from "flatpickr/dist/l10n/pl.js";
 flatpickr.localize(Polish);
 
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.min.css";
 import {Modal, Alert} from "bootstrap";
 
 export interface BootstrapModalEvent extends Event {
@@ -19,6 +20,8 @@ export interface ModalFeatureConfig {
     newBtnId: string;
     newUrl: string;
     onLoaded?: () => void;
+    /** Buttons opening an existing record (with data-url); null = this feature has none. */
+    editBtnSelector?: string | null;
 }
 
 interface DeleteModalConfig {
@@ -35,7 +38,14 @@ const FLASH_TIME_MS = 5000;
 
 export class AppBase {
 
-    static initModalFeature({ containerId, modalId, newBtnId, newUrl, onLoaded }: ModalFeatureConfig): void {
+    static initModalFeature({
+        containerId,
+        modalId,
+        newBtnId,
+        newUrl,
+        onLoaded,
+        editBtnSelector = '.edit-btn',
+    }: ModalFeatureConfig): void {
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -179,7 +189,11 @@ export class AppBase {
             });
         }
 
-        document.querySelectorAll<HTMLElement>('.edit-btn').forEach(btn => {
+        if (editBtnSelector === null) {
+            return;
+        }
+
+        document.querySelectorAll<HTMLElement>(editBtnSelector).forEach(btn => {
             btn.addEventListener('click', () => {
                 if (isLoading || currentModal) {
                     return;

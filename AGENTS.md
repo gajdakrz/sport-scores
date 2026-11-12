@@ -81,6 +81,7 @@ Quality gate on new code: reliability, security and maintainability rating A, du
 - Don't use `addFlash()` in AJAX responses – the message goes in the JSON.
 - `createdAt` / `modifiedAt` are set by `AbstractEntity` (lifecycle callbacks) – don't set them manually.
 - Schema change = new migration (`php bin/console make:migration`). Don't edit existing files in `migrations/`.
+- Traits live in a `Trait/` subdirectory of the layer that uses them (e.g. `src/Dto/Request/Trait/`, `src/Enum/Trait/`), not in a global `src/Trait/`. Prefer composition or inheritance; use a trait only for small, single-purpose code shared by several classes.
 
 ## Frontend conventions
 
@@ -121,4 +122,14 @@ Writing guidelines:
 ## Security
 
 - Don't commit secrets. Keep local values in `api/.env.local`, not in `api/.env`.
+- Don't read, print or commit `api/.env.local`, private keys (`*.pem`, `*.key`) or credential files. Don't hardcode real passwords, API keys or tokens in code or tests – test fixtures use obvious test-only values.
+- Don't log passwords, tokens, the `Authorization` header, whole `Request` objects or personal data.
+- Validate all external input (body, query, headers, files) on the server with Symfony Validator on DTOs / form types.
+- SQL/DQL only through Doctrine with bound parameters (`setParameter()`, `executeQuery([...])`) – never concatenate input into a query.
+- Every new controller action declares access (`#[IsGranted]` or `access_control`). An action on a user-owned resource checks ownership – prefer `getUser()` over an id in the URL (IDOR).
+- XSS: rely on Twig autoescaping. `|raw` only for JSON encoded with `JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT`. In TS, user data goes into `textContent`; `innerHTML` only for Twig-rendered or static markup.
+- New Composer / npm packages only with the user's explicit approval – check the exact package name (typosquatting), then run `composer audit` / `npm audit`.
+- Don't run destructive commands (`git push --force`, `DROP`/`TRUNCATE` on the dev database, `rm -rf` outside `var/`) or piped installers (`curl … | sh`). `make test-db-ide` (test database) is fine.
+- Tests don't call external services – mock the boundary.
+- Before finishing, check `git diff` for tokens, real e-mails or other personal data.
 - Don't disable PHPStan / Sonar rules with annotations (`@phpstan-ignore`, `NOSONAR`) – fix the root cause.
