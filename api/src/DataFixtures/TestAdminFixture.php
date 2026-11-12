@@ -24,6 +24,8 @@ class TestAdminFixture extends Fixture
     {
         $user = new User();
         $user->setEmail(self::ADMIN_EMAIL_TEST);
+        $user->setFirstName('Admin');
+        $user->setLastName('Test');
         $user->setRoles([Role::ADMIN->value]);
         $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
 

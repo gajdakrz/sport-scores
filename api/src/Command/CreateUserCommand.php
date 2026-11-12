@@ -36,6 +36,8 @@ class CreateUserCommand extends Command
         $this
             ->addArgument('email', InputArgument::REQUIRED)
             ->addArgument('password', InputArgument::REQUIRED)
+            ->addArgument('firstName', InputArgument::REQUIRED)
+            ->addArgument('lastName', InputArgument::REQUIRED)
             ->addArgument('role', InputArgument::OPTIONAL, 'User role', Role::USER->value);
     }
 
@@ -76,11 +78,17 @@ class CreateUserCommand extends Command
         $email = $input->getArgument('email') ?? '';
         /** @var string $password */
         $password = $input->getArgument('password') ?? '';
+        /** @var string $firstName */
+        $firstName = $input->getArgument('firstName') ?? '';
+        /** @var string $lastName */
+        $lastName = $input->getArgument('lastName') ?? '';
 
         $dto = new RegistrationUserRequest();
         $dto
             ->setEmail($email)
             ->setPlainPassword($password)
+            ->setFirstName($firstName)
+            ->setLastName($lastName)
             ->setRole($roleEnum);
 
         $violations = $this->validator->validate($dto);

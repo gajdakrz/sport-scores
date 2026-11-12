@@ -37,6 +37,7 @@ readonly class RegistrationUserService
 
         $user = new User();
         $user->setEmail($dto->email);
+        $user->changeName($dto->getFirstName(), $dto->getLastName());
 
         $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->getPlainPassword());
         $user->setPassword($hashedPassword);

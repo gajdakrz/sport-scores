@@ -9,6 +9,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class RegistrationUserRequest
 {
+    use UserNameTrait;
+
     #[Assert\NotBlank(message: "Insert email.")]
     #[Assert\Email]
     public string $email;
