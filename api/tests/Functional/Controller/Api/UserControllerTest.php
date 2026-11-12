@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Controller\Api;
 use App\Repository\UserRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -20,6 +21,7 @@ final class UserControllerTest extends WebTestCase
     private const string ENDPOINT  = '/api/v1/user';
     private const string ROLE_USER  = 'ROLE_USER';
     private const string ROLE_ADMIN = 'ROLE_ADMIN';
+    private const array NAMES = ['firstName' => 'Jan', 'lastName' => 'Kowalski'];
 
     // -------------------------------------------------------------------------
     // Sukces – 201 Created
@@ -32,6 +34,7 @@ final class UserControllerTest extends WebTestCase
         $client = $this->createAuthenticatedClient();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'admin_' . uniqid() . '@example.com',
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_ADMIN,
@@ -47,6 +50,7 @@ final class UserControllerTest extends WebTestCase
         $client = $this->createAuthenticatedClient();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'admin_' . uniqid() . '@example.com',
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_ADMIN,
@@ -64,6 +68,7 @@ final class UserControllerTest extends WebTestCase
         $client = $this->createAuthenticatedClient();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'admin_' . uniqid() . '@example.com',
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_ADMIN,
@@ -71,6 +76,7 @@ final class UserControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'user_' . uniqid() . '@example.com',
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_USER,
@@ -90,6 +96,7 @@ final class UserControllerTest extends WebTestCase
         $this->deleteAllAdminUsers();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'user_' . uniqid() . '@example.com',
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_USER,
@@ -106,6 +113,7 @@ final class UserControllerTest extends WebTestCase
         $email = 'admin_' . uniqid() . '@example.com';
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => $email,
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_ADMIN,
@@ -113,6 +121,7 @@ final class UserControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => $email,
             'plainPassword' => 'OtherPass1!',
             'role' => self::ROLE_ADMIN,
@@ -215,6 +224,7 @@ final class UserControllerTest extends WebTestCase
         $client = $this->createAuthenticatedClient();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_ADMIN,
         ]);
@@ -236,6 +246,7 @@ final class UserControllerTest extends WebTestCase
         $client = $this->createAuthenticatedClient();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'admin_' . uniqid() . '@example.com',
             'role' => self::ROLE_ADMIN,
         ]);
@@ -257,6 +268,7 @@ final class UserControllerTest extends WebTestCase
         $client = $this->createAuthenticatedClient();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'not-an-email',
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_ADMIN,
@@ -279,6 +291,7 @@ final class UserControllerTest extends WebTestCase
         $client = $this->createAuthenticatedClient();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'admin_' . uniqid() . '@example.com',
             'plainPassword' => '123',
             'role' => self::ROLE_ADMIN,
@@ -294,6 +307,44 @@ final class UserControllerTest extends WebTestCase
         $this->assertContains('plainPassword', $fields);
     }
 
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function requiredNameFieldProvider(): array
+    {
+        return [
+            'first name' => ['firstName'],
+            'last name'  => ['lastName'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('requiredNameFieldProvider')]
+    #[TestDox('Account without $field is rejected')]
+    public function accountWithoutNameIsRejected(string $field): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $email  = 'admin_' . uniqid() . '@example.com';
+
+        $this->postJson($client, [
+            ...self::NAMES,
+            $field => '   ',
+            'email' => $email,
+            'plainPassword' => 'Secret123!',
+            'role' => self::ROLE_ADMIN,
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $errors = $this->decodeResponse($client)['errors'];
+        $this->assertIsArray($errors);
+        $this->assertContains($field, array_column($errors, 'field'));
+
+        /** @var UserRepository $userRepository */
+        $userRepository = static::getContainer()->get(UserRepository::class);
+        $this->assertNull($userRepository->findOneBy(['email' => $email]));
+    }
+
     // -------------------------------------------------------------------------
     // Response headers
     // -------------------------------------------------------------------------
@@ -305,6 +356,7 @@ final class UserControllerTest extends WebTestCase
         $client = $this->createAuthenticatedClient();
 
         $this->postJson($client, [
+            ...self::NAMES,
             'email' => 'admin_' . uniqid() . '@example.com',
             'plainPassword' => 'Secret123!',
             'role' => self::ROLE_ADMIN,

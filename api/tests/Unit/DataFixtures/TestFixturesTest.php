@@ -23,13 +23,13 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 final class TestFixturesTest extends TestCase
 {
     /**
-     * @return array<string, array{class-string<TestAdminFixture|TestUserFixture>, string, Role}>
+     * @return array<string, array{class-string<TestAdminFixture|TestUserFixture>, string, Role, string}>
      */
     public static function fixtureProvider(): array
     {
         return [
-            'admin' => [TestAdminFixture::class, 'admin_test@example.com', Role::ADMIN],
-            'user'  => [TestUserFixture::class, 'test@example.com', Role::USER],
+            'admin' => [TestAdminFixture::class, 'admin_test@example.com', Role::ADMIN, 'Admin Test'],
+            'user'  => [TestUserFixture::class, 'test@example.com', Role::USER, 'User Test'],
         ];
     }
 
@@ -38,9 +38,13 @@ final class TestFixturesTest extends TestCase
      */
     #[Test]
     #[DataProvider('fixtureProvider')]
-    #[TestDox('$_dataName fixture persists a user with its role and a hashed password')]
-    public function loadPersistsUserWithRoleAndHashedPassword(string $fixtureClass, string $email, Role $role): void
-    {
+    #[TestDox('$_dataName fixture persists a user with its name, role and a hashed password')]
+    public function loadPersistsUserWithRoleAndHashedPassword(
+        string $fixtureClass,
+        string $email,
+        Role $role,
+        string $fullName,
+    ): void {
         $passwordHasher = $this->createMock(UserPasswordHasherInterface::class);
         $passwordHasher->expects($this->once())
             ->method('hashPassword')
@@ -54,6 +58,7 @@ final class TestFixturesTest extends TestCase
                 fn(User $user): bool => $user->getEmail() === $email
                     && in_array($role->value, $user->getRoles(), true)
                     && $user->getPassword() === 'hashed_password'
+                    && $user->getFullName() === $fullName
             ));
         $manager->expects($this->once())->method('flush');
 
