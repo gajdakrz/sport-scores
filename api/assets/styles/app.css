@@ -28,6 +28,23 @@ select.form-select:has(option:not([value=""]):checked) {
     width: min(600px, 95vw);
 }
 
+/* logged-in user menu in the navbar */
+.user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.user-menu .dropdown-menu {
+    min-width: 14rem;
+}
+
 /* game result row: the action column is as tall as a form input, so the button is centred on the fields */
 .game-result-actions {
     height: calc(1.5em + 0.75rem + calc(var(--bs-border-width) * 2));

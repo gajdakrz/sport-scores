@@ -1,0 +1,26 @@
+{# Logged-in user: initials + full name, dropdown with email and logout. Expects `user` (App\Entity\User). #}
+<div class="dropdown user-menu" id="user-menu">
+    <button class="btn btn-dark d-flex align-items-center gap-2 px-2 py-1"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            aria-label="Account menu: {{ user.fullName }}"
+            title="{{ user.fullName }}">
+        <span class="user-avatar bg-primary text-white" aria-hidden="true">{{ user.initials }}</span>
+        <span class="d-none d-md-inline text-light">{{ user.fullName }}</span>
+        <span class="dropdown-toggle" aria-hidden="true"></span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
+        <li class="px-3 py-2">
+            <div class="fw-semibold text-light">{{ user.fullName }}</div>
+            <div class="small text-secondary text-truncate">{{ user.email }}</div>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ logout_path() }}" data-test="logout-link">
+                <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                Log out
+            </a>
+        </li>
+    </ul>
+</div>
