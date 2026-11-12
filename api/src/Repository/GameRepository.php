@@ -63,6 +63,7 @@ class GameRepository extends AbstractRepository
      * @param string $orderBy
      * @param string $direction
      * @param ?Sport $sport
+     * @param ?int $seasonStartYear only games of seasons starting in this year
      * @return QueryBuilder
      */
     public function createActiveByFilterBuilder(
@@ -70,6 +71,7 @@ class GameRepository extends AbstractRepository
         string $orderBy = 'date',
         string $direction = 'DESC',
         ?Sport $sport = null,
+        ?int $seasonStartYear = null,
     ): QueryBuilder {
         $qb = $this->createQueryBuilder('game')
             ->join('game.event', 'event')
@@ -83,10 +85,13 @@ class GameRepository extends AbstractRepository
         $this->applyFilter($qb, 'event.competition', $filter->getCompetitionId());
         $this->applyFilter($qb, 'competition.gender', $filter->getGender()?->value);
 
-        if ($filter->getSeasonId() !== null) {
+        if ($filter->getSeasonId() !== null || $seasonStartYear !== null) {
             $qb->join('game.season', 'season');
-            $this->applyFilter($qb, 'game.season', $filter->getSeasonId());
         }
+
+        $this->applyFilter($qb, 'game.season', $filter->getSeasonId());
+
+        $this->applyFilter($qb, 'season.startYear', $seasonStartYear);
 
         return $qb;
     }

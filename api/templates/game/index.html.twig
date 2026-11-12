@@ -69,6 +69,22 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="col-md-auto align-self-end">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           role="switch"
+                           name="currentSeason"
+                           id="currentSeason"
+                           value="1"
+                           {% if currentSeasonChecked %}checked{% endif %}
+                           {% if app.request.get('seasonId') %}disabled{% endif %}>
+                    <label class="form-check-label" for="currentSeason"
+                           title="Seasons starting in the current year; ignored when a season is selected">
+                        Current season
+                    </label>
+                </div>
+            </div>
             {% include '_filter_actions.html.twig' %}
         </form>
         {# --- END FILTER FORM --- #}
