@@ -25,6 +25,12 @@ class GameFilterDto extends PaginationRequest
     #[Assert\Choice(callback: [GenderCategory::class, 'cases'])]
     private ?GenderCategory $gender = null;
 
+    /**
+     * Only games of seasons starting in the current year. Off unless sent as 1 (the app's links to Games do).
+     */
+    #[Assert\Type('bool')]
+    private ?bool $currentSeason = null;
+
     public function getCompetitionId(): ?int
     {
         return $this->competitionId;
@@ -82,5 +88,25 @@ class GameFilterDto extends PaginationRequest
     {
         $this->gender = $gender;
         return $this;
+    }
+
+    public function getCurrentSeason(): ?bool
+    {
+        return $this->currentSeason;
+    }
+
+    public function setCurrentSeason(?bool $currentSeason): static
+    {
+        $this->currentSeason = $currentSeason;
+
+        return $this;
+    }
+
+    /**
+     * A season picked explicitly takes precedence over the "current season" filter.
+     */
+    public function appliesCurrentSeason(): bool
+    {
+        return $this->seasonId === null && $this->currentSeason === true;
     }
 }

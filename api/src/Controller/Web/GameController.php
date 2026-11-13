@@ -20,6 +20,7 @@ use App\Service\GameResultHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,11 +40,13 @@ final class GameController extends BaseController
         EventRepository $eventRepository,
         SeasonRepository $seasonRepository,
         CurrentSportProvider $currentSportProvider,
+        ClockInterface $clock,
     ): Response {
         $currentSport = $currentSportProvider->getSport();
         $queryBuilder = $gameRepository->createActiveByFilterBuilder(
             filter: $gameFilterRequest,
-            sport: $currentSport
+            sport: $currentSport,
+            seasonStartYear: $gameFilterRequest->appliesCurrentSeason() ? (int) $clock->now()->format('Y') : null,
         );
 
         $pagerfanta = new Pagerfanta(new QueryAdapter($queryBuilder));
@@ -57,6 +60,7 @@ final class GameController extends BaseController
             'events' => $eventRepository->findActiveSortedBy('name', 'ASC'),
             'seasons' => $seasonRepository->findActiveSortedBy('startYear'),
             'genders' => GenderCategory::cases(),
+            'currentSeasonChecked' => $gameFilterRequest->getCurrentSeason() === true,
         ]);
     }
 

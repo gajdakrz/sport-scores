@@ -1,0 +1,21 @@
+{#
+    Submit + Clear for GET filter forms. Clear goes to the same route without the query string,
+    so every filter, the page and the limit are reset. Disabled when no filter is active
+    (pagination parameters alone don't count as a filter).
+#}
+{% set filterActive = app.request.query.all
+    |filter((value, key) => key not in ['page', 'limit'] and value is not same as('') and value is not null)
+    |length > 0 %}
+<div class="col-md-auto align-self-end d-flex gap-2">
+    <button type="submit" class="btn btn-secondary d-flex align-items-center gap-2">
+        <i class="bi bi-funnel" aria-hidden="true"></i>
+        Filter
+    </button>
+    <a href="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')) }}"
+       class="btn btn-outline-secondary d-flex align-items-center gap-2{{ filterActive ? '' : ' disabled' }}"
+       data-test="filter-clear"
+       {% if not filterActive %}aria-disabled="true" tabindex="-1"{% endif %}>
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+        Clear
+    </a>
+</div>

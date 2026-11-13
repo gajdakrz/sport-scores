@@ -607,6 +607,22 @@ final class TeamControllerTest extends WebTestCase
     }
 
     #[Test]
+    #[TestDox('Clear link on the result season page keeps the team and drops the filters')]
+    public function clearLinkKeepsTeamOnResultSeasonPage(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $team = $this->createTestTeamEntity($this->createTestSport());
+        $url  = sprintf('/teams/%d/result-season-index', $team->getId());
+
+        $client->request('GET', $url, ['seasonId' => $this->createTestSeason()->getId()]);
+
+        $this->assertSelectorExists(sprintf('a[data-test="filter-clear"][href="%s"]', $url));
+        $this->assertSelectorNotExists('a[data-test="filter-clear"].disabled');
+    }
+
+    #[Test]
     #[TestDox('Result season index passes null team to template when team sport differs from current sport')]
     public function resultSeasonIndexPassesNullTeamWhenSportMismatch(): void
     {

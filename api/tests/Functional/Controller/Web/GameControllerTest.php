@@ -29,6 +29,8 @@ final class GameControllerTest extends WebTestCase
 {
     use ControllerTestTrait;
 
+    private const string CLEAR_LINK = 'a[data-test="filter-clear"]';
+
     // -------------------------------------------------------------------------
     // index
     // -------------------------------------------------------------------------
@@ -66,6 +68,132 @@ final class GameControllerTest extends WebTestCase
         $client->request('GET', '/games', ['page' => 1, 'limit' => 10]);
 
         $this->assertResponseIsSuccessful();
+    }
+
+    /**
+     * @return array<string, array{array<string, string|int>}>
+     */
+    public static function activeFilterProvider(): array
+    {
+        return [
+            'gender filter'          => [['gender' => GenderCategory::MALE->value, 'page' => 1]],
+            'current season filter'  => [['currentSeason' => '1']],
+        ];
+    }
+
+    /**
+     * @param array<string, string|int> $query
+     */
+    #[Test]
+    #[DataProvider('activeFilterProvider')]
+    #[TestDox('Clear link leads to the unfiltered list with $_dataName applied')]
+    public function clearLinkResetsAppliedFilters(array $query): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $client->request('GET', '/games', $query);
+
+        $this->assertSelectorExists(self::CLEAR_LINK . '[href="/games"]');
+        $this->assertSelectorNotExists(self::CLEAR_LINK . '.disabled');
+    }
+
+    /**
+     * @return array<string, array{array<string, string|int>}>
+     */
+    public static function noActiveFilterProvider(): array
+    {
+        return [
+            'no query'             => [[]],
+            'only pagination'      => [['page' => 1, 'limit' => 10]],
+            'filter fields as All' => [['seasonId' => '', 'gender' => '', 'competitionId' => '']],
+        ];
+    }
+
+    /**
+     * @param array<string, string|int> $query
+     */
+    #[Test]
+    #[DataProvider('noActiveFilterProvider')]
+    #[TestDox('Clear link is disabled with $_dataName')]
+    public function clearLinkIsDisabledWithoutActiveFilter(array $query): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+
+        $client->request('GET', '/games', $query);
+
+        $this->assertSelectorExists(self::CLEAR_LINK . '.disabled[aria-disabled="true"]');
+    }
+
+    // -------------------------------------------------------------------------
+    // index – current season filter
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<string, array{string, bool, bool}>
+     */
+    public static function seasonFilterProvider(): array
+    {
+        // [query variant, current-season game listed, old-season game listed]
+        return [
+            'list without filter'                      => ['none', true, true],
+            'current season filter'                    => ['current', true, false],
+            'selected season wins over current season' => ['oldSeason', false, true],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('seasonFilterProvider')]
+    #[TestDox('Game list for $variant: current season game listed = $currentListed, old one = $oldListed')]
+    public function gameListDependsOnSeasonFilter(string $variant, bool $currentListed, bool $oldListed): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $event = $this->createTestEvent($this->createTestCompetition($this->setCurrentSport($client)));
+
+        $oldSeason   = $this->createTestSeason(2015, 2016);
+        $currentGame = $this->createTestGame($event, $this->createTestSeason());
+        $oldGame     = $this->createTestGame($event, $oldSeason);
+
+        $query = match ($variant) {
+            'current'   => ['currentSeason' => '1'],
+            'oldSeason' => ['seasonId' => $oldSeason->getId(), 'currentSeason' => '1'],
+            default     => [],
+        };
+        $content = $this->requestGameList($client, $query);
+
+        $this->assertSame($currentListed, $this->isGameListed($content, $currentGame));
+        $this->assertSame($oldListed, $this->isGameListed($content, $oldGame));
+    }
+
+    #[Test]
+    #[TestDox('Current season filter shows games of all seasons starting in the current year, not of earlier ones')]
+    public function currentSeasonFilterShowsSeasonsStartingInCurrentYear(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $event = $this->createTestEvent($this->createTestCompetition($this->setCurrentSport($client)));
+        $year  = self::currentYear();
+
+        $listed = [
+            $this->createTestGame($event, $this->createTestSeason($year, $year)),
+            $this->createTestGame($event, $this->createTestSeason($year, $year + 1)),
+        ];
+        $notListed = [
+            // ends in the current year, but started earlier
+            $this->createTestGame($event, $this->createTestSeason($year - 1, $year)),
+            $this->createTestGame($event, $this->createTestSeason($year - 2, $year - 1)),
+        ];
+
+        $content = $this->requestGameList($client, ['currentSeason' => '1']);
+
+        foreach ($listed as $game) {
+            $this->assertTrue($this->isGameListed($content, $game));
+        }
+        foreach ($notListed as $game) {
+            $this->assertFalse($this->isGameListed($content, $game));
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -574,6 +702,27 @@ final class GameControllerTest extends WebTestCase
         ));
     }
 
+    /**
+     * @param array<string, string|int|null> $query
+     */
+    private function requestGameList(KernelBrowser $client, array $query): string
+    {
+        $client->request('GET', '/games', [...$query, 'limit' => 100]);
+        $this->assertResponseIsSuccessful();
+
+        return (string) $client->getResponse()->getContent();
+    }
+
+    private function isGameListed(string $content, Game $game): bool
+    {
+        return str_contains($content, sprintf('/games/%d/edit"', $game->getId()));
+    }
+
+    private static function currentYear(): int
+    {
+        return (int) date('Y');
+    }
+
     private function assertFieldError(KernelBrowser $client, string $field): void
     {
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
@@ -583,14 +732,18 @@ final class GameControllerTest extends WebTestCase
         $this->assertContains($field, array_column($data['errors'], 'field'));
     }
 
-    private function createTestSeason(): Season
+    /**
+     * Defaults to a season starting in the current year, so the game is also listed with the current season filter.
+     */
+    private function createTestSeason(?int $startYear = null, ?int $endYear = null): Season
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
+        $year = self::currentYear();
 
         $season = new Season();
-        $season->setStartYear(2024);
-        $season->setEndYear(2025);
+        $season->setStartYear($startYear ?? $year);
+        $season->setEndYear($endYear ?? $year);
         $season->setCreatedBy($user);
         $season->setModifiedBy($user);
         $season->setIsActive(true);
