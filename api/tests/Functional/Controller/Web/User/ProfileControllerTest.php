@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Functional\Controller\Web;
+namespace App\Tests\Functional\Controller\Web\User;
 
 use App\Entity\User;
 use App\Tests\Trait\ControllerTestTrait;

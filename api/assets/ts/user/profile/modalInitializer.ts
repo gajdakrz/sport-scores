@@ -1,4 +1,4 @@
-import { AppBase, ModalFeatureConfig } from '../common/base';
+import { AppBase, ModalFeatureConfig } from '../../common/base';
 
 /**
  * "Edit profile" from the navbar user menu – loaded on every page through the app entry.
