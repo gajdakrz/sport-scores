@@ -9,6 +9,8 @@ use App\Entity\Sport;
 use App\Entity\User;
 use App\Form\SportType;
 use App\Repository\SportRepository;
+use App\Service\CurrentSportProvider;
+use App\Service\Preference\PreferredFilterResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -106,13 +108,17 @@ final class SportController extends BaseController
         return new JsonResponse(['success' => true, 'message' => 'Sport deleted.']);
     }
 
+    /**
+     * Returns where to go after picking a sport: Games with the user's preferred filters for that sport.
+     */
     #[Route('/set/{id}', name: 'sport_set', methods: ['POST'])]
     public function setSport(
         Sport $sport,
-        Request $request
-    ): Response {
-        $request->getSession()->set('current_sport_id', $sport->getId());
+        CurrentSportProvider $currentSportProvider,
+        PreferredFilterResolver $preferredFilterResolver,
+    ): JsonResponse {
+        $currentSportProvider->setSport($sport);
 
-        return new Response(null, 204);
+        return new JsonResponse(['redirectUrl' => $preferredFilterResolver->generatePath('game_index')]);
     }
 }

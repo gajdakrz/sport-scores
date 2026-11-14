@@ -17,7 +17,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
 #[TeamGenderConsistent]
 #[TeamCompetitionCountryAllowed]
-class Team extends AbstractAuditableEntity
+class Team extends AbstractAuditableEntity implements SportScopedInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

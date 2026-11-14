@@ -35,7 +35,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 {% if app.user %}
-                    {% include '_user_menu.html.twig' with {user: app.user} only %}
+                    {% include 'user/_menu.html.twig' with {user: app.user} only %}
                 {% endif %}
                 <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -67,12 +67,12 @@
                             <ul class="dropdown-menu dropdown-menu-dark">
                                 <li><a class="dropdown-item" href="{{ path('sport_index') }}">Sports</a></li>
                                 <li><a class="dropdown-item" href="{{ path('competition_index') }}">Competitions</a></li>
-                                <li><a class="dropdown-item" href="{{ path('event_index') }}">Events</a></li>
-                                <li><a class="dropdown-item" href="{{ path('game_index', {currentSeason: 1}) }}">Games</a></li>
-                                <li><a class="dropdown-item" href="{{ path('game_result_index') }}">Games Results</a></li>
+                                <li><a class="dropdown-item" href="{{ preferred_path('event_index') }}">Events</a></li>
+                                <li><a class="dropdown-item" href="{{ preferred_path('game_index') }}">Games</a></li>
+                                <li><a class="dropdown-item" href="{{ preferred_path('game_result_index') }}">Games Results</a></li>
                                 <li><a class="dropdown-item" href="{{ path('country_index') }}">Countries</a></li>
-                                <li><a class="dropdown-item" href="{{ path('team_index') }}">Teams</a></li>
-                                <li><a class="dropdown-item" href="{{ path('team_member_index') }}">Team Members</a></li>
+                                <li><a class="dropdown-item" href="{{ preferred_path('team_index') }}">Teams</a></li>
+                                <li><a class="dropdown-item" href="{{ preferred_path('team_member_index') }}">Team Members</a></li>
                                 <li><a class="dropdown-item" href="{{ path('season_index') }}">Seasons</a></li>
                                 <li><a class="dropdown-item" href="{{ path('member_position_index') }}">Member Position</a></li>
                                 <li><a class="dropdown-item" href="{{ path('person_index') }}">Persons</a></li>
@@ -98,6 +98,7 @@
     </div>
     {% if app.user %}
         <div id="profileModalContainer"></div>
+        <div id="preferenceModalContainer"></div>
     {% endif %}
     {% include '_modal_confirm.html.twig' %}
     {% block javascripts %}

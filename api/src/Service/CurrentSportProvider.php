@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 readonly class CurrentSportProvider
 {
+    private const string SESSION_KEY = 'current_sport_id';
+
     public function __construct(
         private RequestStack $requestStack,
         private SportRepository $sportRepository
@@ -20,11 +22,16 @@ readonly class CurrentSportProvider
     public function getSport(): ?Sport
     {
         $session = $this->requestStack->getSession();
-        $sportId = $session->get('current_sport_id');
+        $sportId = $session->get(self::SESSION_KEY);
 
         return $sportId
             ? $this->sportRepository->find($sportId)
             : null;
+    }
+
+    public function setSport(Sport $sport): void
+    {
+        $this->requestStack->getSession()->set(self::SESSION_KEY, $sport->getId());
     }
 
     public function getSportId(): ?int

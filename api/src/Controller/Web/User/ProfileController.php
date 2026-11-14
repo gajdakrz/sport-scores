@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller\Web;
+namespace App\Controller\Web\User;
 
 use App\Controller\BaseController;
 use App\Dto\Request\ProfileRequest;
@@ -33,7 +33,7 @@ final class ProfileController extends BaseController
         $form->handleRequest($request);
 
         if (!$form->isSubmitted()) {
-            return $this->render('profile/_modal.html.twig', [
+            return $this->render('user/profile/_modal.html.twig', [
                 'form' => $form->createView(),
                 'user' => $user,
             ]);

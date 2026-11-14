@@ -1,3 +1,4 @@
+import { AppBase } from '../common/base';
 import { ModalInitializer } from './modalInitializer';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,11 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!sportId) return;
 
         try {
-            await fetch(`sports/set/${sportId}`, {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            globalThis.location.href = '/games?currentSeason=1';
+            await AppBase.selectSportAndOpenGames(sportId);
         } catch (err) {
             console.error('Failed to switch sport', err);
         }

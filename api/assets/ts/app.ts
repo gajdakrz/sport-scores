@@ -1,5 +1,6 @@
 import { AppBase } from './common/base';
-import { ModalInitializer as ProfileModalInitializer } from './profile/modalInitializer';
+import { ModalInitializer as ProfileModalInitializer } from './user/profile/modalInitializer';
+import { ModalInitializer as PreferenceModalInitializer } from './user/preference/modalInitializer';
 
 document.addEventListener('DOMContentLoaded', () => {
     AppBase.initSportSwitcher();
@@ -7,4 +8,5 @@ document.addEventListener('DOMContentLoaded', () => {
     AppBase.initDeleteModal();
     AppBase.initUniversalModalFocusHandler();
     new ProfileModalInitializer().init();
+    new PreferenceModalInitializer().init();
 });

@@ -328,6 +328,19 @@ export class AppBase {
         });
     }
 
+    /**
+     * Picks the sport and opens Games with the user's preferred filters (URL decided by the server).
+     */
+    static async selectSportAndOpenGames(sportId: string): Promise<void> {
+        const res = await fetch(`/sports/set/${sportId}`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const json: { redirectUrl?: string } = await res.json();
+
+        globalThis.location.href = json.redirectUrl ?? '/games';
+    }
+
     static initSportSwitcher(): void {
         const switcher = document.getElementById('sport-switcher') as HTMLSelectElement;
         if (!switcher) return;
