@@ -1,3 +1,5 @@
+import { AppBase } from '../common/base';
+
 document.addEventListener('DOMContentLoaded', () => {
     const sportSelect = document.getElementById('sport-select') as HTMLSelectElement | null;
 
@@ -13,11 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        await fetch(`/sports/set/${sportId}`, {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-
-        globalThis.location.href = '/games?currentSeason=1';
+        await AppBase.selectSportAndOpenGames(sportId);
     });
 });

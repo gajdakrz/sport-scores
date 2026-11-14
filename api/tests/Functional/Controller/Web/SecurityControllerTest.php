@@ -22,6 +22,7 @@ final class SecurityControllerTest extends WebTestCase
     use ControllerTestTrait;
 
     private const string DEACTIVATED_USER_PASSWORD = 'password';
+    private const string FIXTURE_PASSWORD = 'password';
 
     // -------------------------------------------------------------------------
     // login – GET
@@ -106,6 +107,52 @@ final class SecurityControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // login – favourite sport
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('User with a favourite sport lands on Games with that sport selected after login')]
+    public function userWithFavouriteSportLandsOnGamesAfterLogin(): void
+    {
+        $client = self::createClient();
+        $sport  = $this->createTestSport();
+        $this->saveUserPreference($this->getTestUser(), $sport);
+
+        $this->submitLoginForm($client, self::USER_EMAIL_TEST, self::FIXTURE_PASSWORD);
+
+        $this->assertResponseRedirects('/games?currentSeason=1');
+        $this->assertSelectedSport($client, (string) $sport->getId());
+    }
+
+    #[Test]
+    #[TestDox('User with a favourite sport still lands on the page they were sent away from')]
+    public function userWithFavouriteSportKeepsRequestedPageAfterLogin(): void
+    {
+        $client = self::createClient();
+        $this->saveUserPreference($this->getTestUser(), $this->createTestSport());
+
+        $client->request('GET', '/teams');
+        $this->submitLoginForm($client, self::USER_EMAIL_TEST, self::FIXTURE_PASSWORD);
+
+        $this->assertResponseRedirects('http://localhost/teams');
+    }
+
+    #[Test]
+    #[TestDox('User whose favourite sport was deactivated picks a sport on the home page after login')]
+    public function userWithDeactivatedFavouriteSportLandsOnHomeAfterLogin(): void
+    {
+        $client = self::createClient();
+        $sport  = $this->createTestSport();
+        $sport->setIsActive(false);
+        $this->saveUserPreference($this->getTestUser(), $sport);
+
+        $this->submitLoginForm($client, self::USER_EMAIL_TEST, self::FIXTURE_PASSWORD);
+
+        $this->assertResponseRedirects('http://localhost/');
+        $this->assertSelectedSport($client, '');
+    }
+
+    // -------------------------------------------------------------------------
     // logout
     // -------------------------------------------------------------------------
 
@@ -171,6 +218,13 @@ final class SecurityControllerTest extends WebTestCase
         $form = $client->request('GET', '/login')->selectButton('Sign in')->form();
 
         $client->submit($form, ['_username' => $email, '_password' => $password]);
+    }
+
+    private function assertSelectedSport(KernelBrowser $client, string $sportId): void
+    {
+        $crawler = $client->request('GET', '/');
+
+        $this->assertSame($sportId, $crawler->filter('#sport-switcher option[selected]')->attr('value'));
     }
 
     private function lastAuthenticationError(KernelBrowser $client): mixed

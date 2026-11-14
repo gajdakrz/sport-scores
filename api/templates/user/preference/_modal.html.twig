@@ -1,0 +1,26 @@
+<div class="modal fade" id="preferenceModal" tabindex="-1" aria-labelledby="preferenceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="preferenceModalLabel">Preferences</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            {{ form_start(form, {'action': path('preference_edit')}) }}
+            <div class="modal-body">
+                <p class="small text-secondary">
+                    All optional. The favourite sport is selected after login; list filters start
+                    with your favourites and can be reset with Clear.
+                </p>
+                {{ form_row(form.favouriteSport) }}
+                {{ form_row(form.favouriteCompetition) }}
+                {{ form_row(form.favouriteTeam) }}
+                {{ form_row(form.currentSeasonByDefault) }}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>

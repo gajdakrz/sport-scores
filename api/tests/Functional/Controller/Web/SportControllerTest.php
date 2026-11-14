@@ -319,8 +319,8 @@ final class SportControllerTest extends WebTestCase
     // -------------------------------------------------------------------------
 
     #[Test]
-    #[TestDox('setSport stores the sport ID in session and returns 204 No Content')]
-    public function setSportStoresSportInSessionAndReturns204(): void
+    #[TestDox('Picking a sport leads to Games with the "Current season" filter by default')]
+    public function pickingSportLeadsToGamesOfCurrentSeason(): void
     {
         $client = self::createClient();
         $this->loginAsTestUser($client);
@@ -329,7 +329,24 @@ final class SportControllerTest extends WebTestCase
 
         $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
 
-        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+        $this->assertResponseIsSuccessful();
+        $this->assertSame('/games?currentSeason=1', $this->assertJsonSuccessResponse($client)['redirectUrl']);
+    }
+
+    #[Test]
+    #[TestDox('Picking a sport leads to unfiltered Games when the user switched "Current season" off')]
+    public function pickingSportLeadsToAllGamesWhenCurrentSeasonSwitchedOff(): void
+    {
+        $client = self::createClient();
+        $user   = $this->loginAsTestUser($client);
+        $this->saveUserPreference($user, null, null, false);
+
+        $sport = $this->createTestSportEntity();
+
+        $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSame('/games', $this->assertJsonSuccessResponse($client)['redirectUrl']);
     }
 
     #[Test]
@@ -342,7 +359,7 @@ final class SportControllerTest extends WebTestCase
         $sport = $this->createTestSportEntity();
 
         $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
-        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+        $this->assertResponseIsSuccessful();
 
         // Check that the sport is in the session through an endpoint that reads it:
         // setCurrentSport uses the same mechanism, so we call /sports/new,

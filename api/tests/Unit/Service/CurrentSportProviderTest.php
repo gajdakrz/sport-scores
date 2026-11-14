@@ -70,6 +70,16 @@ class CurrentSportProviderTest extends TestCase
     }
 
     #[Test]
+    #[TestDox('Selected sport is stored in the session')]
+    public function setSportStoresSportIdInSession(): void
+    {
+        $this->session->expects($this->once())->method('set')->with('current_sport_id', 4);
+        $this->sportRepository->expects($this->never())->method('find');
+
+        $this->provider->setSport((new Sport())->setId(4));
+    }
+
+    #[Test]
     #[TestDox('Returns null from getSportId when no sport in session')]
     public function getSportIdReturnsNullWhenNoSportInSession(): void
     {

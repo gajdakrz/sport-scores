@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Trait;
 
+use App\Entity\Competition;
 use App\Entity\Country;
 use App\Entity\Sport;
+use App\Entity\Team;
 use App\Entity\User;
+use App\Entity\UserPreference;
+use App\Enum\GenderCategory;
+use App\Enum\TeamType;
 use App\Repository\SportRepository;
 use App\Repository\UserRepository;
 use App\Tests\Exception\FixtureNotFoundException;
@@ -75,6 +80,60 @@ trait ControllerTestTrait
         $em->flush();
 
         return $country;
+    }
+
+    protected function createTeamInSport(Sport $sport): Team
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $team = new Team();
+        $team->setName('Test Team ' . uniqid());
+        $team->setSport($sport);
+        $team->setTeamType(TeamType::CLUB);
+        $team->setGender(GenderCategory::MALE);
+        $team->setCreatedBy($user);
+        $team->setModifiedBy($user);
+
+        $em->persist($team);
+        $em->flush();
+
+        return $team;
+    }
+
+    protected function createCompetitionInSport(Sport $sport): Competition
+    {
+        $em   = $this->getEntityManager();
+        $user = $this->getTestUser();
+
+        $competition = new Competition();
+        $competition->setName('Test Competition ' . uniqid());
+        $competition->setSport($sport);
+        $competition->setGender(GenderCategory::MALE);
+        $competition->setCreatedBy($user);
+        $competition->setModifiedBy($user);
+
+        $em->persist($competition);
+        $em->flush();
+
+        return $competition;
+    }
+
+    protected function saveUserPreference(
+        User $user,
+        ?Sport $favouriteSport,
+        ?Team $favouriteTeam = null,
+        bool $currentSeasonByDefault = true,
+        ?Competition $favouriteCompetition = null,
+    ): UserPreference {
+        $em = $this->getEntityManager();
+
+        $preference = (new UserPreference($user))
+            ->update($favouriteSport, $favouriteCompetition, $favouriteTeam, $currentSeasonByDefault);
+        $em->persist($preference);
+        $em->flush();
+
+        return $preference;
     }
 
     protected function setCurrentSport(KernelBrowser $client): Sport
