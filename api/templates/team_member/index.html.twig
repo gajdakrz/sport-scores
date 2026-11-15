@@ -9,7 +9,11 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">Team Members</h1>
-            <button type="button" class="btn btn-primary" id="newTeamMemberBtn" data-url="{{ path('team_member_new') }}">
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="newTeamMemberBtn"
+                data-url="{{ path('team_member_new') }}">
                 Create New
             </button>
         </div>
@@ -20,7 +24,9 @@
                 <select name="teamId" id="teamId" class="form-select">
                     <option value="">All</option>
                     {% for team in teams %}
-                        <option value="{{ team.id }}" {% if team.id == app.request.get('teamId') %}selected{% endif %}>
+                        <option
+                            value="{{ team.id }}"
+                            {% if team.id == app.request.query.get('teamId') %}selected{% endif %}>
                             {{ team.name }}
                         </option>
                     {% endfor %}
@@ -31,7 +37,9 @@
                 <select name="startSeasonId" id="startSeasonId" class="form-select">
                     <option value="">All</option>
                     {% for season in seasons %}
-                        <option value="{{ season.id }}" {% if season.id == app.request.get('startSeasonId') %}selected{% endif %}>
+                        <option
+                            value="{{ season.id }}"
+                            {% if season.id == app.request.query.get('startSeasonId') %}selected{% endif %}>
                             {{ season.mergedStartEndYear }}
                         </option>
                     {% endfor %}
@@ -44,7 +52,7 @@
                     name="firstName"
                     id="firstName"
                     class="form-control"
-                    value="{{ app.request.get('firstName') ?: '' }}"
+                    value="{{ app.request.query.get('firstName') ?: '' }}"
                     placeholder="All">
             </div>
             <div class="col-md-3">
@@ -54,15 +62,23 @@
                     name="lastName"
                     id="lastName"
                     class="form-control"
-                    value="{{ app.request.get('lastName') ?: '' }}"
+                    value="{{ app.request.query.get('lastName') ?: '' }}"
                     placeholder="All">
             </div>
             <div class="col-md-3">
                 <label for="isCurrentMember" class="form-label">Current Member</label>
                 <select name="isCurrentMember" id="isCurrentMember" class="form-select">
                     <option value="">All</option>
-                    <option value="1" {% if app.request.get('isCurrentMember') == '1' %}selected{% endif %}>Yes</option>
-                    <option value="0" {% if app.request.get('isCurrentMember') == '0' %}selected{% endif %}>No</option>
+                    <option
+                        value="1"
+                        {% if app.request.query.get('isCurrentMember') == '1' %}selected{% endif %}>
+                        Yes
+                    </option>
+                    <option
+                        value="0"
+                        {% if app.request.query.get('isCurrentMember') == '0' %}selected{% endif %}>
+                        No
+                    </option>
                 </select>
             </div>
             {% include '_filter_actions.html.twig' %}
@@ -105,7 +121,9 @@
                     <td>{{ teamMember.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ teamMember.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('team_member_edit', {'id': teamMember.id}) }}">
+                        <button
+                            class="btn btn-sm btn-outline-primary edit-btn"
+                            data-url="{{ path('team_member_edit', {'id': teamMember.id}) }}">
                             Edit
                         </button>
                         <button

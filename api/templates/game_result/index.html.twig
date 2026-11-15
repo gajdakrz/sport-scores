@@ -9,7 +9,11 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">Game results</h1>
-            <button type="button" class="btn btn-primary" id="newGameResultBtn" data-url="{{ path('game_result_new') }}">
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="newGameResultBtn"
+                data-url="{{ path('game_result_new') }}">
                 Create New
             </button>
         </div>
@@ -22,7 +26,7 @@
                     name="date"
                     id="date"
                     class="form-control flatpickr"
-                    value="{{ app.request.get('date') ?: '' }}"
+                    value="{{ app.request.query.get('date') ?: '' }}"
                     placeholder="All">
             </div>
             <div class="col-md-3">
@@ -30,7 +34,9 @@
                 <select name="teamId" id="teamId" class="form-select">
                     <option value="">All</option>
                     {% for team in teams %}
-                        <option value="{{ team.id }}" {% if team.id == app.request.get('teamId') %}selected{% endif %}>
+                        <option
+                            value="{{ team.id }}"
+                            {% if team.id == app.request.query.get('teamId') %}selected{% endif %}>
                             {{ team.name }}
                         </option>
                     {% endfor %}
@@ -41,7 +47,9 @@
                 <select name="matchResultStatus" id="matchStatus" class="form-select">
                     <option value="">All</option>
                     {% for status in matchResultStatuses %}
-                        <option value="{{ status }}" {% if status == app.request.get('matchResultStatus') %}selected{% endif %}>
+                        <option
+                            value="{{ status }}"
+                            {% if status == app.request.query.get('matchResultStatus') %}selected{% endif %}>
                             {{ status|capitalize }}
                         </option>
                     {% endfor %}
@@ -78,7 +86,9 @@
                     <td>{{ gameResult.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ gameResult.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('game_result_edit', {'id': gameResult.id}) }}">
+                        <button
+                            class="btn btn-sm btn-outline-primary edit-btn"
+                            data-url="{{ path('game_result_edit', {'id': gameResult.id}) }}">
                             Edit
                         </button>
                         <button

@@ -22,7 +22,7 @@
                     name="name"
                     id="name"
                     class="form-control"
-                    value="{{ app.request.get('name') ?: '' }}"
+                    value="{{ app.request.query.get('name') ?: '' }}"
                     placeholder="All">
             </div>
             <div class="col-md-3">
@@ -30,7 +30,9 @@
                 <select name="countryId" id="countryId" class="form-select">
                     <option value="">All</option>
                     {% for country in countries %}
-                        <option value="{{ country.id }}" {% if country.id == app.request.get('countryId') %}selected{% endif %}>
+                        <option
+                            value="{{ country.id }}"
+                            {% if country.id == app.request.query.get('countryId') %}selected{% endif %}>
                             {{ country.name }}
                         </option>
                     {% endfor %}
@@ -41,7 +43,9 @@
                 <select name="teamType" id="teamType" class="form-select">
                     <option value="">All</option>
                     {% for type in teamTypes %}
-                        <option value="{{ type.value }}" {% if type.value == app.request.get('teamType') %}selected{% endif %}>
+                        <option
+                            value="{{ type.value }}"
+                            {% if type.value == app.request.query.get('teamType') %}selected{% endif %}>
                             {{ type.label() ?: type.name|capitalize }}
                         </option>
                     {% endfor %}
@@ -52,7 +56,9 @@
                 <select name="gender" id="gender" class="form-select">
                     <option value="">All</option>
                     {% for gender in genders %}
-                        <option value="{{ gender.value }}" {% if gender.value == app.request.get('gender') %}selected{% endif %}>
+                        <option
+                            value="{{ gender.value }}"
+                            {% if gender.value == app.request.query.get('gender') %}selected{% endif %}>
                             {{ gender.label() }}
                         </option>
                     {% endfor %}
@@ -87,7 +93,9 @@
                     <td>{{ team.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ team.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('team_edit', {'id': team.id}) }}">
+                        <button
+                            class="btn btn-sm btn-outline-primary edit-btn"
+                            data-url="{{ path('team_edit', {'id': team.id}) }}">
                             Edit
                         </button>
                         <button

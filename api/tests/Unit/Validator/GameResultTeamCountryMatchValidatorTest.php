@@ -99,8 +99,7 @@ final class GameResultTeamCountryMatchValidatorTest extends TestCase
     private function validate(ExecutionContextInterface $context, mixed $value): void
     {
         $validator = new GameResultTeamCountryMatchValidator();
-        $validator->initialize($context);
-        $validator->validate($value, new GameResultTeamCountryMatch());
+        $validator->validateInContext($value, new GameResultTeamCountryMatch(), $context);
     }
 
     private static function country(string $name): Country

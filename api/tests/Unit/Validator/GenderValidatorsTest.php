@@ -192,8 +192,7 @@ class GenderValidatorsTest extends TestCase
         $context = $this->createMock(ExecutionContextInterface::class);
         $context->expects($this->once())->method('buildViolation')->willReturn($builder);
 
-        $validator->initialize($context);
-        $validator->validate($value, $constraint);
+        $validator->validateInContext($value, $constraint, $context);
     }
 
     private function assertNoViolation(ConstraintValidator $validator, mixed $value, Constraint $constraint): void
@@ -201,7 +200,6 @@ class GenderValidatorsTest extends TestCase
         $context = $this->createMock(ExecutionContextInterface::class);
         $context->expects($this->never())->method('buildViolation');
 
-        $validator->initialize($context);
-        $validator->validate($value, $constraint);
+        $validator->validateInContext($value, $constraint, $context);
     }
 }

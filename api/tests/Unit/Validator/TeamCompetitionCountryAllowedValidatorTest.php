@@ -77,7 +77,6 @@ final class TeamCompetitionCountryAllowedValidatorTest extends TestCase
     private function validate(ExecutionContextInterface $context, mixed $value): void
     {
         $validator = new TeamCompetitionCountryAllowedValidator();
-        $validator->initialize($context);
-        $validator->validate($value, new TeamCompetitionCountryAllowed());
+        $validator->validateInContext($value, new TeamCompetitionCountryAllowed(), $context);
     }
 }

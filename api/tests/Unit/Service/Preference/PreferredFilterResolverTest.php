@@ -208,8 +208,11 @@ class PreferredFilterResolverTest extends TestCase
             ->willReturn('/games?currentSeason=1');
         $resolver = $this->createResolver($this->user, $this->sport, $repository, $urlGenerator);
 
-        $this->assertSame('/games?currentSeason=1', $resolver->generatePath(self::GAMES));
-        $this->assertSame('/games?currentSeason=1', $resolver->generatePath(self::GAMES));
+        $firstPath = $resolver->generatePath(self::GAMES);
+        $secondPath = $resolver->generatePath(self::GAMES);
+
+        $this->assertSame('/games?currentSeason=1', $firstPath);
+        $this->assertSame('/games?currentSeason=1', $secondPath);
     }
 
     #[Test]

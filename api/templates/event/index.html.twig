@@ -22,7 +22,7 @@
                     name="name"
                     id="name"
                     class="form-control"
-                    value="{{ app.request.get('name') ?: '' }}"
+                    value="{{ app.request.query.get('name') ?: '' }}"
                     placeholder="All">
             </div>
             <div class="col-md-3">
@@ -30,7 +30,9 @@
                 <select name="competitionId" id="competitionId" class="form-select">
                     <option value="">All</option>
                     {% for competition in competitions %}
-                        <option value="{{ competition.id }}" {% if competition.id == app.request.get('competitionId') %}selected{% endif %}>
+                        <option
+                            value="{{ competition.id }}"
+                            {% if competition.id == app.request.query.get('competitionId') %}selected{% endif %}>
                             {{ competition.name }}
                         </option>
                     {% endfor %}
@@ -70,7 +72,9 @@
                     <td>{{ event.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ event.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('event_edit', {'id': event.id}) }}">
+                        <button
+                            class="btn btn-sm btn-outline-primary edit-btn"
+                            data-url="{{ path('event_edit', {'id': event.id}) }}">
                             Edit
                         </button>
                         <button

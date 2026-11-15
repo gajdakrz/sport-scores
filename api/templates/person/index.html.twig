@@ -20,7 +20,7 @@
                     name="firstName"
                     id="firstName"
                     class="form-control"
-                    value="{{ app.request.get('firstName') ?: '' }}"
+                    value="{{ app.request.query.get('firstName') ?: '' }}"
                     placeholder="All">
             </div>
             <div class="col-md-3">
@@ -30,7 +30,7 @@
                     name="lastName"
                     id="lastName"
                     class="form-control"
-                    value="{{ app.request.get('lastName') ?: '' }}"
+                    value="{{ app.request.query.get('lastName') ?: '' }}"
                     placeholder="All">
             </div>
             <div class="col-md-3">
@@ -38,7 +38,9 @@
                 <select name="gender" id="gender" class="form-select">
                     <option value="">All</option>
                     {% for gender in genders %}
-                        <option value="{{ gender.value }}" {% if gender.value == app.request.get('gender') %}selected{% endif %}>
+                        <option
+                            value="{{ gender.value }}"
+                            {% if gender.value == app.request.query.get('gender') %}selected{% endif %}>
                             {{ gender.label() }}
                         </option>
                     {% endfor %}
@@ -49,7 +51,9 @@
                 <select name="originCountryId" id="originCountryId" class="form-select">
                     <option value="">All</option>
                     {% for country in countries %}
-                        <option value="{{ country.id }}" {% if country.id == app.request.get('originCountryId') %}selected{% endif %}>
+                        <option
+                            value="{{ country.id }}"
+                            {% if country.id == app.request.query.get('originCountryId') %}selected{% endif %}>
                             {{ country.name }}
                         </option>
                     {% endfor %}
