@@ -1,8 +1,8 @@
-FROM php:8.4-fpm
+FROM php:8.5-fpm
 
 RUN apt-get update && apt-get install -y \
-    nginx git unzip libpq-dev libzip-dev zip curl \
-    && docker-php-ext-install pdo pdo_pgsql zip \
+    nginx git unzip libpq-dev libzip-dev libicu-dev zip curl \
+    && docker-php-ext-install pdo pdo_pgsql zip intl \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
     && echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
