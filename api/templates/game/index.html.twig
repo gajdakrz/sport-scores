@@ -22,7 +22,7 @@
                     name="date"
                     id="date"
                     class="form-control flatpickr"
-                    value="{{ app.request.get('date') ?: '' }}"
+                    value="{{ app.request.query.get('date') ?: '' }}"
                     placeholder="All">
             </div>
             <div class="col-md-3">
@@ -30,7 +30,9 @@
                 <select name="seasonId" id="seasonId" class="form-select">
                     <option value="">All</option>
                     {% for season in seasons %}
-                        <option value="{{ season.id }}" {% if season.id == app.request.get('seasonId') %}selected{% endif %}>
+                        <option
+                            value="{{ season.id }}"
+                            {% if season.id == app.request.query.get('seasonId') %}selected{% endif %}>
                             {{ season.mergedStartEndYear }}
                         </option>
                     {% endfor %}
@@ -41,7 +43,9 @@
                 <select name="gender" id="gender" class="form-select">
                     <option value="">All</option>
                     {% for gender in genders %}
-                        <option value="{{ gender.value }}" {% if gender.value == app.request.get('gender') %}selected{% endif %}>
+                        <option
+                            value="{{ gender.value }}"
+                            {% if gender.value == app.request.query.get('gender') %}selected{% endif %}>
                             {{ gender.label() }}
                         </option>
                     {% endfor %}
@@ -52,7 +56,9 @@
                 <select name="competitionId" id="competitionId" class="form-select">
                     <option value="">All</option>
                     {% for competition in competitions %}
-                        <option value="{{ competition.id }}" {% if competition.id == app.request.get('competitionId') %}selected{% endif %}>
+                        <option
+                            value="{{ competition.id }}"
+                            {% if competition.id == app.request.query.get('competitionId') %}selected{% endif %}>
                             {{ competition.name }}
                         </option>
                     {% endfor %}
@@ -63,7 +69,9 @@
                 <select name="eventId" id="eventId" class="form-select">
                     <option value="">All</option>
                     {% for event in events %}
-                        <option value="{{ event.id }}" {% if event.id == app.request.get('eventId') %}selected{% endif %}>
+                        <option
+                            value="{{ event.id }}"
+                            {% if event.id == app.request.query.get('eventId') %}selected{% endif %}>
                             {{ event.name }}
                         </option>
                     {% endfor %}
@@ -78,7 +86,7 @@
                            id="currentSeason"
                            value="1"
                            {% if currentSeasonChecked %}checked{% endif %}
-                           {% if app.request.get('seasonId') %}disabled{% endif %}>
+                           {% if app.request.query.get('seasonId') %}disabled{% endif %}>
                     <label class="form-check-label" for="currentSeason"
                            title="Seasons starting in the current year; ignored when a season is selected">
                         Current season
@@ -114,7 +122,9 @@
                     <td>{{ game.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ game.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('game_edit', {'id': game.id}) }}">
+                        <button
+                            class="btn btn-sm btn-outline-primary edit-btn"
+                            data-url="{{ path('game_edit', {'id': game.id}) }}">
                             Edit
                         </button>
                         <button

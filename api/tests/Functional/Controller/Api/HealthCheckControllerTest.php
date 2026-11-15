@@ -11,8 +11,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 final class HealthCheckControllerTest extends WebTestCase
 {
     #[Test]
-    #[TestDox('Health check endpoint returns 200 with status OK')]
-    public function healthCheckReturnsOk(): void
+    #[TestDox('Health check reports status OK and the application version')]
+    public function healthCheckReportsStatusAndVersion(): void
     {
         $client = self::createClient();
 
@@ -29,5 +29,6 @@ final class HealthCheckControllerTest extends WebTestCase
         $this->assertIsArray($data);
         $this->assertArrayHasKey('status', $data);
         $this->assertSame('OK', $data['status']);
+        $this->assertSame(self::getContainer()->getParameter('app.version'), $data['version'] ?? null);
     }
 }

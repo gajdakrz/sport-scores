@@ -27,8 +27,6 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->validator = new SeasonYearRangeValidator();
         $this->context = $this->createMock(ExecutionContextInterface::class);
         $this->constraint = new SeasonYearRange();
-
-        $this->validator->initialize($this->context);
     }
 
     #[Test]
@@ -38,7 +36,7 @@ class SeasonYearRangeValidatorTest extends TestCase
         $this->expectException(UnexpectedTypeException::class);
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate(new Season(), $this->createStub(Constraint::class));
+        $this->validator->validateInContext(new Season(), $this->createStub(Constraint::class), $this->context);
     }
 
     #[Test]
@@ -47,9 +45,9 @@ class SeasonYearRangeValidatorTest extends TestCase
     {
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate('not-a-season', $this->constraint);
-        $this->validator->validate(null, $this->constraint);
-        $this->validator->validate(42, $this->constraint);
+        $this->validator->validateInContext('not-a-season', $this->constraint, $this->context);
+        $this->validator->validateInContext(null, $this->constraint, $this->context);
+        $this->validator->validateInContext(42, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -60,7 +58,7 @@ class SeasonYearRangeValidatorTest extends TestCase
 
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate($season, $this->constraint);
+        $this->validator->validateInContext($season, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -71,7 +69,7 @@ class SeasonYearRangeValidatorTest extends TestCase
 
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate($season, $this->constraint);
+        $this->validator->validateInContext($season, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -90,7 +88,7 @@ class SeasonYearRangeValidatorTest extends TestCase
             ->with($this->constraint->message)
             ->willReturn($violationBuilder);
 
-        $this->validator->validate($season, $this->constraint);
+        $this->validator->validateInContext($season, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -113,7 +111,7 @@ class SeasonYearRangeValidatorTest extends TestCase
             ->method('buildViolation')
             ->willReturn($violationBuilder);
 
-        $this->validator->validate($season, $this->constraint);
+        $this->validator->validateInContext($season, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -131,7 +129,7 @@ class SeasonYearRangeValidatorTest extends TestCase
             ->with('End year: {{ endYear }} cannot be before start year: {{ startYear }}.')
             ->willReturn($violationBuilder);
 
-        $this->validator->validate($season, $this->constraint);
+        $this->validator->validateInContext($season, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -152,7 +150,7 @@ class SeasonYearRangeValidatorTest extends TestCase
             ->with('Custom range error.')
             ->willReturn($violationBuilder);
 
-        $this->validator->validate($season, $customConstraint);
+        $this->validator->validateInContext($season, $customConstraint, $this->context);
     }
 
     // -------------------------------------------------------------------------

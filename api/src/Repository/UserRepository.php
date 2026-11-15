@@ -54,9 +54,7 @@ class UserRepository extends AbstractRepository implements PasswordUpgraderInter
         $conn = $this->getEntityManager()->getConnection();
 
         $sql = 'SELECT 1 FROM "user" u WHERE u.roles::jsonb @> :role LIMIT 1';
-        $stmt = $conn->prepare($sql);
-
-        $result = $stmt->executeQuery([
+        $result = $conn->executeQuery($sql, [
             'role' => json_encode([Role::ADMIN->value]),
         ]);
 

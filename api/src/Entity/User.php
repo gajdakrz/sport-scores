@@ -195,9 +195,4 @@ class User extends AbstractSoftDeletableEntity implements UserInterface, Passwor
 
         return $data;
     }
-
-    public function eraseCredentials(): void
-    {
-        // kept only for UserInterface compatibility
-    }
 }

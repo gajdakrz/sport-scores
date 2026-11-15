@@ -34,7 +34,6 @@ class FavouritesInSportValidatorTest extends TestCase
     {
         $this->validator = new FavouritesInSportValidator();
         $this->context = $this->createMock(ExecutionContextInterface::class);
-        $this->validator->initialize($this->context);
     }
 
     #[Test]
@@ -44,7 +43,11 @@ class FavouritesInSportValidatorTest extends TestCase
         $this->expectException(UnexpectedTypeException::class);
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate(new PreferenceRequest(), $this->createStub(Constraint::class));
+        $this->validator->validateInContext(
+            new PreferenceRequest(),
+            $this->createStub(Constraint::class),
+            $this->context
+        );
     }
 
     /**
@@ -66,9 +69,10 @@ class FavouritesInSportValidatorTest extends TestCase
     {
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate(
+        $this->validator->validateInContext(
             $this->createRequest($sportId, $competitionSportId, $teamSportId),
-            new FavouritesInSport()
+            new FavouritesInSport(),
+            $this->context
         );
     }
 
@@ -99,9 +103,10 @@ class FavouritesInSportValidatorTest extends TestCase
         $builder->expects($this->once())->method('addViolation');
         $this->context->expects($this->once())->method('buildViolation')->willReturn($builder);
 
-        $this->validator->validate(
+        $this->validator->validateInContext(
             $this->createRequest($sportId, $competitionSportId, $teamSportId),
-            new FavouritesInSport()
+            new FavouritesInSport(),
+            $this->context
         );
     }
 

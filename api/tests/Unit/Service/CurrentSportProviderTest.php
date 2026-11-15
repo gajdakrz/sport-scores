@@ -40,7 +40,7 @@ class CurrentSportProviderTest extends TestCase
     #[TestDox('Returns null when no sport ID in session')]
     public function getSportReturnsNullWhenNoSportIdInSession(): void
     {
-        $this->session->method('get')->with('current_sport_id')->willReturn(null);
+        $this->session->expects($this->once())->method('get')->with('current_sport_id')->willReturn(null);
 
         $this->sportRepository->expects($this->never())->method('find');
 
@@ -53,8 +53,8 @@ class CurrentSportProviderTest extends TestCase
     {
         $sport = $this->createStub(Sport::class);
 
-        $this->session->method('get')->with('current_sport_id')->willReturn(1);
-        $this->sportRepository->method('find')->with(1)->willReturn($sport);
+        $this->session->expects($this->once())->method('get')->with('current_sport_id')->willReturn(1);
+        $this->sportRepository->expects($this->once())->method('find')->with(1)->willReturn($sport);
 
         $this->assertSame($sport, $this->provider->getSport());
     }
@@ -63,8 +63,8 @@ class CurrentSportProviderTest extends TestCase
     #[TestDox('Returns null when sport ID exists in session but sport is not found in repository')]
     public function getSportReturnsNullWhenSportNotFoundInRepository(): void
     {
-        $this->session->method('get')->with('current_sport_id')->willReturn(99);
-        $this->sportRepository->method('find')->with(99)->willReturn(null);
+        $this->session->expects($this->once())->method('get')->with('current_sport_id')->willReturn(99);
+        $this->sportRepository->expects($this->once())->method('find')->with(99)->willReturn(null);
 
         $this->assertNull($this->provider->getSport());
     }
@@ -83,7 +83,7 @@ class CurrentSportProviderTest extends TestCase
     #[TestDox('Returns null from getSportId when no sport in session')]
     public function getSportIdReturnsNullWhenNoSportInSession(): void
     {
-        $this->session->method('get')->with('current_sport_id')->willReturn(null);
+        $this->session->expects($this->once())->method('get')->with('current_sport_id')->willReturn(null);
         $this->sportRepository->expects($this->never())->method('find');
 
         $this->assertNull($this->provider->getSportId());
@@ -96,8 +96,8 @@ class CurrentSportProviderTest extends TestCase
         $sport = $this->createStub(Sport::class);
         $sport->method('getId')->willReturn(5);
 
-        $this->session->method('get')->with('current_sport_id')->willReturn(5);
-        $this->sportRepository->method('find')->with(5)->willReturn($sport);
+        $this->session->expects($this->once())->method('get')->with('current_sport_id')->willReturn(5);
+        $this->sportRepository->expects($this->once())->method('find')->with(5)->willReturn($sport);
 
         $this->assertEquals(5, $this->provider->getSportId());
     }
@@ -106,7 +106,7 @@ class CurrentSportProviderTest extends TestCase
     #[TestDox('Returns null from getSportName when no sport in session')]
     public function getSportNameReturnsNullWhenNoSportInSession(): void
     {
-        $this->session->method('get')->with('current_sport_id')->willReturn(null);
+        $this->session->expects($this->once())->method('get')->with('current_sport_id')->willReturn(null);
         $this->sportRepository->expects($this->never())->method('find');
 
         $this->assertNull($this->provider->getSportName());
@@ -119,8 +119,8 @@ class CurrentSportProviderTest extends TestCase
         $sport = $this->createStub(Sport::class);
         $sport->method('getName')->willReturn('Football');
 
-        $this->session->method('get')->with('current_sport_id')->willReturn(3);
-        $this->sportRepository->method('find')->with(3)->willReturn($sport);
+        $this->session->expects($this->once())->method('get')->with('current_sport_id')->willReturn(3);
+        $this->sportRepository->expects($this->once())->method('find')->with(3)->willReturn($sport);
 
         $this->assertEquals('Football', $this->provider->getSportName());
     }

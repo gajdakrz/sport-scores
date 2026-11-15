@@ -7,6 +7,7 @@ namespace App\Repository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use InvalidArgumentException;
+use SortDirection;
 
 /**
  * @template T of object
@@ -14,8 +15,6 @@ use InvalidArgumentException;
  */
 abstract class AbstractRepository extends ServiceEntityRepository
 {
-    private const array ALLOWED_SORT_DIRECTIONS = ['ASC', 'DESC'];
-
     protected function applyFilter(QueryBuilder $qb, string $field, mixed $value): void
     {
         if ($value === null || $value === '') {
@@ -53,15 +52,13 @@ abstract class AbstractRepository extends ServiceEntityRepository
         return $field;
     }
 
-    protected function assertValidSortDirection(string $direction): string
+    protected function assertValidSortDirection(string $direction): SortDirection
     {
-        $normalized = strtoupper($direction);
-
-        if (!in_array($normalized, self::ALLOWED_SORT_DIRECTIONS, true)) {
-            throw new InvalidArgumentException(sprintf('Invalid sort direction "%s".', $direction));
-        }
-
-        return $normalized;
+        return match (strtoupper($direction)) {
+            'ASC' => SortDirection::Ascending,
+            'DESC' => SortDirection::Descending,
+            default => throw new InvalidArgumentException(sprintf('Invalid sort direction "%s".', $direction)),
+        };
     }
 
     /**

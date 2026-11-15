@@ -27,7 +27,6 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->validator = new AtLeastOneScoreValidator();
         $this->context = $this->createMock(ExecutionContextInterface::class);
         $this->constraint = new AtLeastOneScore();
-        $this->validator->initialize($this->context);
     }
 
     #[Test]
@@ -37,7 +36,7 @@ class AtLeastOneScoreValidatorTest extends TestCase
         $this->expectException(UnexpectedTypeException::class);
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate(new GameResult(), $this->createStub(Constraint::class));
+        $this->validator->validateInContext(new GameResult(), $this->createStub(Constraint::class), $this->context);
     }
 
     #[Test]
@@ -46,9 +45,9 @@ class AtLeastOneScoreValidatorTest extends TestCase
     {
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate('not-a-game-result', $this->constraint);
-        $this->validator->validate(null, $this->constraint);
-        $this->validator->validate(42, $this->constraint);
+        $this->validator->validateInContext('not-a-game-result', $this->constraint, $this->context);
+        $this->validator->validateInContext(null, $this->constraint, $this->context);
+        $this->validator->validateInContext(42, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -66,7 +65,7 @@ class AtLeastOneScoreValidatorTest extends TestCase
             ->with($this->constraint->message)
             ->willReturn($violationBuilder);
 
-        $this->validator->validate($gameResult, $this->constraint);
+        $this->validator->validateInContext($gameResult, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -77,7 +76,7 @@ class AtLeastOneScoreValidatorTest extends TestCase
 
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate($gameResult, $this->constraint);
+        $this->validator->validateInContext($gameResult, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -88,7 +87,7 @@ class AtLeastOneScoreValidatorTest extends TestCase
 
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate($gameResult, $this->constraint);
+        $this->validator->validateInContext($gameResult, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -99,7 +98,7 @@ class AtLeastOneScoreValidatorTest extends TestCase
 
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate($gameResult, $this->constraint);
+        $this->validator->validateInContext($gameResult, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -116,7 +115,7 @@ class AtLeastOneScoreValidatorTest extends TestCase
             ->with('At least score: "matchScore" or "rankingScore" should be set.')
             ->willReturn($violationBuilder);
 
-        $this->validator->validate($gameResult, $this->constraint);
+        $this->validator->validateInContext($gameResult, $this->constraint, $this->context);
     }
 
     #[Test]
@@ -136,7 +135,7 @@ class AtLeastOneScoreValidatorTest extends TestCase
             ->with('Custom error message.')
             ->willReturn($violationBuilder);
 
-        $this->validator->validate($gameResult, $customConstraint);
+        $this->validator->validateInContext($gameResult, $customConstraint, $this->context);
     }
 
     // -------------------------------------------------------------------------

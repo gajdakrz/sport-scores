@@ -9,7 +9,11 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">Competitions</h1>
-            <button type="button" class="btn btn-primary" id="newCompetitionBtn" data-url="{{ path('competition_new') }}">
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="newCompetitionBtn"
+                data-url="{{ path('competition_new') }}">
                 Create New
             </button>
         </div>
@@ -45,7 +49,9 @@
                     <td>{{ competition.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ competition.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('competition_edit', {'id': competition.id}) }}">
+                        <button
+                            class="btn btn-sm btn-outline-primary edit-btn"
+                            data-url="{{ path('competition_edit', {'id': competition.id}) }}">
                             Edit
                         </button>
                         <button

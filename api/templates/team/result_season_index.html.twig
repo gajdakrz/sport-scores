@@ -15,7 +15,9 @@
                 <select name="seasonId" id="seasonId" class="form-select">
                     <option value="">All</option>
                     {% for season in seasons %}
-                        <option value="{{ season.id }}" {% if season.id == app.request.get('seasonId') %}selected{% endif %}>
+                        <option
+                            value="{{ season.id }}"
+                            {% if season.id == app.request.query.get('seasonId') %}selected{% endif %}>
                             {{ season.mergedStartEndYear }}
                         </option>
                     {% endfor %}
@@ -26,7 +28,9 @@
                 <select name="competitionId" id="competitionId" class="form-select">
                     <option value="">All</option>
                     {% for competition in competitions %}
-                        <option value="{{ competition.id }}" {% if competition.id == app.request.get('competitionId') %}selected{% endif %}>
+                        <option
+                            value="{{ competition.id }}"
+                            {% if competition.id == app.request.query.get('competitionId') %}selected{% endif %}>
                             {{ competition.name }}
                         </option>
                     {% endfor %}

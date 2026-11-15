@@ -14,6 +14,7 @@ use App\Entity\Season;
 use App\Entity\Sport;
 use App\Entity\Team;
 use App\Enum\MatchResultStatus;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -189,7 +190,7 @@ class GameResultRepository extends AbstractRepository
             ->join(
                 GameResult::class,
                 'opponent',
-                'WITH',
+                Join::ON,
                 'opponent.game = gameResult.game AND opponent.id != gameResult.id'
             )
             ->andWhere('gameResult.isActive = :isActive')
