@@ -17,10 +17,10 @@ composer-install:
 cache-clear:
 	docker exec $(PHP_CONTAINER) php bin/console cache:clear
 
-# Auto-fix code style, incl. removing unused `use` imports (phpcbf exits 1 when it fixed something),
-# then report what can't be fixed automatically
+# Auto-fix code style, incl. removing unused `use` imports, then report what can't be fixed automatically.
+# phpcbf 4 exit code is a bitmask: 1 = fixable and 2 = non-fixable issues left (phpcs reports them), 4+ = failure
 fix:
-	docker exec $(PHP_CONTAINER) vendor/bin/phpcbf || [ $$? -eq 1 ]
+	docker exec $(PHP_CONTAINER) vendor/bin/phpcbf || [ $$? -lt 4 ]
 	docker exec $(PHP_CONTAINER) vendor/bin/phpcs
 
 # Dev database: create (if missing) -> migrate -> load fixtures
