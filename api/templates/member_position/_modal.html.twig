@@ -1,4 +1,9 @@
-<div class="modal fade" id="memberPositionModal" tabindex="-1" aria-labelledby="memberPositionModalLabel" aria-hidden="true">
+<div
+    class="modal fade"
+    id="memberPositionModal"
+    tabindex="-1"
+    aria-labelledby="memberPositionModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,7 +13,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             {{ form_start(form, {
-                'action': memberPosition.id ? path('member_position_edit', {'id': memberPosition.id}) : path('member_position_new')
+                'action': memberPosition.id
+                    ? path('member_position_edit', {'id': memberPosition.id})
+                    : path('member_position_new')
             }) }}
             <div class="modal-body">
                 {{ form_widget(form) }}

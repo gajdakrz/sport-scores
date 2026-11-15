@@ -32,7 +32,9 @@
                     <td>{{ season.createdAt|date(DATETIME_FORMAT) }}</td>
                     <td>{{ season.modifiedAt|date(DATETIME_FORMAT) }}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary edit-btn" data-url="{{ path('season_edit', {'id': season.id}) }}">
+                        <button
+                            class="btn btn-sm btn-outline-primary edit-btn"
+                            data-url="{{ path('season_edit', {'id': season.id}) }}">
                             Edit
                         </button>
                         <button
