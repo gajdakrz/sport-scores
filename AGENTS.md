@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Sports results management app: Symfony 7.3 + PHP 8.4, Doctrine ORM 3, PostgreSQL, TypeScript + Bootstrap 5 frontend (Webpack Encore). Application code lives in `api/`; everything runs in Docker.
+Sports results management app: Symfony 8.1 + PHP 8.5, Doctrine ORM 3, PostgreSQL, TypeScript + Bootstrap 5 frontend (Webpack Encore). Application code lives in `api/`; everything runs in Docker.
 
 Reply to the user in the language they write in.
 
@@ -87,6 +87,7 @@ Quality gate on new code: reliability, security and maintainability rating A, du
 
 - Every module in `assets/ts/<feature>/` has a `ModalInitializer` with an `init()` method that calls `AppBase.initPendingFlash()`.
 - Message after AJAX + page reload: `AppBase.showFlashAfterReload()`, then `window.location.reload()`.
+- Twig templates: lines are at most 120 characters, as in PHP (no tool checks this – keep it when writing). When a tag doesn't fit, put each attribute on its own line, indented 4 spaces more than the tag, with `>` after the last attribute (see the Delete buttons in `templates/*/index.html.twig`).
 
 ## Tests
 

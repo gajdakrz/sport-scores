@@ -1,6 +1,6 @@
 # SportScores
 
-A sports results management application built with **Symfony 7** (backend) and **TypeScript** (frontend), running in a **Docker** environment.
+A sports results management application built with **Symfony 8** (backend) and **TypeScript** (frontend), running in a **Docker** environment.
 
 ---
 
@@ -18,7 +18,7 @@ No local PHP or Node.js installation required — everything runs inside contain
 
 ## Tech Stack
 
-- **PHP** 8.4 + **Symfony** 7
+- **PHP** 8.5 + **Symfony** 8.1
 - **Doctrine ORM** + migrations
 - **PostgreSQL** 18
 - **TypeScript** + Webpack Encore
@@ -55,7 +55,7 @@ This starts three services:
 
 | Container               | Description                                              | Port          |
 |-------------------------|----------------------------------------------------------|---------------|
-| `sport-scores-php`      | PHP 8.4-fpm + Nginx                                      | `8080 → 80`   |
+| `sport-scores-php`      | PHP 8.5-fpm + Nginx                                      | `8080 → 80`   |
 | `sport-scores-postgres` | PostgreSQL 18                                            | `5432 → 5432` |
 | `sport-scores-node`     | Node 20 — runs `npm install && npm run watch` on startup | —             |
 
@@ -137,7 +137,7 @@ To run tests and coverage from the IDE:
 
 ## Architecture
 
-### Backend (Symfony 7)
+### Backend (Symfony 8)
 
 ```
 src/
