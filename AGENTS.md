@@ -119,6 +119,7 @@ Writing guidelines:
 - Never run `git add` or `git commit` on your own. After changing files, always ask the user whether to stage and commit (and how to split the commits) – wait for an explicit yes.
 - Renames/moves of tracked files (`git mv`) are fine as part of the change, but leave staging the rest of the work to the user's decision.
 - PR descriptions: English, short keyword bullets grouped by area, no filler – template and example in `.claude/skills/pull-request-description/SKILL.md`.
+- Application version (semver): the only source is the `app.version` parameter in `api/config/services.yaml` (read by the health check and the API doc); keep `api/package.json` `version` in sync. Bump it in the PR that makes the release; after the merge, tag `main` with `vX.Y.Z`.
 
 ## Security
 

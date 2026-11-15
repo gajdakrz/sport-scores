@@ -6,6 +6,7 @@ namespace App\Controller\Api;
 
 use App\Controller\BaseController;
 use OpenApi\Attributes as OA;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -13,6 +14,12 @@ use Symfony\Component\Routing\Attribute\Route;
 #[OA\Tag('actuator')]
 class HealthCheckController extends BaseController
 {
+    public function __construct(
+        #[Autowire('%app.version%')]
+        private readonly string $appVersion,
+    ) {
+    }
+
     #[OA\Get(
         operationId: "getHealthStatus",
         summary: "Get health status",
@@ -26,7 +33,12 @@ class HealthCheckController extends BaseController
                     property: "status",
                     type: "string",
                     example: "OK"
-                )
+                ),
+                new OA\Property(
+                    property: "version",
+                    type: "string",
+                    example: "1.6.0"
+                ),
             ],
             type: "object"
         )
@@ -34,6 +46,9 @@ class HealthCheckController extends BaseController
     #[Route('/api/v1/actuator/healthcheck', name: 'healthcheck', methods: 'GET')]
     public function health(): JsonResponse
     {
-        return $this->json(['status' => JsonResponse::$statusTexts[Response::HTTP_OK]]);
+        return $this->json([
+            'status' => JsonResponse::$statusTexts[Response::HTTP_OK],
+            'version' => $this->appVersion,
+        ]);
     }
 }
