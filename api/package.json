@@ -1,6 +1,6 @@
 {
     "name": "sport-scores",
-    "version": "1.6.0",
+    "version": "1.6.1",
     "description": "SportScores Symfony 7 project with TypeScript",
     "scripts": {
         "dev-server": "encore dev-server",
