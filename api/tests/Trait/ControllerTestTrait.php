@@ -16,6 +16,7 @@ use App\Repository\SportRepository;
 use App\Repository\UserRepository;
 use App\Tests\Exception\FixtureNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
+use DOMElement;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -218,7 +219,7 @@ trait ControllerTestTrait
         $crawler = $client->request('GET', $url);
 
         foreach ($crawler->filter('input[type="hidden"]') as $input) {
-            /** @var \DOMElement $input */
+            /** @var DOMElement $input */
             if (str_contains($input->getAttribute('name'), '_token')) {
                 return $input->getAttribute('value');
             }
