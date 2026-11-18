@@ -75,6 +75,8 @@ Quality gate on new code: reliability, security and maintainability rating A, du
   - starts with `<?php`, a blank line, then `declare(strict_types=1);`;
   - lines are at most 120 characters (PSR-12, enforced by phpcs) – split long conditions, calls and strings when writing, not after the check;
   - ends with a single empty line (a final newline, no trailing blank lines).
+- Import classes with `use` at the top of the file and refer to them by short name (`new DateTimeImmutable()`, `catch (InvalidArgumentException $e)`) – don't use fully qualified names with a leading backslash (`new \DateTimeImmutable()`) in code, including global PHP classes.
+- Named arguments (attributes like `#[UniqueEntity]`, `#[ORM\JoinColumn]`, and calls) follow the order of the parameters in the constructor/method signature – check the signature in `vendor/`; PhpStorm flags a wrong order.
 - Controllers extend `App\Controller\BaseController`: `Web/` – Twig views + AJAX, `Api/` – JSON endpoints.
 - Validation errors: `throwFormErrors($form)` or `CustomBadRequestException`. A listener turns them into JSON `{ "errors": [{ "message", "field" }] }` – don't build this response by hand.
 - AJAX actions that modify data check CSRF via `validateCsrfToken()`.
