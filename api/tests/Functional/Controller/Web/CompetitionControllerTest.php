@@ -7,6 +7,8 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Entity\Competition;
 use App\Enum\GenderCategory;
 use App\Repository\CompetitionRepository;
+use App\Entity\Country;
+use App\Entity\Sport;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
@@ -457,8 +459,87 @@ final class CompetitionControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('International competition with the key of an active one in another letter case is rejected on "name"')]
+    public function internationalCompetitionWithDuplicateKeyIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+        $this->createCompetitionEntity($sport, 'World Cup');
+
+        $this->submitNewCompetition($client, 'WORLD cup');
+
+        $this->assertDuplicateRejected($client, 'name');
+        $this->assertCount(1, $this->findCompetitions($sport, 'World Cup'));
+    }
+
+    #[Test]
+    #[TestDox('National competition with the key of an active one is rejected on "name"')]
+    public function nationalCompetitionWithDuplicateKeyIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport   = $this->setCurrentSport($client);
+        $country = $this->createTestCountry();
+        $this->createCompetitionEntity($sport, 'League', $country);
+
+        $this->submitNewCompetition($client, 'League', $country);
+
+        $this->assertDuplicateRejected($client, 'name');
+    }
+
+    #[Test]
+    #[TestDox('Competition with the same name but another country is created')]
+    public function competitionWithSameNameInAnotherCountryIsCreated(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+        $this->createCompetitionEntity($sport, 'League', $this->createTestCountry());
+
+        $this->submitNewCompetition($client, 'League', $this->createTestCountry());
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+        $this->assertCount(2, $this->findCompetitions($sport, 'League'));
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    private function submitNewCompetition(KernelBrowser $client, string $name, ?Country $country = null): void
+    {
+        $this->submitFormData($client, '/competitions/new', 'competition', [
+            'name'    => $name,
+            'gender'  => GenderCategory::MALE->value,
+            'country' => (string) $country?->getId(),
+        ]);
+    }
+
+    /**
+     * @return Competition[]
+     */
+    private function findCompetitions(Sport $sport, string $name): array
+    {
+        /** @var CompetitionRepository $repository */
+        $repository = static::getContainer()->get(CompetitionRepository::class);
+
+        return $repository->findBy(['sport' => $sport, 'name' => $name]);
+    }
+
+    private function createCompetitionEntity(Sport $sport, string $name, ?Country $country = null): Competition
+    {
+        $competition = $this->createCompetitionInSport($sport);
+        $competition->setName($name);
+        $competition->setCountry($country);
+        $this->getEntityManager()->flush();
+
+        return $competition;
+    }
 
     private function assertGenderFieldError(KernelBrowser $client): void
     {

@@ -641,6 +641,41 @@ final class TeamControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Team with the details of an active team in another letter case is rejected on "name"')]
+    public function teamWithDuplicateDetailsIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $country = $this->createTestCountry();
+        $this->submitNewTeam($client, 'Duplicate Team', TeamType::CLUB, $country, null);
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $this->submitNewTeam($client, 'duplicate TEAM', TeamType::CLUB, $country, null);
+
+        $this->assertDuplicateRejected($client, 'name');
+    }
+
+    #[Test]
+    #[TestDox('Team with the same name but another competition country is created')]
+    public function teamWithSameNameInAnotherCompetitionCountryIsCreated(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+        $country = $this->createTestCountry();
+        $this->submitNewTeam($client, 'Twin Team', TeamType::CLUB, $country, $country);
+
+        $this->submitNewTeam($client, 'Twin Team', TeamType::CLUB, $country, $this->createTestCountry());
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

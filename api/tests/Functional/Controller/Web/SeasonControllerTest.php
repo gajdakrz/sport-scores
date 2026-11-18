@@ -327,6 +327,53 @@ final class SeasonControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Season with the years of an active season is rejected on "startYear" and not saved')]
+    public function seasonWithDuplicateYearsIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $year = (int) date('Y');
+        $this->createTestSeason($year - 2, $year - 1);
+
+        $this->submitFormData($client, '/seasons/new', 'season', [
+            'startYear' => (string) ($year - 2),
+            'endYear'   => (string) ($year - 1),
+        ]);
+
+        $this->assertDuplicateRejected($client, 'startYear');
+
+        /** @var SeasonRepository $repository */
+        $repository = static::getContainer()->get(SeasonRepository::class);
+        $this->assertCount(1, $repository->findBy(['startYear' => $year - 2, 'endYear' => $year - 1]));
+    }
+
+    #[Test]
+    #[TestDox('Invalid year range is rejected as invalid data even if such a season already exists')]
+    public function invalidYearRangeIsRejectedBeforeUniquenessCheck(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $year = (int) date('Y');
+        $this->createTestSeason($year, $year - 2);
+
+        $this->submitFormData($client, '/seasons/new', 'season', [
+            'startYear' => (string) $year,
+            'endYear'   => (string) ($year - 2),
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        // only the year range error – the uniqueness check doesn't run for invalid data
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertCount(1, $data['errors']);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

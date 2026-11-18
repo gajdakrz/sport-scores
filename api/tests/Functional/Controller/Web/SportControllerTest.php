@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Entity\Sport;
 use App\Repository\SportRepository;
 use App\Tests\Trait\ControllerTestTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -369,19 +370,138 @@ final class SportControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function duplicateNameProvider(): array
+    {
+        return [
+            'the same name'           => ['Piłka Ręczna'],
+            'extra whitespace'        => ["  Piłka \t  Ręczna  "],
+            'different letter case'   => ['piłka ręczna'],
+            'upper-case Polish chars' => ['PIŁKA RĘCZNA'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('duplicateNameProvider')]
+    #[TestDox('Sport named like an active sport ($_dataName) is rejected on "name" and not saved')]
+    public function sportWithDuplicateNameIsRejected(string $name): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $this->createTestSportEntity('Piłka Ręczna');
+
+        $this->submitFormData($client, '/sports/new', 'sport', ['name' => $name]);
+
+        $this->assertDuplicateRejected($client, 'name');
+        $this->assertCount(1, $this->findSportsByName('Piłka Ręczna'));
+    }
+
+    #[Test]
+    #[TestDox('Name is stored with the typed letter case, trimmed and with single spaces')]
+    public function sportNameIsStoredWithTypedCaseAndNormalizedWhitespace(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+
+        $this->submitFormData($client, '/sports/new', 'sport', ['name' => '  beach   VOLLEYBALL ']);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+        $this->assertSame(['beach VOLLEYBALL'], array_map(
+            static fn(Sport $sport): ?string => $sport->getName(),
+            $this->findSportsByName('beach volleyball')
+        ));
+    }
+
+    #[Test]
+    #[TestDox('Name of a deleted (inactive) sport can be used for a new sport')]
+    public function nameOfDeletedSportCanBeReused(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $this->createTestSportEntity('Deleted Sport', false);
+
+        $this->submitFormData($client, '/sports/new', 'sport', ['name' => 'Deleted Sport']);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+        $this->assertCount(2, $this->findSportsByName('Deleted Sport'));
+    }
+
+    #[Test]
+    #[TestDox('Renaming a sport to its own name in another letter case is saved')]
+    public function editingSportWithOwnNameInAnotherCaseIsSaved(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $sport = $this->createTestSportEntity('Football');
+        $url   = sprintf('/sports/%d/edit', $sport->getId());
+
+        $this->submitFormData($client, $url, 'sport', ['name' => 'FOOTBALL']);
+
+        $this->assertResponseIsSuccessful();
+        $this->getEntityManager()->clear();
+        $this->assertSame('FOOTBALL', $this->findSportsByName('football')[0]->getName());
+    }
+
+    #[Test]
+    #[TestDox('Renaming a sport to the name of another active sport is rejected on "name"')]
+    public function renamingSportToExistingNameIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $this->createTestSportEntity('Existing Sport');
+        $sport = $this->createTestSportEntity();
+        $url   = sprintf('/sports/%d/edit', $sport->getId());
+
+        $this->submitFormData($client, $url, 'sport', ['name' => 'Existing Sport']);
+
+        $this->assertDuplicateRejected($client, 'name');
+    }
+
+    #[Test]
+    #[TestDox('Duplicate name together with another form error is rejected as invalid data')]
+    public function duplicateNameWithInvalidCsrfTokenIsRejectedAsInvalidData(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $this->createTestSportEntity('Duplicate Sport');
+
+        $client->request('POST', '/sports/new', [
+            'sport' => ['name' => 'Duplicate Sport', '_token' => 'invalid_csrf_token'],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function createTestSportEntity(): Sport
+    /**
+     * @return Sport[]
+     */
+    private function findSportsByName(string $name): array
+    {
+        /** @var SportRepository $repository */
+        $repository = static::getContainer()->get(SportRepository::class);
+
+        return $repository->findBy(['name' => $name]);
+    }
+
+    private function createTestSportEntity(?string $name = null, bool $isActive = true): Sport
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
 
         $sport = new Sport();
-        $sport->setName('Test Sport ' . uniqid());
+        $sport->setName($name ?? 'Test Sport ' . uniqid());
         $sport->setCreatedBy($user);
         $sport->setModifiedBy($user);
-        $sport->setIsActive(true);
+        $sport->setIsActive($isActive);
 
         $em->persist($sport);
         $em->flush();

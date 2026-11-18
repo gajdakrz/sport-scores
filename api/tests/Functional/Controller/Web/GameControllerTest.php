@@ -380,6 +380,32 @@ final class GameControllerTest extends WebTestCase
         $this->assertNull($repository->findOneBy(['event' => $event->getId()]));
     }
 
+    #[Test]
+    #[TestDox('Game with the same team in two results is rejected on "gameResults" and not saved')]
+    public function gameWithSameTeamTwiceIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+
+        $event = $this->createTestEvent($this->createTestCompetition($sport));
+        $team  = $this->createTestTeam($sport);
+
+        $this->submitFormData($client, '/games/new', 'game', [
+            'season'      => (string) $this->createTestSeason()->getId(),
+            'competition' => (string) $event->getCompetition()?->getId(),
+            'event'       => (string) $event->getId(),
+            'date'        => date('Y-m-d'),
+            'gameResults' => $this->gameResultsData($team, $team),
+        ]);
+
+        $this->assertFieldError($client, 'gameResults');
+
+        /** @var GameRepository $repository */
+        $repository = static::getContainer()->get(GameRepository::class);
+        $this->assertNull($repository->findOneBy(['event' => $event->getId()]));
+    }
+
     // -------------------------------------------------------------------------
     // new – POST (validation: no event → !isValid())
     // -------------------------------------------------------------------------

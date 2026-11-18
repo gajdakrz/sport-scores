@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\Competition;
 use App\Entity\Season;
+use App\Entity\Sport;
 use App\Entity\Team;
 use App\Enum\GenderCategory;
 use App\Enum\TeamType;
@@ -264,7 +265,7 @@ final class BracketControllerTest extends WebTestCase
         return $season;
     }
 
-    private function createTestTeamForSport(\App\Entity\Sport $sport): Team
+    private function createTestTeamForSport(Sport $sport): Team
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();

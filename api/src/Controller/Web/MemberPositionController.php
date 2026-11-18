@@ -48,6 +48,8 @@ final class MemberPositionController extends BaseController
         $memberPosition->setCreatedBy($user);
         $memberPosition->setModifiedBy($user);
         $currentSport = $currentSportProvider->requireSport();
+        // before validation: the sport is part of the unique key
+        $memberPosition->setSport($currentSport);
 
         $form = $this->createForm(MemberPositionType::class, $memberPosition, [
             'current_sport' => $currentSport,
@@ -65,7 +67,6 @@ final class MemberPositionController extends BaseController
             $this->throwFormErrors($form);
         }
 
-        $memberPosition->setSport($currentSport);
         $em->persist($memberPosition);
         $em->flush();
 

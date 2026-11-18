@@ -8,8 +8,23 @@ use App\Repository\TeamMemberRepository;
 use App\Validator\TeamMemberGenderMatch;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: TeamMemberRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_team_member_team_person_season',
+    columns: ['team_id', 'person_id', 'start_season_id'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[UniqueEntity(
+    fields: ['team', 'person', 'startSeason'],
+    message: 'This person is already a member of this team from this season.',
+    repositoryMethod: 'findActiveBy',
+    errorPath: 'person',
+    groups: [self::UNIQUE_GROUP],
+)]
+#[Assert\GroupSequence(['TeamMember', self::UNIQUE_GROUP])]
 #[TeamMemberGenderMatch]
 class TeamMember extends AbstractAuditableEntity
 {

@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Entity\MemberPosition;
 use App\Entity\Person;
 use App\Entity\Season;
+use App\Entity\Sport;
 use App\Entity\Team;
 use App\Entity\TeamMember;
 use App\Enum\Gender;
@@ -471,14 +472,44 @@ final class TeamMemberControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Person already in the team from the same start season is rejected on "person"')]
+    public function memberWithDuplicateTeamPersonAndSeasonIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $team     = $this->createTestTeamEntity($this->setCurrentSport($client));
+        $person   = $this->createTestPerson($team);
+        $season   = $this->createTestSeason();
+        $position = $this->createTestMemberPosition($team);
+        $this->createTestTeamMember($team, $person, $season, $position);
+
+        $this->submitFormData($client, '/team-members/new', 'team_member', [
+            'team'           => (string) $team->getId(),
+            'person'         => (string) $person->getId(),
+            'startSeason'    => (string) $season->getId(),
+            'memberPosition' => (string) $position->getId(),
+        ]);
+
+        $this->assertDuplicateRejected($client, 'person');
+
+        /** @var TeamMemberRepository $repository */
+        $repository = static::getContainer()->get(TeamMemberRepository::class);
+        $this->assertCount(1, $repository->findBy(['team' => $team, 'person' => $person]));
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function createTestTeamEntity(): Team
+    private function createTestTeamEntity(?Sport $sport = null): Team
     {
         $em    = $this->getEntityManager();
         $user  = $this->getTestUser();
-        $sport = $this->createTestSport();
+        $sport ??= $this->createTestSport();
 
         $team = new Team();
         $team->setName('Test Team ' . uniqid());

@@ -15,6 +15,18 @@ use SortDirection;
  */
 abstract class AbstractRepository extends ServiceEntityRepository
 {
+    /**
+     * Used by #[UniqueEntity(repositoryMethod: 'findActiveBy')]: soft-deleted (inactive) records
+     * don't block a new record with the same unique key – matches the partial unique indexes.
+     *
+     * @param array<string, mixed> $criteria
+     * @return list<T>
+     */
+    public function findActiveBy(array $criteria): array
+    {
+        return $this->findBy($criteria + ['isActive' => true]);
+    }
+
     protected function applyFilter(QueryBuilder $qb, string $field, mixed $value): void
     {
         if ($value === null || $value === '') {

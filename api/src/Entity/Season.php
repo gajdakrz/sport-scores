@@ -10,8 +10,23 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: SeasonRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_season_years',
+    columns: ['start_year', 'end_year'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[UniqueEntity(
+    fields: ['startYear', 'endYear'],
+    message: 'A season with these years already exists.',
+    repositoryMethod: 'findActiveBy',
+    errorPath: 'startYear',
+    groups: [self::UNIQUE_GROUP],
+)]
+#[Assert\GroupSequence(['Season', self::UNIQUE_GROUP])]
 #[SeasonYearRange]
 class Season extends AbstractAuditableEntity
 {

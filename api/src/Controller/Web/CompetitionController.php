@@ -47,6 +47,8 @@ final class CompetitionController extends BaseController
         $competition->setCreatedBy($user);
         $competition->setModifiedBy($user);
         $currentSport = $currentSportProvider->requireSport();
+        // before validation: the sport is part of the unique key
+        $competition->setSport($currentSport);
 
         $form = $this->createForm(CompetitionType::class, $competition, [
             'current_sport' => $currentSport,
@@ -64,7 +66,6 @@ final class CompetitionController extends BaseController
             $this->throwFormErrors($form);
         }
 
-        $competition->setSport($currentSport);
         $em->persist($competition);
         $em->flush();
 

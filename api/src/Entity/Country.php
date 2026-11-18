@@ -4,12 +4,27 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Helper\StringNormalizer;
 use App\Repository\CountryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: CountryRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_country_name',
+    columns: ['name'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[UniqueEntity(
+    fields: ['name'],
+    message: 'A country with this name already exists.',
+    repositoryMethod: 'findActiveBy',
+    groups: [self::UNIQUE_GROUP],
+)]
+#[Assert\GroupSequence(['Country', self::UNIQUE_GROUP])]
 class Country extends AbstractAuditableEntity
 {
     #[ORM\Id]
@@ -17,7 +32,7 @@ class Country extends AbstractAuditableEntity
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, options: ['collation' => self::CASE_INSENSITIVE])]
     private ?string $name = null;
 
     /**
@@ -57,7 +72,7 @@ class Country extends AbstractAuditableEntity
 
     public function setName(string $name): static
     {
-        $this->name = $name;
+        $this->name = StringNormalizer::normalizeWhitespace($name);
 
         return $this;
     }

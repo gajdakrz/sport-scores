@@ -178,7 +178,7 @@ final class PreferenceControllerTest extends WebTestCase
         $this->saveUserPreference($user, $sport, $team);
 
         $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
-        $crawler = $client->request('GET', '/');
+        $crawler = $client->request('GET', '/sports');
 
         $teamQuery = sprintf('?teamId=%d', $team->getId());
         $this->assertCount(1, $crawler->filter(sprintf('a[href="/game-results%s"]', $teamQuery)));
@@ -198,7 +198,7 @@ final class PreferenceControllerTest extends WebTestCase
         $this->saveUserPreference($user, $sport, $this->createTeamInSport($sport));
 
         $client->request('POST', sprintf('/sports/set/%d', $this->createTestSport()->getId()));
-        $crawler = $client->request('GET', '/');
+        $crawler = $client->request('GET', '/sports');
 
         $this->assertCount(1, $crawler->filter('a[href="/game-results"]'));
         $this->assertCount(1, $crawler->filter('a[href="/team-members"]'));
@@ -216,7 +216,7 @@ final class PreferenceControllerTest extends WebTestCase
         $this->saveUserPreference($user, $sport, null, false, $competition);
 
         $client->request('POST', sprintf('/sports/set/%d', $sport->getId()));
-        $crawler = $client->request('GET', '/');
+        $crawler = $client->request('GET', '/sports');
 
         $competitionQuery = sprintf('?competitionId=%d', $competition->getId());
         $this->assertCount(1, $crawler->filter(sprintf('a[href="/events%s"]', $competitionQuery)));
@@ -253,7 +253,7 @@ final class PreferenceControllerTest extends WebTestCase
         $user   = $this->loginAsTestUser($client);
         $this->saveUserPreference($user, null, null, false);
 
-        $crawler = $client->request('GET', '/');
+        $crawler = $client->request('GET', '/sports');
 
         $this->assertCount(1, $crawler->filter('a[href="/games"]'));
     }

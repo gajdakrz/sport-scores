@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\TeamMember;
-use App\Exception\CustomBadRequestException;
 use App\Repository\TeamMemberRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use RuntimeException;
 
 readonly class TeamMemberService
 {
@@ -19,7 +17,7 @@ readonly class TeamMemberService
     }
 
     /**
-     * @throws RuntimeException if a current member already exists for this team
+     * A duplicate (same team, person and start season) is rejected earlier by UniqueEntity on TeamMember.
      */
     public function saveTeamMember(TeamMember $teamMember): void
     {
@@ -44,19 +42,6 @@ readonly class TeamMemberService
             $this->setCurrentTeamInPerson($teamMember);
 
             return;
-        }
-
-        if (
-            $currentTeamMember !== $teamMember
-            && $currentTeamMember->getTeam() === $teamMember->getTeam()
-            && $currentTeamMember->getStartSeason() === $teamMember->getStartSeason()
-        ) {
-            $errors = [[
-                'message' => 'Current member already exists for this team in this start season',
-                'field' => '',
-            ]];
-
-            throw new CustomBadRequestException($errors);
         }
 
         if ($currentTeamMember !== $teamMember) {
