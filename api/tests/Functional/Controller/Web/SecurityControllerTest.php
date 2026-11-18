@@ -222,7 +222,7 @@ final class SecurityControllerTest extends WebTestCase
 
     private function assertSelectedSport(KernelBrowser $client, string $sportId): void
     {
-        $crawler = $client->request('GET', '/');
+        $crawler = $client->request('GET', '/sports');
 
         $this->assertSame($sportId, $crawler->filter('#sport-switcher option[selected]')->attr('value'));
     }

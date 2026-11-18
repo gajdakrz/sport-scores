@@ -7,18 +7,59 @@ namespace App\Tests\Functional\Controller\Web;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class HomeControllerTest extends WebTestCase
 {
     use ControllerTestTrait;
 
-    public function testIndex(): void
+    #[Test]
+    #[TestDox('Home page shows the sport selection to a user without a current or favourite sport')]
+    public function homeShowsSportSelectionWithoutKnownSport(): void
     {
         $client = static::createClient();
         $this->loginAsTestUser($client);
+
         $client->request('GET', '/');
+
         self::assertResponseIsSuccessful();
+        self::assertSelectorExists('#sport-select');
+    }
+
+    #[Test]
+    #[TestDox('Home page leads to Games when a sport is already selected in the session (e.g. in another tab)')]
+    public function homeLeadsToGamesWithSportInSession(): void
+    {
+        $client = static::createClient();
+        $this->loginAsTestUser($client);
+        $this->setCurrentSport($client);
+
+        $client->request('GET', '/');
+
+        $this->assertRedirectsToGames($client);
+    }
+
+    #[Test]
+    #[TestDox('Home page leads to Games with the favourite sport set as the current one')]
+    public function homeLeadsToGamesWithFavouriteSport(): void
+    {
+        $client = static::createClient();
+        $user   = $this->loginAsTestUser($client);
+        $sport  = $this->createTestSport();
+        $this->saveUserPreference($user, $sport);
+
+        $client->request('GET', '/');
+
+        $this->assertRedirectsToGames($client);
+        $client->followRedirect();
+        self::assertSelectorTextContains('#sport-switcher option[selected]', (string) $sport->getName());
+    }
+
+    private function assertRedirectsToGames(KernelBrowser $client): void
+    {
+        self::assertResponseRedirects();
+        self::assertStringStartsWith('/games', (string) $client->getResponse()->headers->get('Location'));
     }
 
     #[Test]
