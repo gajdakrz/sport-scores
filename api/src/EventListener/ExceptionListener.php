@@ -6,7 +6,9 @@ namespace App\EventListener;
 
 use App\Dto\Response\ExceptionResponse;
 use App\Exception\CustomBadRequestException;
+use App\Exception\DuplicateEntityException;
 use App\Helper\ValidationHelper;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,12 +32,18 @@ readonly class ExceptionListener
     public function __invoke(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
+        // a concurrent insert slipped past the UniqueEntity check and hit a unique index
+        if ($exception instanceof UniqueConstraintViolationException) {
+            $exception = new DuplicateEntityException();
+        }
+
         if ($exception instanceof HttpExceptionInterface) {
             $exceptionResponse = new ExceptionResponse();
             $response = new JsonResponse();
             $previous = $exception->getPrevious();
             $response->setStatusCode(Response::HTTP_BAD_REQUEST);
             if ($exception instanceof CustomBadRequestException) {
+                $response->setStatusCode($exception->getStatusCode());
                 $exceptionResponse->setErrors($exception->getErrors());
             } elseif ($previous instanceof ValidationFailedException) {
                 $this->validationHelper->prepareValidationErrors($previous);

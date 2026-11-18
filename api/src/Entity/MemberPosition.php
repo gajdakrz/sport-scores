@@ -4,12 +4,28 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Helper\StringNormalizer;
 use App\Repository\MemberPositionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: MemberPositionRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_member_position_sport_name',
+    columns: ['sport_id', 'name'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[UniqueEntity(
+    fields: ['sport', 'name'],
+    message: 'This position already exists in this sport.',
+    repositoryMethod: 'findActiveBy',
+    errorPath: 'name',
+    groups: [self::UNIQUE_GROUP],
+)]
+#[Assert\GroupSequence(['MemberPosition', self::UNIQUE_GROUP])]
 class MemberPosition extends AbstractAuditableEntity
 {
     #[ORM\Id]
@@ -25,7 +41,7 @@ class MemberPosition extends AbstractAuditableEntity
     )]
     private ?Sport $sport = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, options: ['collation' => self::CASE_INSENSITIVE])]
     private ?string $name = null;
 
     /**
@@ -70,7 +86,7 @@ class MemberPosition extends AbstractAuditableEntity
 
     public function setName(string $name): static
     {
-        $this->name = $name;
+        $this->name = StringNormalizer::normalizeWhitespace($name);
 
         return $this;
     }

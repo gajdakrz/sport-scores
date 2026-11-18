@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\GameRepository;
+use App\Validator\UniqueGameParticipants;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,10 +14,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
+#[UniqueGameParticipants]
 class Game extends AbstractAuditableEntity
 {
-    public const MIN_RESULTS = 2;
-    public const MIN_RESULTS_MESSAGE = 'A game must have at least two results.';
+    public const int MIN_RESULTS = 2;
+    public const string MIN_RESULTS_MESSAGE = 'A game must have at least two results.';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -632,6 +632,35 @@ final class GameResultControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Second result of the same team in a game is rejected on "team" and not saved')]
+    public function secondResultOfTeamInGameIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport = $this->setCurrentSport($client);
+        $event = $this->createTestEvent($this->createTestCompetition($sport));
+        $game  = $this->createTestGame($event, $this->createTestSeason());
+        $team  = $this->createTestTeam($sport);
+        $this->createTestGameResult($game, $team);
+
+        $this->submitFormData($client, '/game-results/new', 'game_result', [
+            'game'       => (string) $game->getId(),
+            'team'       => (string) $team->getId(),
+            'matchScore' => '1',
+        ]);
+
+        $this->assertDuplicateRejected($client, 'team');
+
+        /** @var GameResultRepository $repository */
+        $repository = static::getContainer()->get(GameResultRepository::class);
+        $this->assertCount(1, $repository->findBy(['game' => $game, 'team' => $team]));
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

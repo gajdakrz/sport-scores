@@ -10,8 +10,35 @@ use App\Validator\AtLeastOneScore;
 use App\Validator\GameResultTeamCountryMatch;
 use App\Validator\GameResultTeamGenderMatch;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: GameResultRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_game_result_game_team',
+    columns: ['game_id', 'team_id'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_game_result_game_person',
+    columns: ['game_id', 'person_id'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[UniqueEntity(
+    fields: ['game', 'team'],
+    message: 'This team already has a result in this game.',
+    repositoryMethod: 'findActiveBy',
+    errorPath: 'team',
+    groups: [self::UNIQUE_GROUP],
+)]
+#[UniqueEntity(
+    fields: ['game', 'person'],
+    message: 'This person already has a result in this game.',
+    repositoryMethod: 'findActiveBy',
+    errorPath: 'person',
+    groups: [self::UNIQUE_GROUP],
+)]
+#[Assert\GroupSequence(['GameResult', self::UNIQUE_GROUP])]
 #[AtLeastOneScore]
 #[GameResultTeamGenderMatch]
 #[GameResultTeamCountryMatch]

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Helper\StringNormalizer;
 use App\Enum\Gender;
 use App\Enum\GenderCategory;
 use App\Enum\TeamType;
@@ -13,8 +14,39 @@ use App\Repository\TeamRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_team_key',
+    columns: ['name', 'sport_id', 'gender', 'team_type', 'country_id', 'competition_country_id'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_team_key_no_country',
+    columns: ['name', 'sport_id', 'gender', 'team_type', 'competition_country_id'],
+    options: ['where' => '((country_id IS NULL) AND (is_active = true))']
+)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_team_key_no_competition_country',
+    columns: ['name', 'sport_id', 'gender', 'team_type', 'country_id'],
+    options: ['where' => '((competition_country_id IS NULL) AND (is_active = true))']
+)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_team_key_no_countries',
+    columns: ['name', 'sport_id', 'gender', 'team_type'],
+    options: ['where' => '((country_id IS NULL) AND (competition_country_id IS NULL) AND (is_active = true))']
+)]
+#[UniqueEntity(
+    fields: ['name', 'sport', 'gender', 'country', 'teamType', 'competitionCountry'],
+    message: 'A team with these details already exists.',
+    repositoryMethod: 'findActiveBy',
+    errorPath: 'name',
+    ignoreNull: false,
+    groups: [self::UNIQUE_GROUP],
+)]
+#[Assert\GroupSequence(['Team', self::UNIQUE_GROUP])]
 #[TeamGenderConsistent]
 #[TeamCompetitionCountryAllowed]
 class Team extends AbstractAuditableEntity implements SportScopedInterface
@@ -24,7 +56,7 @@ class Team extends AbstractAuditableEntity implements SportScopedInterface
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, options: ['collation' => self::CASE_INSENSITIVE])]
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Country::class, inversedBy: 'teams')]
@@ -106,7 +138,7 @@ class Team extends AbstractAuditableEntity implements SportScopedInterface
 
     public function setName(string $name): static
     {
-        $this->name = $name;
+        $this->name = StringNormalizer::normalizeWhitespace($name);
 
         return $this;
     }

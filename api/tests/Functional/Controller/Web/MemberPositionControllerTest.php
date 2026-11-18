@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Controller\Web;
 
 use App\Entity\MemberPosition;
+use App\Entity\Sport;
 use App\Repository\MemberPositionRepository;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
@@ -355,17 +356,62 @@ final class MemberPositionControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Position with the name of an active position in the same sport is rejected on "name"')]
+    public function positionWithDuplicateNameInSameSportIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $sport = $this->setCurrentSport($client);
+        $this->createTestMemberPosition($sport, 'Goalkeeper');
+
+        $this->submitFormData($client, '/member-positions/new', 'member_position', ['name' => 'Goalkeeper']);
+
+        $this->assertDuplicateRejected($client, 'name');
+        $this->assertCount(1, $this->findPositions($sport, 'Goalkeeper'));
+    }
+
+    #[Test]
+    #[TestDox('Position with the name of a position in another sport is created')]
+    public function positionWithNameUsedInAnotherSportIsCreated(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $sport = $this->setCurrentSport($client);
+        $this->createTestMemberPosition(null, 'Goalkeeper');
+
+        $this->submitFormData($client, '/member-positions/new', 'member_position', ['name' => 'Goalkeeper']);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+        $this->assertCount(1, $this->findPositions($sport, 'Goalkeeper'));
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function createTestMemberPosition(): MemberPosition
+    /**
+     * @return MemberPosition[]
+     */
+    private function findPositions(Sport $sport, string $name): array
+    {
+        /** @var MemberPositionRepository $repository */
+        $repository = static::getContainer()->get(MemberPositionRepository::class);
+
+        return $repository->findBy(['sport' => $sport, 'name' => $name]);
+    }
+
+    private function createTestMemberPosition(?Sport $sport = null, ?string $name = null): MemberPosition
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
-        $sport = $this->createTestSport();
+        $sport ??= $this->createTestSport();
 
         $position = new MemberPosition();
-        $position->setName('Test Position ' . uniqid());
+        $position->setName($name ?? 'Test Position ' . uniqid());
         $position->setSport($sport);
         $position->setCreatedBy($user);
         $position->setModifiedBy($user);

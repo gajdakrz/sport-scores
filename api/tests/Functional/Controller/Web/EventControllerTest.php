@@ -9,6 +9,7 @@ use App\Entity\Event;
 use App\Entity\Sport;
 use App\Enum\GenderCategory;
 use App\Repository\EventRepository;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use App\Tests\Trait\ControllerTestTrait;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
@@ -506,8 +507,63 @@ final class EventControllerTest extends WebTestCase
     }
 
     // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Event with the name of an active event in the same competition is rejected on "name"')]
+    public function eventWithDuplicateNameInSameCompetitionIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport       = $this->setCurrentSport($client);
+        $competition = $this->createTestCompetition($sport);
+        $this->createTestEvent($competition, null, 'Final');
+
+        $this->submitNewEvent($client, $competition, 'Final');
+
+        $this->assertDuplicateRejected($client, 'name');
+        $this->assertCount(1, $this->findEvents($competition, 'Final'));
+    }
+
+    #[Test]
+    #[TestDox('Event with the name of an event in another competition is created')]
+    public function eventWithNameUsedInAnotherCompetitionIsCreated(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestUser($client);
+        $sport       = $this->setCurrentSport($client);
+        $competition = $this->createTestCompetition($sport);
+        $this->createTestEvent($this->createTestCompetition($sport), null, 'Final');
+
+        $this->submitNewEvent($client, $competition, 'Final');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+        $this->assertCount(1, $this->findEvents($competition, 'Final'));
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    private function submitNewEvent(KernelBrowser $client, Competition $competition, string $name): void
+    {
+        $this->submitFormData($client, '/events/new', 'event', [
+            'name'        => $name,
+            'competition' => (string) $competition->getId(),
+        ]);
+    }
+
+    /**
+     * @return Event[]
+     */
+    private function findEvents(Competition $competition, string $name): array
+    {
+        /** @var EventRepository $repository */
+        $repository = static::getContainer()->get(EventRepository::class);
+
+        return $repository->findBy(['competition' => $competition, 'name' => $name]);
+    }
 
     private function createTestCompetition(Sport $sport, bool $isBracket = false): Competition
     {
@@ -529,13 +585,13 @@ final class EventControllerTest extends WebTestCase
         return $competition;
     }
 
-    private function createTestEvent(Competition $competition, ?int $orderIndex = null): Event
+    private function createTestEvent(Competition $competition, ?int $orderIndex = null, ?string $name = null): Event
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
 
         $event = new Event();
-        $event->setName('Test Event ' . uniqid());
+        $event->setName($name ?? 'Test Event ' . uniqid());
         $event->setCompetition($competition);
         $event->setOrderIndex($orderIndex);
         $event->setCreatedBy($user);

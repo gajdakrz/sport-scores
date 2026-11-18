@@ -4,12 +4,28 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Helper\StringNormalizer;
 use App\Repository\EventRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_event_competition_name',
+    columns: ['competition_id', 'name'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[UniqueEntity(
+    fields: ['competition', 'name'],
+    message: 'An event with this name already exists in this competition.',
+    repositoryMethod: 'findActiveBy',
+    errorPath: 'name',
+    groups: [self::UNIQUE_GROUP],
+)]
+#[Assert\GroupSequence(['Event', self::UNIQUE_GROUP])]
 class Event extends AbstractAuditableEntity
 {
     #[ORM\Id]
@@ -17,7 +33,7 @@ class Event extends AbstractAuditableEntity
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, options: ['collation' => self::CASE_INSENSITIVE])]
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Competition::class, inversedBy: 'events')]
@@ -61,7 +77,7 @@ class Event extends AbstractAuditableEntity
 
     public function setName(string $name): static
     {
-        $this->name = $name;
+        $this->name = StringNormalizer::normalizeWhitespace($name);
 
         return $this;
     }

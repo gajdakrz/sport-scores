@@ -4,14 +4,36 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Helper\StringNormalizer;
 use App\Enum\GenderCategory;
 use App\Repository\CompetitionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: CompetitionRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_competition_key',
+    columns: ['name', 'sport_id', 'gender', 'country_id'],
+    options: ['where' => self::ACTIVE_ONLY]
+)]
+#[ORM\UniqueConstraint(
+    name: 'uniq_competition_key_international',
+    columns: ['name', 'sport_id', 'gender'],
+    options: ['where' => '((country_id IS NULL) AND (is_active = true))']
+)]
+#[UniqueEntity(
+    fields: ['name', 'sport', 'gender', 'country'],
+    message: 'A competition with this name, sport, gender and country already exists.',
+    repositoryMethod: 'findActiveBy',
+    errorPath: 'name',
+    ignoreNull: false,
+    groups: [self::UNIQUE_GROUP],
+)]
+#[Assert\GroupSequence(['Competition', self::UNIQUE_GROUP])]
 class Competition extends AbstractAuditableEntity implements SportScopedInterface
 {
     #[ORM\Id]
@@ -19,7 +41,7 @@ class Competition extends AbstractAuditableEntity implements SportScopedInterfac
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, options: ['collation' => self::CASE_INSENSITIVE])]
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Sport::class, inversedBy: 'competitions')]
@@ -89,7 +111,7 @@ class Competition extends AbstractAuditableEntity implements SportScopedInterfac
 
     public function setName(string $name): static
     {
-        $this->name = $name;
+        $this->name = StringNormalizer::normalizeWhitespace($name);
 
         return $this;
     }

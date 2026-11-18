@@ -314,4 +314,25 @@ final class CountryControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
+
+    // -------------------------------------------------------------------------
+    // uniqueness
+    // -------------------------------------------------------------------------
+
+    #[Test]
+    #[TestDox('Country with the name of an active country is rejected on "name" and not saved')]
+    public function countryWithDuplicateNameIsRejected(): void
+    {
+        $client = self::createClient();
+        $this->loginAsTestAdmin($client);
+        $this->createTestCountry('Duplicate Country');
+
+        $this->submitFormData($client, '/countries/new', 'country', ['name' => 'Duplicate Country']);
+
+        $this->assertDuplicateRejected($client, 'name');
+
+        /** @var CountryRepository $repository */
+        $repository = static::getContainer()->get(CountryRepository::class);
+        $this->assertCount(1, $repository->findBy(['name' => 'Duplicate Country']));
+    }
 }

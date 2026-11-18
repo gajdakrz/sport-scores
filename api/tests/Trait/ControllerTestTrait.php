@@ -17,6 +17,7 @@ use App\Repository\UserRepository;
 use App\Tests\Exception\FixtureNotFoundException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\HttpFoundation\Response;
 
 trait ControllerTestTrait
 {
@@ -65,13 +66,13 @@ trait ControllerTestTrait
         return $sport;
     }
 
-    protected function createTestCountry(): Country
+    protected function createTestCountry(?string $name = null): Country
     {
         $em   = $this->getEntityManager();
         $user = $this->getTestUser();
 
         $country = new Country();
-        $country->setName('Test Country ' . uniqid());
+        $country->setName($name ?? 'Test Country ' . uniqid());
         $country->setCreatedBy($user);
         $country->setModifiedBy($user);
         $country->setIsActive(true);
@@ -189,6 +190,27 @@ trait ControllerTestTrait
         $this->assertIsArray($data);
 
         return $data;
+    }
+
+    /**
+     * Submits a form as POST with a valid CSRF token taken from the GET version of the same URL.
+     *
+     * @param array<string, mixed> $fields
+     */
+    protected function submitFormData(KernelBrowser $client, string $url, string $formName, array $fields): void
+    {
+        $client->request('POST', $url, [
+            $formName => $fields + ['_token' => $this->getValidCsrfToken($client, $url)],
+        ]);
+    }
+
+    protected function assertDuplicateRejected(KernelBrowser $client, string $field): void
+    {
+        $this->assertResponseStatusCodeSame(Response::HTTP_CONFLICT);
+
+        $data = $this->assertJsonSuccessResponse($client);
+        $this->assertIsArray($data['errors']);
+        $this->assertContains($field, array_column($data['errors'], 'field'));
     }
 
     protected function getValidCsrfToken(KernelBrowser $client, string $url): string

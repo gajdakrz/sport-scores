@@ -8,7 +8,6 @@ use App\Entity\Person;
 use App\Entity\Season;
 use App\Entity\Team;
 use App\Entity\TeamMember;
-use App\Exception\CustomBadRequestException;
 use App\Repository\TeamMemberRepository;
 use App\Service\TeamMemberService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -138,44 +137,6 @@ class TeamMemberServiceTest extends TestCase
             ->willReturnCallback(fn(callable $callback) => $callback());
 
         $this->service->saveTeamMember($teamMember);
-    }
-
-    #[Test]
-    #[TestDox('Throws CustomBadRequestException when current member exists for same team and season')]
-    public function saveTeamMemberThrowsWhenCurrentMemberExistsForSameTeamAndSeason(): void
-    {
-        $team = $this->createStub(Team::class);
-        $season = $this->createStub(Season::class);
-        $person = $this->createStub(Person::class);
-
-        $existingMember = $this->createTeamMember(
-            id: 99,
-            isCurrentMember: true,
-            person: $person,
-            team: $team,
-            season: $season
-        );
-        $newMember = $this->createTeamMember(
-            id: null,
-            isCurrentMember: true,
-            person: $person,
-            team: $team,
-            season: $season
-        );
-
-        $this->teamMemberRepository
-            ->expects($this->once())
-            ->method('findOneBy')
-            ->willReturn($existingMember);
-
-        $this->em
-            ->expects($this->once())
-            ->method('wrapInTransaction')
-            ->willReturnCallback(fn(callable $callback) => $callback());
-
-        $this->expectException(CustomBadRequestException::class);
-
-        $this->service->saveTeamMember($newMember);
     }
 
     #[Test]
