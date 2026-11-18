@@ -74,6 +74,8 @@ final class TeamController extends BaseController
         $team->setCreatedBy($user);
         $team->setModifiedBy($user);
         $currentSport = $currentSportProvider->requireSport();
+        // before validation: the sport is part of the unique key
+        $team->setSport($currentSport);
 
         $form = $this->createForm(TeamType::class, $team, [
             'current_sport' => $currentSport,
@@ -91,7 +93,6 @@ final class TeamController extends BaseController
             $this->throwFormErrors($form);
         }
 
-        $team->setSport($currentSport);
         $em->persist($team);
         $em->flush();
 
